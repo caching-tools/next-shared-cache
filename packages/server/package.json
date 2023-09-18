@@ -1,11 +1,12 @@
 {
     "name": "server",
-    "version": "13.4.19",
+    "version": "13.4.20-canary.33",
     "homepage": "https://github.com/caching-tools/next-shared-cache",
     "bugs": "https://github.com/caching-tools/next-shared-cache/issues",
     "repository": "caching-tools/next-shared-cache",
     "license": "MIT",
     "main": "./dist/server.mjs",
+    "types": "./dist/types.d.mts",
     "bin": {
         "next-shared-cache": "./dist/server.mjs"
     },
@@ -20,8 +21,7 @@
     },
     "dependencies": {
         "@isaacs/ttlcache": "1.4.1",
-        "fastify": "4.23.2",
-        "lru-cache": "10.0.1"
+        "fastify": "4.23.2"
     },
     "devDependencies": {
         "@types/node": "ts5.2",

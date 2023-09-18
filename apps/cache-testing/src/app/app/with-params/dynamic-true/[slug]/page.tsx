@@ -1,10 +1,10 @@
 import { notFound } from 'next/navigation';
 
-export const dynamicParams = false;
-
 type PageParams = { params: { slug: string } };
 
-async function getData(slug: string): Promise<string | null> {
+export const dynamicParams = true;
+
+async function getData(slug: string): Promise<number | null> {
     const result = await fetch(`http://localhost:8081/${slug}`, {
         next: { revalidate: 5, tags: ['my-tag-static'] },
     });
@@ -13,13 +13,13 @@ async function getData(slug: string): Promise<string | null> {
         return null;
     }
 
-    const parsedResult = (await result.json()) as { name: string } | null;
+    const parsedResult = (await result.json()) as { count: number } | null;
 
     if (!parsedResult) {
         return null;
     }
 
-    return parsedResult.name;
+    return parsedResult.count;
 }
 
 export function generateStaticParams(): Promise<PageParams['params'][]> {
@@ -27,11 +27,11 @@ export function generateStaticParams(): Promise<PageParams['params'][]> {
 }
 
 export default async function Index({ params }: PageParams): Promise<JSX.Element> {
-    const name = await getData(params.slug);
+    const count = await getData(params.slug);
 
-    if (!name) {
+    if (!count) {
         notFound();
     }
 
-    return <div id="app-dir-page-static">{name}</div>;
+    return <div id="app/with-params/dynamic-true">{count}</div>;
 }

@@ -1,9 +1,9 @@
 export function normalizeSlug(slug: string): string {
-    if (slug.includes('200')) {
+    if (slug.startsWith('200')) {
         return '200';
-    } else if (slug.includes('404')) {
+    } else if (slug.startsWith('404')) {
         return '404';
-    } else if (slug.includes('alternate')) {
+    } else if (slug.startsWith('alternate')) {
         return 'alternate-200-404';
     }
 

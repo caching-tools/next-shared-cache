@@ -31,19 +31,13 @@ const server = Fastify({
 server.get('/200', async (_request, reply): Promise<void> => {
     const { count } = pathMeta['/200'];
 
-    await reply
-        .code(200)
-        .header('Content-Type', 'application/json; charset=utf-8')
-        .send({ name: String(count) });
+    await reply.code(200).header('Content-Type', 'application/json; charset=utf-8').send({ count });
 });
 
 server.get('/404', async (_request, reply): Promise<void> => {
     const { count } = pathMeta['/404'];
 
-    await reply
-        .code(404)
-        .header('Content-Type', 'application/json; charset=utf-8')
-        .send({ name: String(count) });
+    await reply.code(404).header('Content-Type', 'application/json; charset=utf-8').send({ count });
 });
 
 server.get('/alternate-200-404', async (_request, reply): Promise<void> => {
@@ -52,7 +46,7 @@ server.get('/alternate-200-404', async (_request, reply): Promise<void> => {
     await reply
         .code(count % 2 === 0 ? 200 : 404)
         .header('Content-Type', 'application/json; charset=utf-8')
-        .send({ name: String(count) });
+        .send({ count });
 });
 
 server

@@ -1,3 +1,3 @@
-const RemoteCacheHandler = require('handler').RemoteCacheHandler;
+const { RemoteCacheHandler } = require('handler');
 
 module.exports = RemoteCacheHandler;

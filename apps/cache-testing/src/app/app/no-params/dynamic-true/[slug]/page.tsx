@@ -1,11 +1,11 @@
 import { notFound } from 'next/navigation';
-import { normalizeSlug } from '../../../../utils/normalize-slug';
+import { normalizeSlug } from '../../../../../utils/normalize-slug';
 
 export const dynamicParams = true;
 
 type PageParams = { params: { slug: string } };
 
-async function getData(slug: string): Promise<string | null> {
+async function getData(slug: string): Promise<number | null> {
     const result = await fetch(`http://localhost:8081/${normalizeSlug(slug)}`, {
         next: { revalidate: 5, tags: ['my-tag-dynamic'] },
     });
@@ -14,25 +14,21 @@ async function getData(slug: string): Promise<string | null> {
         return null;
     }
 
-    const parsedResult = (await result.json()) as { name: string } | null;
-
-    console.log('parsedResult', parsedResult);
+    const parsedResult = (await result.json()) as { count: number } | null;
 
     if (!parsedResult) {
         return null;
     }
 
-    return parsedResult.name;
+    return parsedResult.count;
 }
 
 export default async function Index({ params }: PageParams): Promise<JSX.Element> {
-    console.log('params', params);
+    const count = await getData(params.slug);
 
-    const name = await getData(params.slug);
-
-    if (!name) {
+    if (typeof count === 'undefined') {
         notFound();
     }
 
-    return <div id="app-dir-page-dynamic">{name}</div>;
+    return <div id="app/no-params/dynamic-true">{count}</div>;
 }

@@ -52,27 +52,24 @@ export type IncrementalCacheValue =
     | CachedFetchValue
     | CachedRouteValue;
 
-export type CacheGetCtx = {
+export type CacheContext = {
     fetchCache?: boolean;
+    revalidate?: number | false;
     fetchUrl?: string;
     fetchIdx?: number;
+    tags?: string[];
+    softTags?: string[];
 };
 
 export type CacheGetOptions = {
-    pathname: string;
-    ctx: CacheGetCtx;
-};
-
-export type CacheSetCtx = {
-    fetchCache?: boolean;
-    fetchUrl?: string;
-    fetchIdx?: number;
+    cacheKey: string;
+    ctx: CacheContext;
 };
 
 export type CacheSetOptions = {
-    pathname: string;
+    cacheKey: string;
     data: IncrementalCacheValue | null;
-    ctx: CacheSetCtx;
+    ctx: CacheContext;
 };
 
 export type CacheRevalidateTagOptions = {

@@ -12,12 +12,12 @@ const host = '::';
 const port = 8080;
 
 server.post('/get', async (request, reply): Promise<void> => {
-    const { ctx, pathname: cacheKey } = request.body as CacheGetOptions;
+    const { ctx, cacheKey } = request.body as CacheGetOptions;
 
     const data = cache.get(cacheKey, ctx);
 
     if (!data) {
-        await reply.code(404).header('Content-Type', 'application/json; charset=utf-8').send({});
+        await reply.code(404).header('Content-Type', 'application/json; charset=utf-8').send();
 
         return;
     }
@@ -26,11 +26,11 @@ server.post('/get', async (request, reply): Promise<void> => {
 });
 
 server.post('/set', async (request, reply): Promise<void> => {
-    const { ctx, data, pathname: cacheKey } = request.body as CacheSetOptions;
+    const { ctx, data, cacheKey } = request.body as CacheSetOptions;
 
     cache.set(cacheKey, data, ctx);
 
-    await reply.code(200).header('Content-Type', 'application/json; charset=utf-8').send({});
+    await reply.code(200).header('Content-Type', 'application/json; charset=utf-8').send();
 });
 
 server.post('/revalidateTag', async (request, reply): Promise<void> => {
@@ -38,7 +38,7 @@ server.post('/revalidateTag', async (request, reply): Promise<void> => {
 
     cache.revalidateTags(tag);
 
-    await reply.code(200).header('Content-Type', 'application/json; charset=utf-8').send({});
+    await reply.code(200).header('Content-Type', 'application/json; charset=utf-8').send();
 });
 
 server.listen({ port, host }, (err) => {

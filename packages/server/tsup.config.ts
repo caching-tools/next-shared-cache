@@ -34,14 +34,12 @@ function onSuccess(): Promise<() => void> {
 export const tsup = defineConfig((options) => {
     return {
         name: 'Build server',
-        entry: ['src/server.ts'],
+        entry: ['src/server.ts', 'src/types.ts'],
         splitting: false,
-        clean: true,
+        dts: true,
         outDir: 'dist',
-        // bundle: true,
         format: 'esm',
         target: 'node18.17',
-        // noExternal: ['@isaacs/ttlcache', 'fastify', 'lru-cache'],
         onSuccess: options.watch ? onSuccess : undefined,
     };
 });

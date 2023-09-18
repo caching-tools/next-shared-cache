@@ -4,7 +4,7 @@ const nextConfig = {
     reactStrictMode: true,
     experimental: {
         incrementalCacheHandlerPath: require.resolve('./cache-handler'),
-        // isrFlushToDisk: false,
+        isrFlushToDisk: false,
     },
 };
 

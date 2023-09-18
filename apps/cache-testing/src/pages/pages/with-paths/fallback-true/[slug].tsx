@@ -1,8 +1,6 @@
 import type { GetStaticPathsResult, GetStaticPropsContext, GetStaticPropsResult } from 'next';
-import { normalizeSlug } from '../../../utils/normalize-slug';
-import RootLayout from '../../layout';
 
-type PageProps = { name: string };
+type PageProps = { count: number };
 
 export async function getStaticProps({ params }: GetStaticPropsContext): Promise<GetStaticPropsResult<PageProps>> {
     if (!params) {
@@ -15,32 +13,32 @@ export async function getStaticProps({ params }: GetStaticPropsContext): Promise
         throw new Error('no slug');
     }
 
-    const result = await fetch(`http://localhost:8081/${normalizeSlug(slug)}`);
+    const result = await fetch(`http://localhost:8081/${slug}`);
 
     if (!result.ok) {
         return { notFound: true, revalidate: 5 };
     }
 
-    const parsedResult = (await result.json()) as { name: string } | null;
+    const parsedResult = (await result.json()) as { count: number } | null;
 
     if (!parsedResult) {
         return { notFound: true, revalidate: 5 };
     }
 
-    return { props: { name: parsedResult.name }, revalidate: 5 };
+    return { props: { count: parsedResult.count }, revalidate: 5 };
 }
 
 export function getStaticPaths(): Promise<GetStaticPathsResult> {
     return Promise.resolve({
-        paths: [],
-        fallback: 'blocking',
+        paths: [
+            '/pages/with-paths/fallback-true/200',
+            '/pages/with-paths/fallback-true/404',
+            '/pages/with-paths/fallback-true/alternate-200-404',
+        ],
+        fallback: true,
     });
 }
 
-function Index({ name }: PageProps): JSX.Element {
-    return <div id="pages-dir-page-dynamic">{name}</div>;
+export default function Index({ count }: PageProps): JSX.Element {
+    return <div id="pages/with-paths/fallback-true">{count}</div>;
 }
-
-Index.getLayout = RootLayout;
-
-export default Index;
