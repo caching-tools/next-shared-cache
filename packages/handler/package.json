@@ -1,0 +1,32 @@
+{
+    "name": "handler",
+    "version": "13.4.19",
+    "homepage": "https://github.com/caching-tools/next-shared-cache",
+    "bugs": "https://github.com/caching-tools/next-shared-cache/issues",
+    "repository": "caching-tools/next-shared-cache",
+    "license": "MIT",
+    "main": "./dist/handler.js",
+    "types": "./dist/handler.d.ts",
+    "files": [
+        "dist/**"
+    ],
+    "scripts": {
+        "build": "tsup",
+        "dev": "tsup --watch",
+        "lint": "eslint ."
+    },
+    "dependencies": {
+        "undici": "5.24.0"
+    },
+    "devDependencies": {
+        "@types/node": "ts5.2",
+        "eslint-config-custom": "*",
+        "tsconfig": "*",
+        "tsup": "7.2.0",
+        "typescript": "5.2.2"
+    },
+    "engines": {
+        "node": ">=18.17.0",
+        "npm": ">=9.6.7"
+    }
+}

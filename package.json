@@ -1,0 +1,30 @@
+{
+    "name": "next-shared-cache",
+    "private": true,
+    "workspaces": [
+        "apps/*",
+        "packages/*",
+        "utils/*"
+    ],
+    "scripts": {
+        "build": "turbo run build --log-prefix=none --filter=!cache-testing",
+        "build:app": "turbo run build --log-prefix=none --filter=cache-testing",
+        "dev": "turbo run dev --log-prefix=none",
+        "format": "prettier --write \"**/*.{ts,tsx,md,mdx,js,jsx,cjs,mjs,json,yaml,css}\"",
+        "lint": "turbo run lint",
+        "start": "turbo run start --log-prefix=none --filter=!cache-testing",
+        "start:app": "turbo run start --log-prefix=none --filter=cache-testing"
+    },
+    "devDependencies": {
+        "eslint": "8.49.0",
+        "prettier": "3.0.3",
+        "prettier-config": "*",
+        "tsconfig": "*",
+        "turbo": "1.10.14"
+    },
+    "packageManager": "npm@9.6.7",
+    "engines": {
+        "node": ">=18.17.0",
+        "npm": ">=9.6.7"
+    }
+}

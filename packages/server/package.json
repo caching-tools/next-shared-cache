@@ -1,0 +1,37 @@
+{
+    "name": "server",
+    "version": "13.4.19",
+    "homepage": "https://github.com/caching-tools/next-shared-cache",
+    "bugs": "https://github.com/caching-tools/next-shared-cache/issues",
+    "repository": "caching-tools/next-shared-cache",
+    "license": "MIT",
+    "main": "./dist/server.mjs",
+    "bin": {
+        "next-shared-cache": "./dist/server.mjs"
+    },
+    "files": [
+        "dist/**"
+    ],
+    "scripts": {
+        "build": "tsup",
+        "dev": "tsup --watch",
+        "lint": "eslint .",
+        "start": "./dist/server.mjs"
+    },
+    "dependencies": {
+        "@isaacs/ttlcache": "1.4.1",
+        "fastify": "4.23.2",
+        "lru-cache": "10.0.1"
+    },
+    "devDependencies": {
+        "@types/node": "ts5.2",
+        "eslint-config-custom": "*",
+        "tsconfig": "*",
+        "tsup": "7.2.0",
+        "typescript": "5.2.2"
+    },
+    "engines": {
+        "node": ">=18.17.0",
+        "npm": ">=9.6.7"
+    }
+}

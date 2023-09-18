@@ -1,0 +1,13 @@
+{
+    "name": "prettier-config",
+    "version": "0.0.0",
+    "private": true,
+    "license": "MIT",
+    "devDependencies": {
+        "@vercel/style-guide": "5.0.1"
+    },
+    "engines": {
+        "node": ">=18.17.0",
+        "npm": ">=9.6.7"
+    }
+}

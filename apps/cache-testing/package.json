@@ -1,0 +1,29 @@
+{
+    "name": "cache-testing",
+    "version": "13.4.19",
+    "private": true,
+    "scripts": {
+        "build": "next build",
+        "lint": "next lint",
+        "start": "next start"
+    },
+    "dependencies": {
+        "handler": "*",
+        "next": "13.4.19",
+        "react": "18.2.0",
+        "react-dom": "18.2.0"
+    },
+    "devDependencies": {
+        "@next/eslint-plugin-next": "13.4.19",
+        "@types/node": "ts5.2",
+        "@types/react": "18.2.21",
+        "@types/react-dom": "18.2.7",
+        "eslint-config-custom": "*",
+        "tsconfig": "*",
+        "typescript": "5.2.2"
+    },
+    "engines": {
+        "node": ">=18.17.0",
+        "npm": ">=9.6.7"
+    }
+}
