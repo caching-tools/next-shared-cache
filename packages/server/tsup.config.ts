@@ -37,6 +37,7 @@ export const tsup = defineConfig((options) => {
         entry: ['src/server.ts', 'src/types.ts'],
         splitting: false,
         dts: true,
+        clean: true,
         outDir: 'dist',
         format: 'esm',
         target: 'node18.17',

@@ -1,23 +1,28 @@
 import type { RequestInit } from 'undici';
 import { fetch } from 'undici';
-import type { CacheContext, CacheHandlerValue, IncrementalCacheValue } from 'server';
+import type { CacheHandler, CacheHandlerValue, IncrementalCacheValue } from 'next-types';
 
-const port = Number.parseInt(process.env.REMOTE_CACHE_HANDLER_PORT ?? '8080', 10);
+const baseUrl = process.env.REMOTE_CACHE_HANDLER_URL ?? 'http://[::]:8080';
 
-const host = process.env.REMOTE_CACHE_HANDLER_HOST ?? '[::]';
-
-export class RemoteCacheHandler {
-    public async get(cacheKey: string, ctx: CacheContext): Promise<CacheHandlerValue | null> {
+export class RemoteCacheHandler implements CacheHandler {
+    public async get(
+        cacheKey: string,
+        ctx?: {
+            fetchCache?: boolean;
+            revalidate?: number | false;
+            fetchUrl?: string;
+            fetchIdx?: number;
+            tags?: string[];
+            softTags?: string[];
+        },
+    ): Promise<CacheHandlerValue | null> {
         const requestInit: RequestInit = {
             method: 'POST',
             headers: { 'Content-Type': 'application/json; charset=utf-8' },
-            body: JSON.stringify({
-                cacheKey,
-                ctx,
-            }),
+            body: JSON.stringify([cacheKey, ctx]),
         };
 
-        const url = `http://${host}:${port}/get`;
+        const url = new URL('/get', baseUrl);
 
         const result = await fetch(url, requestInit);
 
@@ -34,18 +39,24 @@ export class RemoteCacheHandler {
         return null;
     }
 
-    public async set(cacheKey: string, data: IncrementalCacheValue | null, ctx: CacheContext): Promise<void> {
+    public async set(
+        pathname: string,
+        data: IncrementalCacheValue | null,
+        ctx: {
+            revalidate?: number | false;
+            fetchCache?: boolean;
+            fetchUrl?: string;
+            fetchIdx?: number;
+            tags?: string[];
+        },
+    ): Promise<void> {
         const requestInit: RequestInit = {
             method: 'POST',
             headers: { 'Content-Type': 'application/json; charset=utf-8' },
-            body: JSON.stringify({
-                cacheKey,
-                data,
-                ctx,
-            }),
+            body: JSON.stringify([pathname, data, ctx]),
         };
 
-        const url = `http://${host}:${port}/set`;
+        const url = new URL('/set', baseUrl);
 
         await fetch(url, requestInit);
     }
@@ -54,10 +65,10 @@ export class RemoteCacheHandler {
         const requestInit: RequestInit = {
             method: 'POST',
             headers: { 'Content-Type': 'application/json; charset=utf-8' },
-            body: JSON.stringify({ tag }),
+            body: JSON.stringify([tag]),
         };
 
-        const url = `http://${host}:${port}/revalidateTag`;
+        const url = new URL('/revalidateTag', baseUrl);
 
         await fetch(url, requestInit);
     }

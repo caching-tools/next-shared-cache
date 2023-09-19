@@ -8,6 +8,9 @@
             "outputs": [".next/**", "!.next/cache/**", "dist/**"]
         },
         "lint": {},
+        "clean": {
+            "cache": false
+        },
         "start": {
             "cache": false,
             "persistent": true

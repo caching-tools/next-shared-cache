@@ -1,7 +1,11 @@
 #!/usr/bin/env node
 
 import Fastify from 'fastify';
-import type { CacheGetOptions, CacheRevalidateTagOptions, CacheSetOptions } from './types';
+import type {
+    CacheHandlerParametersGet,
+    CacheHandlerParametersRevalidateTag,
+    CacheHandlerParametersSet,
+} from 'next-types';
 import { IncrementalCache } from './incremental-cache';
 
 const server = Fastify();
@@ -12,9 +16,9 @@ const host = '::';
 const port = 8080;
 
 server.post('/get', async (request, reply): Promise<void> => {
-    const { ctx, cacheKey } = request.body as CacheGetOptions;
+    const [cacheKey] = request.body as CacheHandlerParametersGet;
 
-    const data = cache.get(cacheKey, ctx);
+    const data = cache.get(cacheKey);
 
     if (!data) {
         await reply.code(404).header('Content-Type', 'application/json; charset=utf-8').send();
@@ -26,7 +30,7 @@ server.post('/get', async (request, reply): Promise<void> => {
 });
 
 server.post('/set', async (request, reply): Promise<void> => {
-    const { ctx, data, cacheKey } = request.body as CacheSetOptions;
+    const [cacheKey, data, ctx] = request.body as CacheHandlerParametersSet;
 
     cache.set(cacheKey, data, ctx);
 
@@ -34,9 +38,9 @@ server.post('/set', async (request, reply): Promise<void> => {
 });
 
 server.post('/revalidateTag', async (request, reply): Promise<void> => {
-    const { tag } = request.body as CacheRevalidateTagOptions;
+    const [tag] = request.body as CacheHandlerParametersRevalidateTag;
 
-    cache.revalidateTags(tag);
+    cache.revalidateTag(tag);
 
     await reply.code(200).header('Content-Type', 'application/json; charset=utf-8').send();
 });

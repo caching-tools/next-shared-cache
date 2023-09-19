@@ -9,6 +9,7 @@
     "scripts": {
         "build": "turbo run build --log-prefix=none --filter=!cache-testing",
         "build:app": "turbo run build --log-prefix=none --filter=cache-testing",
+        "clean": "turbo run clean",
         "dev": "turbo run dev --log-prefix=none",
         "format": "prettier --write \"**/*.{ts,tsx,md,mdx,js,jsx,cjs,mjs,json,yaml,css}\"",
         "lint": "turbo run lint",

@@ -1,7 +1,7 @@
-import type { CacheContext, CacheHandlerValue, IncrementalCacheValue } from './types';
+import type { UnwrappedCacheHandler, CacheHandlerValue, IncrementalCacheValue } from 'next-types';
 import { Cache } from './cache';
 
-export class IncrementalCache {
+export class IncrementalCache implements UnwrappedCacheHandler {
     #revalidatedTags = new Set<string>();
 
     // #tagsManifest: TagsManifest = { items: {}, version: 1 };
@@ -11,7 +11,7 @@ export class IncrementalCache {
     /**
      * get
      */
-    public get(cacheKey: string, _context: CacheContext): CacheHandlerValue | null {
+    get(cacheKey: string): CacheHandlerValue | null {
         const cachedData = this.#memoryCache.get(cacheKey);
 
         if (!cachedData) {
@@ -24,18 +24,31 @@ export class IncrementalCache {
     /**
      * set
      */
-    public set(cacheKey: string, data: IncrementalCacheValue | null, context: CacheContext): void {
-        this.#memoryCache.set(cacheKey, {
-            value: data,
-            lastModified: Date.now(),
-            ctx: context,
-        });
+    set(
+        pathname: string,
+        data: IncrementalCacheValue | null,
+        ctx: {
+            revalidate?: number | false;
+            fetchCache?: boolean;
+            fetchUrl?: string;
+            fetchIdx?: number;
+            tags?: string[];
+        },
+    ): void {
+        this.#memoryCache.set(
+            pathname,
+            {
+                value: data,
+                lastModified: Date.now(),
+            },
+            ctx.revalidate,
+        );
     }
 
     /**
      * revalidatedTags
      */
-    public revalidateTags(tag: string): void {
+    public revalidateTag(tag: string): void {
         this.#revalidatedTags.add(tag);
     }
 }

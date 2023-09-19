@@ -12,6 +12,7 @@
     ],
     "scripts": {
         "build": "tsup",
+        "clean": "rimraf ./dist ./.turbo",
         "dev": "tsup --watch",
         "lint": "eslint ."
     },
@@ -21,7 +22,8 @@
     "devDependencies": {
         "@types/node": "20.6.2",
         "eslint-config-custom": "*",
-        "server": "*",
+        "next-types": "*",
+        "rimraf": "5.0.1",
         "tsconfig": "*",
         "tsup": "7.2.0",
         "typescript": "5.2.2"

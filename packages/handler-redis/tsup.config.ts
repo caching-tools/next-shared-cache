@@ -5,6 +5,7 @@ export const tsup = defineConfig({
     entry: ['src/handler-redis.ts'],
     splitting: false,
     outDir: 'dist',
+    clean: true,
     format: 'cjs',
     dts: true,
     target: 'node18.17',

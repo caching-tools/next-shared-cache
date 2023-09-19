@@ -1,5 +1,7 @@
 import TTLCache from '@isaacs/ttlcache';
-import type { CacheHandlerValue } from './types';
+import type { CacheHandlerValue, CacheHandlerParametersSet } from 'next-types';
+
+type Revalidate = CacheHandlerParametersSet[2]['revalidate'];
 
 export const CACHE_FOR_LONG = 31536000000;
 
@@ -10,9 +12,7 @@ export class Cache {
         return this.#cache.get(key);
     }
 
-    set(key: string, value: CacheHandlerValue): void {
-        const { revalidate } = value.ctx;
-
+    set(key: string, value: CacheHandlerValue, revalidate: Revalidate): void {
         let ttl: number | undefined;
 
         if (typeof revalidate === 'number') {
