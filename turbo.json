@@ -4,10 +4,12 @@
     "pipeline": {
         "build": {
             "dependsOn": ["^build"],
+            "env": ["REDIS_URL"],
             "outputs": [".next/**", "!.next/cache/**", "dist/**"]
         },
         "lint": {},
         "start": {
+            "cache": false,
             "persistent": true
         },
         "dev": {

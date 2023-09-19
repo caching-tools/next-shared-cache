@@ -23,6 +23,28 @@ npm run start:app
 
 Remember that you need to rebuild `cache-testing` every time `handler` rebuild is happening.
 
+## Using Redis
+
+Use Docker CLI with this command:
+
+```sh
+docker run -d --name redis-stack -p 6379:6379 -p 8001:8001 redis/redis-stack:latest
+```
+
+Create `.env.local` file inside `apps/cache-testing` directory and add environment variable:
+
+```sh
+REDIS_URL=redis://localhost:6379
+```
+
+Then run
+
+```sh
+npm run dev
+npm run build:app
+npm run start:app
+```
+
 ## Contributing
 
 Run linting and formatting jobs before commit.

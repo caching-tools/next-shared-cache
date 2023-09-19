@@ -10,7 +10,7 @@ const project = resolve(process.cwd(), 'tsconfig.json');
  * For more information, see https://github.com/vercel/style-guide
  *
  */
-
+/** @type {import('eslint').ESLint.ConfigData} */
 module.exports = {
     extends: [
         '@vercel/style-guide/eslint/node',

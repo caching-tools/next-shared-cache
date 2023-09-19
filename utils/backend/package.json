@@ -22,7 +22,7 @@
         "fastify": "4.23.2"
     },
     "devDependencies": {
-        "@types/node": "ts5.2",
+        "@types/node": "20.6.2",
         "eslint-config-custom": "*",
         "tsconfig": "*",
         "tsup": "7.2.0",
