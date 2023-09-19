@@ -1,6 +1,6 @@
 {
     "name": "cache-testing",
-    "version": "13.4.20-canary.33",
+    "version": "13.5.1-canary.1",
     "private": true,
     "scripts": {
         "build": "next build",
@@ -9,16 +9,18 @@
     },
     "dependencies": {
         "handler": "*",
-        "next": "13.4.20-canary.33",
+        "handler-redis": "*",
+        "next": "13.5.1-canary.1",
         "react": "18.2.0",
         "react-dom": "18.2.0"
     },
     "devDependencies": {
-        "@next/eslint-plugin-next": "13.4.20-canary.33",
-        "@types/node": "ts5.2",
-        "@types/react": "18.2.21",
+        "@next/eslint-plugin-next": "13.5.1-canary.1",
+        "@types/node": "20.6.2",
+        "@types/react": "18.2.22",
         "@types/react-dom": "18.2.7",
         "eslint-config-custom": "*",
+        "redis": "4.6.8",
         "tsconfig": "*",
         "typescript": "5.2.2"
     },

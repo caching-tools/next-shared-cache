@@ -1,6 +1,6 @@
 {
     "name": "server",
-    "version": "13.4.20-canary.33",
+    "version": "13.5.1-canary.1",
     "homepage": "https://github.com/caching-tools/next-shared-cache",
     "bugs": "https://github.com/caching-tools/next-shared-cache/issues",
     "repository": "caching-tools/next-shared-cache",
@@ -24,7 +24,7 @@
         "fastify": "4.23.2"
     },
     "devDependencies": {
-        "@types/node": "ts5.2",
+        "@types/node": "20.6.2",
         "eslint-config-custom": "*",
         "tsconfig": "*",
         "tsup": "7.2.0",
