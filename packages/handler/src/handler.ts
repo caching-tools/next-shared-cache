@@ -1,25 +1,21 @@
 import type { RequestInit } from 'undici';
 import { fetch } from 'undici';
-import type { CacheHandler, CacheHandlerValue, IncrementalCacheValue } from 'next-types';
+import type {
+    CacheHandler,
+    CacheHandlerParametersGet,
+    CacheHandlerParametersRevalidateTag,
+    CacheHandlerParametersSet,
+    CacheHandlerValue,
+} from 'next-types';
 
 const baseUrl = process.env.REMOTE_CACHE_HANDLER_URL ?? 'http://[::]:8080';
 
 export class RemoteCacheHandler implements CacheHandler {
-    public async get(
-        cacheKey: string,
-        ctx?: {
-            fetchCache?: boolean;
-            revalidate?: number | false;
-            fetchUrl?: string;
-            fetchIdx?: number;
-            tags?: string[];
-            softTags?: string[];
-        },
-    ): Promise<CacheHandlerValue | null> {
+    public async get(...args: CacheHandlerParametersGet): Promise<CacheHandlerValue | null> {
         const requestInit: RequestInit = {
             method: 'POST',
             headers: { 'Content-Type': 'application/json; charset=utf-8' },
-            body: JSON.stringify([cacheKey, ctx]),
+            body: JSON.stringify(args),
         };
 
         const url = new URL('/get', baseUrl);
@@ -33,27 +29,17 @@ export class RemoteCacheHandler implements CacheHandler {
         try {
             return (await result.json()) as CacheHandlerValue;
         } catch (error) {
-            // pass null
+            return null;
         }
 
         return null;
     }
 
-    public async set(
-        pathname: string,
-        data: IncrementalCacheValue | null,
-        ctx: {
-            revalidate?: number | false;
-            fetchCache?: boolean;
-            fetchUrl?: string;
-            fetchIdx?: number;
-            tags?: string[];
-        },
-    ): Promise<void> {
+    public async set(...args: CacheHandlerParametersSet): Promise<void> {
         const requestInit: RequestInit = {
             method: 'POST',
             headers: { 'Content-Type': 'application/json; charset=utf-8' },
-            body: JSON.stringify([pathname, data, ctx]),
+            body: JSON.stringify(args),
         };
 
         const url = new URL('/set', baseUrl);
@@ -61,11 +47,11 @@ export class RemoteCacheHandler implements CacheHandler {
         await fetch(url, requestInit);
     }
 
-    public async revalidateTag(tag: string): Promise<void> {
+    public async revalidateTag(...args: CacheHandlerParametersRevalidateTag): Promise<void> {
         const requestInit: RequestInit = {
             method: 'POST',
             headers: { 'Content-Type': 'application/json; charset=utf-8' },
-            body: JSON.stringify([tag]),
+            body: JSON.stringify(args),
         };
 
         const url = new URL('/revalidateTag', baseUrl);

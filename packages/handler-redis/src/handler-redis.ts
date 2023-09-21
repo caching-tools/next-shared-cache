@@ -1,5 +1,11 @@
 import type { RedisClientType, RedisClusterType } from 'redis';
-import type { CacheHandler, CacheHandlerValue, IncrementalCacheValue } from 'next-types';
+import type {
+    CacheHandler,
+    CacheHandlerParametersGet,
+    CacheHandlerParametersRevalidateTag,
+    CacheHandlerParametersSet,
+    CacheHandlerValue,
+} from 'next-types';
 
 export class RemoteCacheHandler implements CacheHandler {
     static #redisClient: RedisClientType | RedisClusterType | null = null;
@@ -26,17 +32,9 @@ export class RemoteCacheHandler implements CacheHandler {
         return `${RemoteCacheHandler.#prefix}${cacheKey}`;
     }
 
-    public async get(
-        cacheKey: string,
-        _ctx?: {
-            fetchCache?: boolean;
-            revalidate?: number | false;
-            fetchUrl?: string;
-            fetchIdx?: number;
-            tags?: string[];
-            softTags?: string[];
-        },
-    ): Promise<CacheHandlerValue | null> {
+    public async get(...args: CacheHandlerParametersGet): Promise<CacheHandlerValue | null> {
+        const [cacheKey] = args;
+
         const result = await RemoteCacheHandler.#redisClient?.get(this.prefixCacheKey(cacheKey));
 
         if (!result) {
@@ -52,17 +50,9 @@ export class RemoteCacheHandler implements CacheHandler {
         return null;
     }
 
-    public async set(
-        pathname: string,
-        data: IncrementalCacheValue | null,
-        ctx: {
-            revalidate?: number | false;
-            fetchCache?: boolean;
-            fetchUrl?: string;
-            fetchIdx?: number;
-            tags?: string[];
-        },
-    ): Promise<void> {
+    public async set(...args: CacheHandlerParametersSet): Promise<void> {
+        const [cacheKey, data, ctx] = args;
+
         const { revalidate } = ctx;
 
         let ttl: number | undefined;
@@ -73,13 +63,13 @@ export class RemoteCacheHandler implements CacheHandler {
 
         const value: CacheHandlerValue = { lastModified: Date.now(), value: data };
 
-        await RemoteCacheHandler.#redisClient?.set(this.prefixCacheKey(pathname), JSON.stringify(value), {
+        await RemoteCacheHandler.#redisClient?.set(this.prefixCacheKey(cacheKey), JSON.stringify(value), {
             EX: ttl,
             NX: true,
         });
     }
 
-    public async revalidateTag(_tag: string): Promise<void> {
-        // pass
+    public async revalidateTag(..._args: CacheHandlerParametersRevalidateTag): Promise<void> {
+        // TODO: implement
     }
 }

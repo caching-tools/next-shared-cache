@@ -21,7 +21,6 @@ module.exports = {
     },
     ignorePatterns: ['node_modules/', 'dist/'],
     rules: {
-        'no-console': 'off',
         '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
     },
 };

@@ -1,4 +1,10 @@
-import type { UnwrappedCacheHandler, CacheHandlerValue, IncrementalCacheValue } from 'next-types';
+import type {
+    UnwrappedCacheHandler,
+    CacheHandlerValue,
+    CacheHandlerParametersSet,
+    CacheHandlerParametersGet,
+    CacheHandlerParametersRevalidateTag,
+} from 'next-types';
 import { Cache } from './cache';
 
 export class IncrementalCache implements UnwrappedCacheHandler {
@@ -11,7 +17,9 @@ export class IncrementalCache implements UnwrappedCacheHandler {
     /**
      * get
      */
-    get(cacheKey: string): CacheHandlerValue | null {
+    get(...args: CacheHandlerParametersGet): CacheHandlerValue | null {
+        const [cacheKey] = args;
+
         const cachedData = this.#memoryCache.get(cacheKey);
 
         if (!cachedData) {
@@ -24,19 +32,11 @@ export class IncrementalCache implements UnwrappedCacheHandler {
     /**
      * set
      */
-    set(
-        pathname: string,
-        data: IncrementalCacheValue | null,
-        ctx: {
-            revalidate?: number | false;
-            fetchCache?: boolean;
-            fetchUrl?: string;
-            fetchIdx?: number;
-            tags?: string[];
-        },
-    ): void {
+    set(...args: CacheHandlerParametersSet): void {
+        const [cacheKey, data, ctx] = args;
+
         this.#memoryCache.set(
-            pathname,
+            cacheKey,
             {
                 value: data,
                 lastModified: Date.now(),
@@ -48,7 +48,9 @@ export class IncrementalCache implements UnwrappedCacheHandler {
     /**
      * revalidatedTags
      */
-    public revalidateTag(tag: string): void {
+    public revalidateTag(...args: CacheHandlerParametersRevalidateTag): void {
+        const [tag] = args;
+
         this.#revalidatedTags.add(tag);
     }
 }

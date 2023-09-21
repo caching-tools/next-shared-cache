@@ -1,6 +1,6 @@
 {
     "name": "next-types",
-    "version": "13.5.1-canary.1",
+    "version": "13.5.3-canary.0",
     "homepage": "https://github.com/caching-tools/next-shared-cache",
     "bugs": "https://github.com/caching-tools/next-shared-cache/issues",
     "repository": "caching-tools/next-shared-cache",
@@ -16,7 +16,7 @@
         "lint": "eslint ."
     },
     "dependencies": {
-        "next": "13.5.1-canary.1"
+        "next": "13.5.3-canary.0"
     },
     "devDependencies": {
         "@types/node": "20.6.2",

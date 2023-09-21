@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import { pino } from 'pino';
 import Fastify from 'fastify';
 import type {
     CacheHandlerParametersGet,
@@ -7,6 +8,13 @@ import type {
     CacheHandlerParametersSet,
 } from 'next-types';
 import { IncrementalCache } from './incremental-cache';
+
+const logger = pino({
+    transport: {
+        target: 'pino-pretty',
+    },
+    logLevel: 'info',
+});
 
 const server = Fastify();
 
@@ -45,9 +53,12 @@ server.post('/revalidateTag', async (request, reply): Promise<void> => {
     await reply.code(200).header('Content-Type', 'application/json; charset=utf-8').send();
 });
 
-server.listen({ port, host }, (err) => {
-    if (err) {
-        server.log.error(err);
+server
+    .listen({ port, host })
+    .then((address) => {
+        logger.info(`server listening on %s`, address);
+    })
+    .catch((err) => {
+        logger.error(err);
         process.exit(1);
-    }
-});
+    });

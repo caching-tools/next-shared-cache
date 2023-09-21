@@ -1,3 +1,4 @@
+/* eslint-disable no-console -- it's a config file */
 import { spawn } from 'node:child_process';
 import { defineConfig } from 'tsup';
 
