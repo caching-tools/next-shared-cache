@@ -8,7 +8,7 @@ export const tsup = defineConfig(() => {
         dts: true,
         clean: false,
         outDir: 'dist',
-        format: 'esm',
+        format: 'cjs',
         target: 'node18.17',
     };
 });

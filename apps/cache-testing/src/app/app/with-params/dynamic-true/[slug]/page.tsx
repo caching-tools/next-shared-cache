@@ -6,7 +6,7 @@ export const dynamicParams = true;
 
 async function getData(slug: string): Promise<number | null> {
     const result = await fetch(`http://localhost:8081/${slug}`, {
-        next: { revalidate: 5, tags: ['my-tag-static'] },
+        next: { revalidate: 60, tags: ['my-tag-static'] },
     });
 
     if (!result.ok) {

@@ -1,10 +1,12 @@
 import type { RedisClientType, RedisClusterType } from 'redis';
-import type {
-    CacheHandler,
-    CacheHandlerParametersGet,
-    CacheHandlerParametersRevalidateTag,
-    CacheHandlerParametersSet,
-    CacheHandlerValue,
+import {
+    NEXT_CACHE_TAGS_HEADER,
+    type CacheHandler,
+    type CacheHandlerParametersGet,
+    type CacheHandlerParametersRevalidateTag,
+    type CacheHandlerParametersSet,
+    type CacheHandlerValue,
+    type TagsManifest,
 } from 'next-types';
 
 export class RemoteCacheHandler implements CacheHandler {
@@ -28,26 +30,100 @@ export class RemoteCacheHandler implements CacheHandler {
         await this.#redisClient?.disconnect();
     }
 
-    prefixCacheKey(cacheKey: string): string {
-        return `${RemoteCacheHandler.#prefix}${cacheKey}`;
+    static prefixCacheKey(cacheKey: string): string {
+        return `${this.#prefix}${cacheKey}`;
+    }
+
+    static async getTagsManifest(): Promise<TagsManifest> {
+        const tagsManifest = await this.#redisClient?.hGetAll(this.prefixCacheKey('tagsManifest'));
+
+        if (!tagsManifest) {
+            return { version: 1, items: {} };
+        }
+
+        const items: TagsManifest['items'] = {};
+
+        Object.entries(tagsManifest).forEach(([tag, revalidatedAt]) => {
+            items[tag] = { revalidatedAt: parseInt(revalidatedAt ?? '0', 10) };
+        });
+
+        return { version: 1, items };
     }
 
     public async get(...args: CacheHandlerParametersGet): Promise<CacheHandlerValue | null> {
-        const [cacheKey] = args;
+        const [cacheKey, ctx = {}] = args;
 
-        const result = await RemoteCacheHandler.#redisClient?.get(this.prefixCacheKey(cacheKey));
+        const { tags = [], softTags = [] } = ctx;
+
+        const prefixedCacheKey = RemoteCacheHandler.prefixCacheKey(cacheKey);
+
+        const result = await RemoteCacheHandler.#redisClient?.get(prefixedCacheKey);
 
         if (!result) {
             return null;
         }
 
+        let cachedData: CacheHandlerValue;
+
         try {
-            return JSON.parse(result) as CacheHandlerValue;
+            cachedData = JSON.parse(result) as CacheHandlerValue;
         } catch (error) {
-            // pass null
+            return null;
         }
 
-        return null;
+        if (cachedData.value?.kind === 'PAGE') {
+            let cacheTags: undefined | string[];
+            const tagsHeader = cachedData.value.headers?.[NEXT_CACHE_TAGS_HEADER as string];
+
+            if (typeof tagsHeader === 'string') {
+                cacheTags = tagsHeader.split(',');
+            }
+
+            const tagsManifest = await RemoteCacheHandler.getTagsManifest();
+
+            if (cacheTags?.length) {
+                const isStale = cacheTags.some((tag) => {
+                    const revalidatedAt = tagsManifest.items[tag]?.revalidatedAt;
+
+                    return revalidatedAt && revalidatedAt >= (cachedData.lastModified || Date.now());
+                });
+
+                // we trigger a blocking validation if an ISR page
+                // had a tag revalidated, if we want to be a background
+                // revalidation instead we return cachedData.lastModified = -1
+                if (isStale) {
+                    await RemoteCacheHandler.#redisClient?.del(prefixedCacheKey);
+
+                    return null;
+                }
+            }
+        }
+
+        if (cachedData.value?.kind === 'FETCH') {
+            const combinedTags = [...tags, ...softTags];
+
+            const tagsManifest = await RemoteCacheHandler.getTagsManifest();
+
+            const wasRevalidated = combinedTags.some((tag: string) => {
+                // TODO: implement revalidatedTags
+                // if (this.revalidatedTags.includes(tag)) {
+                //     return true;
+                // }
+
+                const revalidatedAt = tagsManifest.items[tag]?.revalidatedAt;
+
+                return revalidatedAt && revalidatedAt >= (cachedData.lastModified || Date.now());
+            });
+            // When revalidate tag is called we don't return
+            // stale cachedData so it's updated right away
+            if (wasRevalidated) {
+                await RemoteCacheHandler.#redisClient?.del(prefixedCacheKey);
+
+                return null;
+            }
+        }
+
+        return cachedData;
     }
 
     public async set(...args: CacheHandlerParametersSet): Promise<void> {
@@ -63,13 +139,19 @@ export class RemoteCacheHandler implements CacheHandler {
 
         const value: CacheHandlerValue = { lastModified: Date.now(), value: data };
 
-        await RemoteCacheHandler.#redisClient?.set(this.prefixCacheKey(cacheKey), JSON.stringify(value), {
+        await RemoteCacheHandler.#redisClient?.set(RemoteCacheHandler.prefixCacheKey(cacheKey), JSON.stringify(value), {
             EX: ttl,
             NX: true,
         });
     }
 
-    public async revalidateTag(..._args: CacheHandlerParametersRevalidateTag): Promise<void> {
-        // TODO: implement
+    public async revalidateTag(...args: CacheHandlerParametersRevalidateTag): Promise<void> {
+        const [tag] = args;
+
+        const options = {
+            [tag]: Date.now(),
+        };
+
+        await RemoteCacheHandler.#redisClient?.hSet(RemoteCacheHandler.prefixCacheKey('tagsManifest'), options);
     }
 }

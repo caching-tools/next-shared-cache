@@ -7,7 +7,7 @@ type PageParams = { params: { slug: string } };
 
 async function getData(slug: string): Promise<number | null> {
     const result = await fetch(`http://localhost:8081/${normalizeSlug(slug)}`, {
-        next: { revalidate: 5, tags: ['my-tag-dynamic'] },
+        next: { revalidate: 60, tags: ['my-tag-dynamic'] },
     });
 
     if (!result.ok) {
