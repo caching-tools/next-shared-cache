@@ -24,31 +24,22 @@ const host = '::';
 const port = 8080;
 
 server.post('/get', async (request, reply): Promise<void> => {
-    const [cacheKey] = request.body as CacheHandlerParametersGet;
+    const data = cache.get(...(request.body as CacheHandlerParametersGet));
 
-    const data = cache.get(cacheKey);
-
-    if (!data) {
-        await reply.code(404).header('Content-Type', 'application/json; charset=utf-8').send();
-
-        return;
-    }
-
-    await reply.code(200).header('Content-Type', 'application/json; charset=utf-8').send(data);
+    await reply
+        .code(data ? 200 : 404)
+        .header('Content-Type', 'application/json; charset=utf-8')
+        .send(data);
 });
 
 server.post('/set', async (request, reply): Promise<void> => {
-    const [cacheKey, data, ctx] = request.body as CacheHandlerParametersSet;
-
-    cache.set(cacheKey, data, ctx);
+    cache.set(...(request.body as CacheHandlerParametersSet));
 
     await reply.code(200).header('Content-Type', 'application/json; charset=utf-8').send();
 });
 
 server.post('/revalidateTag', async (request, reply): Promise<void> => {
-    const [tag] = request.body as CacheHandlerParametersRevalidateTag;
-
-    cache.revalidateTag(tag);
+    cache.revalidateTag(...(request.body as CacheHandlerParametersRevalidateTag));
 
     await reply.code(200).header('Content-Type', 'application/json; charset=utf-8').send();
 });

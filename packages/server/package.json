@@ -1,6 +1,6 @@
 {
     "name": "server",
-    "version": "13.5.3-canary.0",
+    "version": "13.5.3-canary.1",
     "homepage": "https://github.com/caching-tools/next-shared-cache",
     "bugs": "https://github.com/caching-tools/next-shared-cache/issues",
     "repository": "caching-tools/next-shared-cache",
@@ -23,12 +23,12 @@
     "dependencies": {
         "@isaacs/ttlcache": "1.4.1",
         "fastify": "4.23.2",
+        "next-types": "*",
         "pino": "8.15.1"
     },
     "devDependencies": {
         "@types/node": "20.6.2",
         "eslint-config-custom": "*",
-        "next-types": "*",
         "rimraf": "5.0.1",
         "tsconfig": "*",
         "tsup": "7.2.0",

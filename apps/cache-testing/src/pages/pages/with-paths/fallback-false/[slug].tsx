@@ -16,16 +16,16 @@ export async function getStaticProps({ params }: GetStaticPropsContext): Promise
     const result = await fetch(`http://localhost:8081/${slug}`);
 
     if (!result.ok) {
-        return { notFound: true, revalidate: 5 };
+        return { notFound: true, revalidate: 60 };
     }
 
     const parsedResult = (await result.json()) as { count: number } | null;
 
     if (!parsedResult) {
-        return { notFound: true, revalidate: 5 };
+        return { notFound: true, revalidate: 60 };
     }
 
-    return { props: { count: parsedResult.count }, revalidate: 5 };
+    return { props: { count: parsedResult.count }, revalidate: 60 };
 }
 
 export function getStaticPaths(): Promise<GetStaticPathsResult> {

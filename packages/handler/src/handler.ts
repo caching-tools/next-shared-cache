@@ -31,8 +31,6 @@ export class RemoteCacheHandler implements CacheHandler {
         } catch (error) {
             return null;
         }
-
-        return null;
     }
 
     public async set(...args: CacheHandlerParametersSet): Promise<void> {

@@ -9,6 +9,7 @@
         "lib": ["esnext"],
         "module": "esnext",
         "emitDeclarationOnly": true,
+        "noUncheckedIndexedAccess": true,
         "strict": true,
         "target": "ESNext"
     },
