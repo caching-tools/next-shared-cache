@@ -1,3 +1,3 @@
-const { RemoteCacheHandler } = require('handler');
+const { RemoteCacheHandler } = require('@next-shared-cache/handler');
 
 module.exports = RemoteCacheHandler;

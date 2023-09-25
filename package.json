@@ -11,9 +11,10 @@
         "build:app": "turbo run build --log-prefix=none --filter=cache-testing",
         "clean": "turbo run clean",
         "dev": "turbo run dev --log-prefix=none",
-        "dev:redis": "turbo run dev --log-prefix=none --filter=!server --filter=!handler",
+        "dev:redis": "turbo run dev --log-prefix=none --filter=!@next-shared-cache/server --filter=!@next-shared-cache/handler",
         "format": "prettier --write \"**/*.{ts,tsx,md,mdx,js,jsx,cjs,mjs,json,yaml,css}\"",
         "lint": "turbo run lint",
+        "publish-packages": "turbo run build lint publish",
         "start": "turbo run start --log-prefix=none --filter=!cache-testing",
         "start:app": "turbo run start --log-prefix=none --filter=cache-testing"
     },

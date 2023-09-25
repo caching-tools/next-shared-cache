@@ -38,7 +38,11 @@ export function getStaticPaths(): Promise<GetStaticPathsResult> {
 }
 
 function Index({ count }: PageProps): JSX.Element {
-    return <div data-pw="data" id="pages/no-paths/fallback-blocking">{count}</div>;
+    return (
+        <div data-pw="data" id="pages/no-paths/fallback-blocking">
+            {count}
+        </div>
+    );
 }
 
 Index.getLayout = RootLayout;

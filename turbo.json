@@ -19,6 +19,9 @@
         "dev": {
             "cache": false,
             "persistent": true
+        },
+        "publish": {
+            "cache": false
         }
     }
 }

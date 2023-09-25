@@ -90,7 +90,6 @@ test('Click on-demand revalidation no-params fallback-blocking', async ({ page }
     await expect(page.getByTestId('data')).toHaveText(val);
 });
 
-
 test('Click on-demand revalidation no-params fallback-true', async ({ page }) => {
     await page.goto('http://localhost:3000/pages/no-paths/fallback-true/200');
 

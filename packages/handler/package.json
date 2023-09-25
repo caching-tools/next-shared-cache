@@ -1,10 +1,14 @@
 {
-    "name": "handler",
+    "name": "@next-shared-cache/handler",
     "version": "13.5.3-canary.3",
     "homepage": "https://github.com/caching-tools/next-shared-cache",
     "bugs": "https://github.com/caching-tools/next-shared-cache/issues",
     "repository": "caching-tools/next-shared-cache",
     "license": "MIT",
+    "author": {
+        "name": "Arseny Kruglikov",
+        "email": "caching.tools@proton.me"
+    },
     "main": "./dist/handler.js",
     "types": "./dist/handler.d.ts",
     "files": [
@@ -14,7 +18,8 @@
         "build": "tsup",
         "clean": "rimraf ./dist ./.turbo",
         "dev": "tsup --watch",
-        "lint": "eslint ."
+        "lint": "eslint .",
+        "publish": "npm publish --access public"
     },
     "dependencies": {
         "next-types": "*",

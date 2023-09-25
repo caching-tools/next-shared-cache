@@ -1,10 +1,14 @@
 {
-    "name": "server",
+    "name": "@next-shared-cache/server",
     "version": "13.5.3-canary.3",
     "homepage": "https://github.com/caching-tools/next-shared-cache",
     "bugs": "https://github.com/caching-tools/next-shared-cache/issues",
     "repository": "caching-tools/next-shared-cache",
     "license": "MIT",
+    "author": {
+        "name": "Arseny Kruglikov",
+        "email": "caching.tools@proton.me"
+    },
     "main": "./dist/server.mjs",
     "types": "./dist/types.d.mts",
     "bin": {
@@ -18,6 +22,7 @@
         "clean": "rimraf ./dist ./.turbo",
         "dev": "tsup --watch",
         "lint": "eslint .",
+        "publish": "npm publish --access public",
         "start": "./dist/server.mjs"
     },
     "dependencies": {
