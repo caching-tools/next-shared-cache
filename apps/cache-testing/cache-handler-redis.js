@@ -1,4 +1,4 @@
-const { RemoteCacheHandler } = require('handler-redis');
+const { RemoteCacheHandler } = require('@neshca/handler-redis');
 const { createClient } = require('redis');
 
 const client = createClient({

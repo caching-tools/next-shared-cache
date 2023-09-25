@@ -1,5 +1,5 @@
 {
-    "extends": "tsconfig/nextjs.json",
+    "extends": "@neshca/tsconfig/nextjs.json",
     "compilerOptions": {
         "plugins": [
             {

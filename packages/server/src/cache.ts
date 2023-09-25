@@ -1,5 +1,5 @@
 import TTLCache from '@isaacs/ttlcache';
-import type { CacheHandlerValue, CacheHandlerParametersSet } from 'next-types';
+import type { CacheHandlerValue, CacheHandlerParametersSet } from '@neshca/next-types';
 
 type Revalidate = CacheHandlerParametersSet[2]['revalidate'];
 

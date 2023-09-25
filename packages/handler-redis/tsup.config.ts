@@ -9,5 +9,5 @@ export const tsup = defineConfig({
     format: 'cjs',
     dts: true,
     target: 'node18.17',
-    noExternal: ['redis'],
+    noExternal: ['@neshca/next-types'],
 });

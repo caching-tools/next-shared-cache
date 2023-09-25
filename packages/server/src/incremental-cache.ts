@@ -6,7 +6,7 @@ import {
     type CacheHandlerParametersRevalidateTag,
     type TagsManifest,
     NEXT_CACHE_TAGS_HEADER,
-} from 'next-types';
+} from '@neshca/next-types';
 import { Cache } from './cache';
 
 export class IncrementalCache implements UnwrappedCacheHandler {

@@ -1,6 +1,7 @@
 {
-    "name": "backend",
+    "name": "@neshca/backend",
     "version": "0.0.0",
+    "private": true,
     "homepage": "https://github.com/caching-tools/next-shared-cache",
     "bugs": "https://github.com/caching-tools/next-shared-cache/issues",
     "repository": "caching-tools/next-shared-cache",
@@ -14,7 +15,7 @@
     ],
     "scripts": {
         "build": "tsup",
-        "clean": "rimraf ./dist ./.turbo",
+        "clean": "rimraf ./dist ./.turbo ./node_modules",
         "dev": "tsup --watch",
         "lint": "eslint .",
         "start": "./dist/backend.mjs"
@@ -24,11 +25,11 @@
         "pino": "8.15.1"
     },
     "devDependencies": {
+        "@neshca/tsconfig": "*",
         "@types/node": "20.6.5",
-        "eslint-config-custom": "*",
+        "eslint-config-neshca": "*",
         "pino-pretty": "10.2.0",
         "rimraf": "5.0.1",
-        "tsconfig": "*",
         "tsup": "7.2.0",
         "typescript": "5.2.2"
     },

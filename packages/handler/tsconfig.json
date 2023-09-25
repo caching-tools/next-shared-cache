@@ -1,5 +1,5 @@
 {
-    "extends": "tsconfig/node-packages.json",
+    "extends": "@neshca/tsconfig/node-packages.json",
     "include": ["."],
     "exclude": ["dist", "node_modules"]
 }

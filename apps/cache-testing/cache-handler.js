@@ -1,3 +1,3 @@
-const { RemoteCacheHandler } = require('handler');
+const { RemoteCacheHandler } = require('@neshca/handler');
 
 module.exports = RemoteCacheHandler;

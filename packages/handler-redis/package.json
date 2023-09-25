@@ -1,10 +1,14 @@
 {
-    "name": "handler-redis",
-    "version": "13.5.3-canary.3",
+    "name": "@neshca/handler-redis",
+    "version": "13.5.3-canary.4",
     "homepage": "https://github.com/caching-tools/next-shared-cache",
     "bugs": "https://github.com/caching-tools/next-shared-cache/issues",
     "repository": "caching-tools/next-shared-cache",
     "license": "MIT",
+    "author": {
+        "name": "Arseny Kruglikov",
+        "email": "caching.tools@proton.me"
+    },
     "main": "./dist/handler-redis.js",
     "types": "./dist/handler-redis.d.ts",
     "files": [
@@ -12,18 +16,17 @@
     ],
     "scripts": {
         "build": "tsup",
-        "clean": "rimraf ./dist ./.turbo",
+        "clean": "rimraf ./dist ./.turbo ./node_modules",
         "dev": "tsup --watch",
         "lint": "eslint ."
     },
-    "dependencies": {
-        "next-types": "*"
-    },
+    "dependencies": {},
     "devDependencies": {
+        "@neshca/next-types": "*",
+        "@neshca/tsconfig": "*",
         "@types/node": "20.6.5",
-        "eslint-config-custom": "*",
+        "eslint-config-neshca": "*",
         "rimraf": "5.0.1",
-        "tsconfig": "*",
         "tsup": "7.2.0",
         "typescript": "5.2.2"
     },

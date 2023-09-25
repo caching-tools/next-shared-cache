@@ -40,5 +40,9 @@ export function getStaticPaths(): Promise<GetStaticPathsResult> {
 }
 
 export default function Index({ count }: PageProps): JSX.Element {
-    return <div data-pw="data" id="pages/with-paths/fallback-true">{count}</div>;
+    return (
+        <div data-pw="data" id="pages/with-paths/fallback-true">
+            {count}
+        </div>
+    );
 }

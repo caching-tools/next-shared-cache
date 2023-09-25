@@ -8,7 +8,7 @@ import {
     type CacheHandlerValue,
     type TagsManifest,
     type CacheHandlerContext,
-} from 'next-types';
+} from '@neshca/next-types';
 
 export class RemoteCacheHandler implements CacheHandler {
     revalidatedTags: string[] = [];

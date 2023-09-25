@@ -7,21 +7,22 @@
         "utils/*"
     ],
     "scripts": {
-        "build": "turbo run build --log-prefix=none --filter=!cache-testing",
-        "build:app": "turbo run build --log-prefix=none --filter=cache-testing",
+        "build": "turbo run build --log-prefix=none --filter=!@neshca/cache-testing",
+        "build:app": "turbo run build --log-prefix=none --filter=@neshca/cache-testing",
         "clean": "turbo run clean",
         "dev": "turbo run dev --log-prefix=none",
-        "dev:redis": "turbo run dev --log-prefix=none --filter=!server --filter=!handler",
+        "dev:redis": "turbo run dev --log-prefix=none --filter=!@neshca/server --filter=!@neshca/handler",
         "format": "prettier --write \"**/*.{ts,tsx,md,mdx,js,jsx,cjs,mjs,json,yaml,css}\"",
         "lint": "turbo run lint",
-        "start": "turbo run start --log-prefix=none --filter=!cache-testing",
-        "start:app": "turbo run start --log-prefix=none --filter=cache-testing"
+        "publish-packages": "turbo run build lint publish",
+        "start": "turbo run start --log-prefix=none --filter=!@neshca/cache-testing",
+        "start:app": "turbo run start --log-prefix=none --filter=@neshca/cache-testing"
     },
     "devDependencies": {
+        "@neshca/prettier-config": "*",
+        "@neshca/tsconfig": "*",
         "eslint": "8.50.0",
         "prettier": "3.0.3",
-        "prettier-config": "*",
-        "tsconfig": "*",
         "turbo": "1.10.14"
     },
     "packageManager": "npm@9.6.7",

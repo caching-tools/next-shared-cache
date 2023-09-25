@@ -1,21 +1,23 @@
 {
-    "name": "server",
-    "version": "13.5.3-canary.3",
+    "name": "@neshca/server",
+    "version": "13.5.3-canary.4",
     "homepage": "https://github.com/caching-tools/next-shared-cache",
     "bugs": "https://github.com/caching-tools/next-shared-cache/issues",
     "repository": "caching-tools/next-shared-cache",
     "license": "MIT",
+    "author": {
+        "name": "Arseny Kruglikov",
+        "email": "caching.tools@proton.me"
+    },
     "main": "./dist/server.mjs",
     "types": "./dist/types.d.mts",
-    "bin": {
-        "next-shared-cache": "./dist/server.mjs"
-    },
+    "bin": "./dist/server.mjs",
     "files": [
         "dist/**"
     ],
     "scripts": {
         "build": "tsup",
-        "clean": "rimraf ./dist ./.turbo",
+        "clean": "rimraf ./dist ./.turbo ./node_modules",
         "dev": "tsup --watch",
         "lint": "eslint .",
         "start": "./dist/server.mjs"
@@ -23,14 +25,14 @@
     "dependencies": {
         "@isaacs/ttlcache": "1.4.1",
         "fastify": "4.23.2",
-        "next-types": "*",
         "pino": "8.15.1"
     },
     "devDependencies": {
+        "@neshca/next-types": "*",
+        "@neshca/tsconfig": "*",
         "@types/node": "20.6.5",
-        "eslint-config-custom": "*",
+        "eslint-config-neshca": "*",
         "rimraf": "5.0.1",
-        "tsconfig": "*",
         "tsup": "7.2.0",
         "typescript": "5.2.2"
     },

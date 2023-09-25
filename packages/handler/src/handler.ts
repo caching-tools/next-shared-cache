@@ -7,7 +7,7 @@ import type {
     CacheHandlerParametersRevalidateTag,
     CacheHandlerParametersSet,
     CacheHandlerValue,
-} from 'next-types';
+} from '@neshca/next-types';
 
 const baseUrl = process.env.REMOTE_CACHE_HANDLER_URL ?? 'http://[::]:8080';
 

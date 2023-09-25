@@ -1,3 +1,3 @@
 module.exports = {
-    extends: ['custom/typescript'],
+    extends: ['neshca/typescript'],
 };

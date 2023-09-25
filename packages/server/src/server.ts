@@ -6,7 +6,7 @@ import type {
     CacheHandlerParametersGetWithTags,
     CacheHandlerParametersRevalidateTag,
     CacheHandlerParametersSet,
-} from 'next-types';
+} from '@neshca/next-types';
 import { IncrementalCache } from './incremental-cache';
 
 const logger = pino({
