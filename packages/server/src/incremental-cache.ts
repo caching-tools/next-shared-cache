@@ -2,7 +2,7 @@ import {
     type UnwrappedCacheHandler,
     type CacheHandlerValue,
     type CacheHandlerParametersSet,
-    type CacheHandlerParametersGet,
+    type CacheHandlerParametersGetWithTags,
     type CacheHandlerParametersRevalidateTag,
     type TagsManifest,
     NEXT_CACHE_TAGS_HEADER,
@@ -10,19 +10,19 @@ import {
 import { Cache } from './cache';
 
 export class IncrementalCache implements UnwrappedCacheHandler {
-    #tagsManifest: TagsManifest = { items: {}, version: 1 };
+    private tagsManifest: TagsManifest = { items: {}, version: 1 };
 
-    #memoryCache = new Cache();
+    private memoryCache = new Cache();
 
     /**
      * get
      */
-    get(...args: CacheHandlerParametersGet): CacheHandlerValue | null {
-        const [cacheKey, ctx = {}] = args;
+    public get(...args: CacheHandlerParametersGetWithTags): CacheHandlerValue | null {
+        const [cacheKey, ctx = {}, revalidatedTags = []] = args;
 
         const { tags = [], softTags = [] } = ctx;
 
-        const cachedData = this.#memoryCache.get(cacheKey);
+        const cachedData = this.memoryCache.get(cacheKey);
 
         if (!cachedData) {
             return null;
@@ -36,7 +36,7 @@ export class IncrementalCache implements UnwrappedCacheHandler {
                 cacheTags = tagsHeader.split(',');
             }
 
-            const tagsManifest = this.#tagsManifest;
+            const tagsManifest = this.tagsManifest;
 
             if (cacheTags?.length) {
                 const isStale = cacheTags.some((tag) => {
@@ -49,7 +49,7 @@ export class IncrementalCache implements UnwrappedCacheHandler {
                 // had a tag revalidated, if we want to be a background
                 // revalidation instead we return cachedData.lastModified = -1
                 if (isStale) {
-                    this.#memoryCache.delete(cacheKey);
+                    this.memoryCache.delete(cacheKey);
 
                     return null;
                 }
@@ -59,13 +59,12 @@ export class IncrementalCache implements UnwrappedCacheHandler {
         if (cachedData.value?.kind === 'FETCH') {
             const combinedTags = [...tags, ...softTags];
 
-            const tagsManifest = this.#tagsManifest;
+            const tagsManifest = this.tagsManifest;
 
             const wasRevalidated = combinedTags.some((tag: string) => {
-                // TODO: implement revalidatedTags
-                // if (this.revalidatedTags.includes(tag)) {
-                //     return true;
-                // }
+                if (revalidatedTags.includes(tag)) {
+                    return true;
+                }
 
                 const revalidatedAt = tagsManifest.items[tag]?.revalidatedAt;
 
@@ -74,7 +73,7 @@ export class IncrementalCache implements UnwrappedCacheHandler {
             // When revalidate tag is called we don't return
             // stale cachedData so it's updated right away
             if (wasRevalidated) {
-                this.#memoryCache.delete(cacheKey);
+                this.memoryCache.delete(cacheKey);
 
                 return null;
             }
@@ -86,10 +85,10 @@ export class IncrementalCache implements UnwrappedCacheHandler {
     /**
      * set
      */
-    set(...args: CacheHandlerParametersSet): void {
+    public set(...args: CacheHandlerParametersSet): void {
         const [cacheKey, data, ctx] = args;
 
-        this.#memoryCache.set(
+        this.memoryCache.set(
             cacheKey,
             {
                 value: data,
@@ -105,6 +104,6 @@ export class IncrementalCache implements UnwrappedCacheHandler {
     public revalidateTag(...args: CacheHandlerParametersRevalidateTag): void {
         const [tag] = args;
 
-        this.#tagsManifest.items[tag] = { revalidatedAt: Date.now() };
+        this.tagsManifest.items[tag] = { revalidatedAt: Date.now() };
     }
 }

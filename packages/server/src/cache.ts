@@ -4,10 +4,10 @@ import type { CacheHandlerValue, CacheHandlerParametersSet } from 'next-types';
 type Revalidate = CacheHandlerParametersSet[2]['revalidate'];
 
 export class Cache {
-    #cache = new TTLCache<string, CacheHandlerValue>({ max: 500, checkAgeOnGet: true });
+    private cache = new TTLCache<string, CacheHandlerValue>({ max: 500, checkAgeOnGet: true });
 
     get(key: string): CacheHandlerValue | undefined {
-        return this.#cache.get(key);
+        return this.cache.get(key);
     }
 
     set(key: string, value: CacheHandlerValue, revalidate: Revalidate): void {
@@ -17,10 +17,10 @@ export class Cache {
             ttl = revalidate * 1000;
         }
 
-        this.#cache.set(key, value, { ttl });
+        this.cache.set(key, value, { ttl });
     }
 
     delete(key: string): void {
-        this.#cache.delete(key);
+        this.cache.delete(key);
     }
 }

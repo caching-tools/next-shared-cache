@@ -3,7 +3,7 @@
 import { pino } from 'pino';
 import Fastify from 'fastify';
 import type {
-    CacheHandlerParametersGet,
+    CacheHandlerParametersGetWithTags,
     CacheHandlerParametersRevalidateTag,
     CacheHandlerParametersSet,
 } from 'next-types';
@@ -24,7 +24,7 @@ const host = '::';
 const port = 8080;
 
 server.post('/get', async (request, reply): Promise<void> => {
-    const data = cache.get(...(request.body as CacheHandlerParametersGet));
+    const data = cache.get(...(request.body as CacheHandlerParametersGetWithTags));
 
     await reply
         .code(data ? 200 : 404)
