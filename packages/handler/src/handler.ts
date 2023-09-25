@@ -2,6 +2,7 @@ import type { RequestInit } from 'undici';
 import { fetch } from 'undici';
 import type {
     CacheHandler,
+    CacheHandlerContext,
     CacheHandlerParametersGet,
     CacheHandlerParametersRevalidateTag,
     CacheHandlerParametersSet,
@@ -11,11 +12,17 @@ import type {
 const baseUrl = process.env.REMOTE_CACHE_HANDLER_URL ?? 'http://[::]:8080';
 
 export class RemoteCacheHandler implements CacheHandler {
+    revalidatedTags: string[] = [];
+
+    public constructor(context: CacheHandlerContext) {
+        this.revalidatedTags = context.revalidatedTags;
+    }
+
     public async get(...args: CacheHandlerParametersGet): Promise<CacheHandlerValue | null> {
         const requestInit: RequestInit = {
             method: 'POST',
             headers: { 'Content-Type': 'application/json; charset=utf-8' },
-            body: JSON.stringify(args),
+            body: JSON.stringify([...args, this.revalidatedTags]),
         };
 
         const url = new URL('/get', baseUrl);

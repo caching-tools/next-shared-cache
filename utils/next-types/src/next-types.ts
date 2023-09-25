@@ -14,6 +14,8 @@ export type {
 
 export type CacheHandlerParametersGet = Parameters<CacheHandler['get']>;
 
+export type CacheHandlerParametersGetWithTags = [...CacheHandlerParametersGet, string[]];
+
 export type CacheHandlerParametersSet = Parameters<CacheHandler['set']>;
 
 export type CacheHandlerParametersRevalidateTag = Parameters<CacheHandler['revalidateTag']>;
@@ -25,7 +27,7 @@ export type CacheHandlerReturnTypeSet = ReturnType<CacheHandler['set']>;
 export type CacheHandlerReturnTypeRevalidateTag = ReturnType<CacheHandler['revalidateTag']>;
 
 export type UnwrappedCacheHandler = {
-    get(...args: CacheHandlerParametersGet): Awaited<CacheHandlerReturnTypeGet>;
+    get(...args: CacheHandlerParametersGetWithTags): Awaited<CacheHandlerReturnTypeGet>;
     set(...args: CacheHandlerParametersSet): Awaited<CacheHandlerReturnTypeSet>;
     revalidateTag(...args: CacheHandlerParametersRevalidateTag): Awaited<CacheHandlerReturnTypeRevalidateTag>;
 };

@@ -7,35 +7,42 @@ import {
     type CacheHandlerParametersSet,
     type CacheHandlerValue,
     type TagsManifest,
+    type CacheHandlerContext,
 } from 'next-types';
 
 export class RemoteCacheHandler implements CacheHandler {
-    static #redisClient: RedisClientType | RedisClusterType | null = null;
+    revalidatedTags: string[] = [];
 
-    static #prefix = '';
-
-    static setRedisClient(client: RedisClientType | RedisClusterType): void {
-        this.#redisClient = client;
+    public constructor(context: CacheHandlerContext) {
+        this.revalidatedTags = context.revalidatedTags;
     }
 
-    static setPrefix(prefix: string): void {
-        this.#prefix = prefix;
+    private static redisClient: RedisClientType | RedisClusterType | null = null;
+
+    private static prefix = '';
+
+    public static setRedisClient(client: RedisClientType | RedisClusterType): void {
+        this.redisClient = client;
     }
 
-    static async connect(): Promise<void> {
-        await this.#redisClient?.connect();
+    public static setPrefix(prefix: string): void {
+        this.prefix = prefix;
     }
 
-    static async disconnect(): Promise<void> {
-        await this.#redisClient?.disconnect();
+    public static async connect(): Promise<void> {
+        await this.redisClient?.connect();
     }
 
-    static prefixCacheKey(cacheKey: string): string {
-        return `${this.#prefix}${cacheKey}`;
+    public static async disconnect(): Promise<void> {
+        await this.redisClient?.disconnect();
     }
 
-    static async getTagsManifest(): Promise<TagsManifest> {
-        const tagsManifest = await this.#redisClient?.hGetAll(this.prefixCacheKey('tagsManifest'));
+    private static prefixCacheKey(cacheKey: string): string {
+        return `${this.prefix}${cacheKey}`;
+    }
+
+    private static async getTagsManifest(): Promise<TagsManifest> {
+        const tagsManifest = await this.redisClient?.hGetAll(this.prefixCacheKey('tagsManifest'));
 
         if (!tagsManifest) {
             return { version: 1, items: {} };
@@ -57,7 +64,7 @@ export class RemoteCacheHandler implements CacheHandler {
 
         const prefixedCacheKey = RemoteCacheHandler.prefixCacheKey(cacheKey);
 
-        const result = await RemoteCacheHandler.#redisClient?.get(prefixedCacheKey);
+        const result = await RemoteCacheHandler.redisClient?.get(prefixedCacheKey);
 
         if (!result) {
             return null;
@@ -92,7 +99,7 @@ export class RemoteCacheHandler implements CacheHandler {
                 // had a tag revalidated, if we want to be a background
                 // revalidation instead we return cachedData.lastModified = -1
                 if (isStale) {
-                    await RemoteCacheHandler.#redisClient?.del(prefixedCacheKey);
+                    await RemoteCacheHandler.redisClient?.del(prefixedCacheKey);
 
                     return null;
                 }
@@ -105,10 +112,9 @@ export class RemoteCacheHandler implements CacheHandler {
             const tagsManifest = await RemoteCacheHandler.getTagsManifest();
 
             const wasRevalidated = combinedTags.some((tag: string) => {
-                // TODO: implement revalidatedTags
-                // if (this.revalidatedTags.includes(tag)) {
-                //     return true;
-                // }
+                if (this.revalidatedTags.includes(tag)) {
+                    return true;
+                }
 
                 const revalidatedAt = tagsManifest.items[tag]?.revalidatedAt;
 
@@ -117,7 +123,7 @@ export class RemoteCacheHandler implements CacheHandler {
             // When revalidate tag is called we don't return
             // stale cachedData so it's updated right away
             if (wasRevalidated) {
-                await RemoteCacheHandler.#redisClient?.del(prefixedCacheKey);
+                await RemoteCacheHandler.redisClient?.del(prefixedCacheKey);
 
                 return null;
             }
@@ -139,7 +145,7 @@ export class RemoteCacheHandler implements CacheHandler {
 
         const value: CacheHandlerValue = { lastModified: Date.now(), value: data };
 
-        await RemoteCacheHandler.#redisClient?.set(RemoteCacheHandler.prefixCacheKey(cacheKey), JSON.stringify(value), {
+        await RemoteCacheHandler.redisClient?.set(RemoteCacheHandler.prefixCacheKey(cacheKey), JSON.stringify(value), {
             EX: ttl,
         });
     }
@@ -151,6 +157,6 @@ export class RemoteCacheHandler implements CacheHandler {
             [tag]: Date.now(),
         };
 
-        await RemoteCacheHandler.#redisClient?.hSet(RemoteCacheHandler.prefixCacheKey('tagsManifest'), options);
+        await RemoteCacheHandler.redisClient?.hSet(RemoteCacheHandler.prefixCacheKey('tagsManifest'), options);
     }
 }
