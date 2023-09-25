@@ -1,6 +1,6 @@
 {
     "name": "handler",
-    "version": "13.5.3-canary.1",
+    "version": "13.5.3-canary.3",
     "homepage": "https://github.com/caching-tools/next-shared-cache",
     "bugs": "https://github.com/caching-tools/next-shared-cache/issues",
     "repository": "caching-tools/next-shared-cache",
@@ -18,10 +18,10 @@
     },
     "dependencies": {
         "next-types": "*",
-        "undici": "5.24.0"
+        "undici": "5.25.2"
     },
     "devDependencies": {
-        "@types/node": "20.6.2",
+        "@types/node": "20.6.5",
         "eslint-config-custom": "*",
         "rimraf": "5.0.1",
         "tsconfig": "*",

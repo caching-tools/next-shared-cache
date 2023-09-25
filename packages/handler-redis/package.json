@@ -1,6 +1,6 @@
 {
     "name": "handler-redis",
-    "version": "13.5.3-canary.1",
+    "version": "13.5.3-canary.3",
     "homepage": "https://github.com/caching-tools/next-shared-cache",
     "bugs": "https://github.com/caching-tools/next-shared-cache/issues",
     "repository": "caching-tools/next-shared-cache",
@@ -20,7 +20,7 @@
         "next-types": "*"
     },
     "devDependencies": {
-        "@types/node": "20.6.2",
+        "@types/node": "20.6.5",
         "eslint-config-custom": "*",
         "rimraf": "5.0.1",
         "tsconfig": "*",
@@ -28,7 +28,7 @@
         "typescript": "5.2.2"
     },
     "peerDependencies": {
-        "redis": "4.6.8"
+        "redis": "^4.6.8"
     },
     "engines": {
         "node": ">=18.17.0",

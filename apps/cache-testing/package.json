@@ -1,27 +1,30 @@
 {
     "name": "cache-testing",
-    "version": "13.5.3-canary.1",
+    "version": "13.5.3-canary.3",
     "private": true,
     "scripts": {
         "build": "next build",
         "clean": "rimraf ./.next ./.turbo",
+        "e2e": "playwright test --config=./playwright.config.ts",
+        "e2e:ui": "playwright test --ui --config=./playwright.config.ts",
         "lint": "next lint",
         "start": "next start"
     },
     "dependencies": {
         "handler": "*",
         "handler-redis": "*",
-        "next": "13.5.3-canary.1",
+        "next": "13.5.3-canary.3",
         "react": "18.2.0",
         "react-dom": "18.2.0"
     },
     "devDependencies": {
-        "@next/eslint-plugin-next": "13.5.3-canary.1",
-        "@types/node": "20.6.2",
+        "@next/eslint-plugin-next": "13.5.3-canary.3",
+        "@playwright/test": "1.38.1",
+        "@types/node": "20.6.5",
         "@types/react": "18.2.22",
         "@types/react-dom": "18.2.7",
         "eslint-config-custom": "*",
-        "redis": "4.6.8",
+        "redis": "4.6.10",
         "rimraf": "5.0.1",
         "tsconfig": "*",
         "typescript": "5.2.2"
