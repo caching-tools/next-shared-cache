@@ -15,17 +15,22 @@ const port = 8081;
 
 const initialTime = Date.now();
 
-const pathMeta: Record<string, [count: number, lastRequestTime: number]> = {
-    '/200': [0, initialTime],
-    '/404': [0, initialTime],
-    '/alternate-200-404': [0, initialTime],
-};
+function createCounter(): [count: number, lastRequestTime: number] {
+    return [0, initialTime];
+}
+
+const pathMeta = new Map<string, [count: number, lastRequestTime: number]>();
 
 const server = Fastify();
 
 server.addHook('preHandler', (request, _reply, done) => {
-    const { url } = request;
-    const meta = pathMeta[url];
+    let meta = pathMeta.get(request.url);
+
+    if (!meta) {
+        meta = createCounter();
+        pathMeta.set(request.url, meta);
+    }
+
     const [, lastRequestTime] = meta;
 
     const requestTime = Date.now();
@@ -38,25 +43,26 @@ server.addHook('preHandler', (request, _reply, done) => {
     done();
 });
 
-server.get('/200', async (_request, reply): Promise<void> => {
-    const [count] = pathMeta['/200'];
+server.get('/:nextApi/:rerendered:/:fallback/:page', async (request, reply): Promise<void> => {
+    const meta = pathMeta.get(request.url);
 
-    await reply.code(200).header('Content-Type', 'application/json; charset=utf-8').send({ count });
-});
+    if (!meta) {
+        throw new Error('');
+    }
+    const [count] = meta;
 
-server.get('/404', async (_request, reply): Promise<void> => {
-    const [count] = pathMeta['/404'];
+    const { page } = request.params as { page: string };
 
-    await reply.code(404).header('Content-Type', 'application/json; charset=utf-8').send({ count });
-});
-
-server.get('/alternate-200-404', async (_request, reply): Promise<void> => {
-    const [count] = pathMeta['/alternate-200-404'];
-
-    await reply
-        .code(count % 2 === 0 ? 200 : 404)
-        .header('Content-Type', 'application/json; charset=utf-8')
-        .send({ count });
+    if (page === '404') {
+        await reply.code(404).header('Content-Type', 'application/json; charset=utf-8').send({ count });
+    } else if (page === '200') {
+        await reply.code(200).header('Content-Type', 'application/json; charset=utf-8').send({ count });
+    } else if (page === 'alternate-200-404') {
+        await reply
+            .code(count % 2 === 0 ? 200 : 404)
+            .header('Content-Type', 'application/json; charset=utf-8')
+            .send({ count });
+    }
 });
 
 server

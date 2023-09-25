@@ -15,19 +15,19 @@ export async function getStaticProps({ params }: GetStaticPropsContext): Promise
         throw new Error('no slug');
     }
 
-    const result = await fetch(`http://localhost:8081/${normalizeSlug(slug)}`);
+    const result = await fetch(`http://localhost:8081/pages/no-paths/fallback-false/${normalizeSlug(slug)}`);
 
     if (!result.ok) {
-        return { notFound: true, revalidate: 60 };
+        return { notFound: true, revalidate: 10 };
     }
 
     const parsedResult = (await result.json()) as { count: number } | null;
 
     if (!parsedResult) {
-        return { notFound: true, revalidate: 60 };
+        return { notFound: true, revalidate: 10 };
     }
 
-    return { props: { count: parsedResult.count }, revalidate: 60 };
+    return { props: { count: parsedResult.count }, revalidate: 10 };
 }
 
 export function getStaticPaths(): Promise<GetStaticPathsResult> {
@@ -38,7 +38,7 @@ export function getStaticPaths(): Promise<GetStaticPathsResult> {
 }
 
 function Index({ count }: PageProps): JSX.Element {
-    return <div id="pages/no-paths/fallback-false">{count}</div>;
+    return <div data-pw="data" id="pages/no-paths/fallback-false">{count}</div>;
 }
 
 Index.getLayout = RootLayout;

@@ -11,10 +11,6 @@ export class Cache {
     }
 
     set(key: string, value: CacheHandlerValue, revalidate: Revalidate): void {
-        if (this.#cache.has(key)) {
-            return;
-        }
-
         let ttl = Infinity;
 
         if (typeof revalidate === 'number') {
@@ -26,9 +22,5 @@ export class Cache {
 
     delete(key: string): void {
         this.#cache.delete(key);
-    }
-
-    has(key: string): boolean {
-        return this.#cache.has(key);
     }
 }

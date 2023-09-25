@@ -18,7 +18,7 @@
         "start:app": "turbo run start --log-prefix=none --filter=cache-testing"
     },
     "devDependencies": {
-        "eslint": "8.49.0",
+        "eslint": "8.50.0",
         "prettier": "3.0.3",
         "prettier-config": "*",
         "tsconfig": "*",

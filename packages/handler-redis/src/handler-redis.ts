@@ -141,7 +141,6 @@ export class RemoteCacheHandler implements CacheHandler {
 
         await RemoteCacheHandler.#redisClient?.set(RemoteCacheHandler.prefixCacheKey(cacheKey), JSON.stringify(value), {
             EX: ttl,
-            NX: true,
         });
     }
 

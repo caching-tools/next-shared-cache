@@ -13,19 +13,19 @@ export async function getStaticProps({ params }: GetStaticPropsContext): Promise
         throw new Error('no slug');
     }
 
-    const result = await fetch(`http://localhost:8081/${slug}`);
+    const result = await fetch(`http://localhost:8081/pages/with-paths/fallback-true/${slug}`);
 
     if (!result.ok) {
-        return { notFound: true, revalidate: 60 };
+        return { notFound: true, revalidate: 10 };
     }
 
     const parsedResult = (await result.json()) as { count: number } | null;
 
     if (!parsedResult) {
-        return { notFound: true, revalidate: 60 };
+        return { notFound: true, revalidate: 10 };
     }
 
-    return { props: { count: parsedResult.count }, revalidate: 60 };
+    return { props: { count: parsedResult.count }, revalidate: 10 };
 }
 
 export function getStaticPaths(): Promise<GetStaticPathsResult> {
@@ -40,5 +40,5 @@ export function getStaticPaths(): Promise<GetStaticPathsResult> {
 }
 
 export default function Index({ count }: PageProps): JSX.Element {
-    return <div id="pages/with-paths/fallback-true">{count}</div>;
+    return <div data-pw="data" id="pages/with-paths/fallback-true">{count}</div>;
 }

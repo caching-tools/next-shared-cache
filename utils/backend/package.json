@@ -24,7 +24,7 @@
         "pino": "8.15.1"
     },
     "devDependencies": {
-        "@types/node": "20.6.2",
+        "@types/node": "20.6.5",
         "eslint-config-custom": "*",
         "pino-pretty": "10.2.0",
         "rimraf": "5.0.1",

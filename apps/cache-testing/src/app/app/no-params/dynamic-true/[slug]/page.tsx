@@ -6,8 +6,8 @@ export const dynamicParams = true;
 type PageParams = { params: { slug: string } };
 
 async function getData(slug: string): Promise<number | null> {
-    const result = await fetch(`http://localhost:8081/${normalizeSlug(slug)}`, {
-        next: { revalidate: 60, tags: ['my-tag-dynamic'] },
+    const result = await fetch(`http://localhost:8081/app/no-params/dynamic-true/${normalizeSlug(slug)}`, {
+        next: { revalidate: 10, tags: [`/app/no-params/dynamic-true/${normalizeSlug(slug)}`] },
     });
 
     if (!result.ok) {
@@ -30,5 +30,9 @@ export default async function Index({ params }: PageParams): Promise<JSX.Element
         notFound();
     }
 
-    return <div id="app/no-params/dynamic-true">{count}</div>;
+    return (
+        <div data-pw="data" id="app/no-params/dynamic-true">
+            {count}
+        </div>
+    );
 }
