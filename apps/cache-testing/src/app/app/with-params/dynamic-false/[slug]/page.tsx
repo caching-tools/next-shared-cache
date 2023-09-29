@@ -1,41 +1,27 @@
 import { notFound } from 'next/navigation';
+import { createGetData } from '../../../../../utils/create-get-data';
+import { CommonAppPage } from '../../../../../utils/common-app-page';
 
 type PageParams = { params: { slug: string } };
 
 export const dynamicParams = false;
 
-async function getData(slug: string): Promise<number | null> {
-    const result = await fetch(`http://localhost:8081/app/with-params/dynamic-false/${slug}`, {
-        next: { revalidate: 10, tags: [`/app/with-params/dynamic-false/${slug}`] },
-    });
+export const revalidate = 5;
 
-    if (!result.ok) {
-        return null;
-    }
-
-    const parsedResult = (await result.json()) as { count: number } | null;
-
-    if (!parsedResult) {
-        return null;
-    }
-
-    return parsedResult.count;
-}
+const getData = createGetData('app/with-params/dynamic-false');
 
 export function generateStaticParams(): Promise<PageParams['params'][]> {
     return Promise.resolve([{ slug: '200' }, { slug: '404' }, { slug: 'alternate-200-404' }]);
 }
 
 export default async function Index({ params }: PageParams): Promise<JSX.Element> {
-    const count = await getData(params.slug);
+    const data = await getData(params.slug);
 
-    if (!count) {
+    if (!data) {
         notFound();
     }
 
-    return (
-        <div data-pw="data" id="app/with-params/dynamic-false">
-            {count}
-        </div>
-    );
+    const { count, path, time } = data;
+
+    return <CommonAppPage count={count} path={path} revalidateAfter={revalidate * 1000} time={time} />;
 }

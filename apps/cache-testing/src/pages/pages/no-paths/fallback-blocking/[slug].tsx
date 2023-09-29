@@ -1,34 +1,8 @@
-import type { GetStaticPathsResult, GetStaticPropsContext, GetStaticPropsResult } from 'next';
-import { normalizeSlug } from '../../../../utils/normalize-slug';
-import RootLayout from '../../../layout';
+import type { GetStaticPathsResult } from 'next';
+import { createPagesGetStaticProps } from '../../../../utils/create-pages-get-static-props';
+import { CommonPagesPage } from '../../../../utils/common-pages-page';
 
-type PageProps = { count: number };
-
-export async function getStaticProps({ params }: GetStaticPropsContext): Promise<GetStaticPropsResult<PageProps>> {
-    if (!params) {
-        throw new Error('no params');
-    }
-
-    const { slug } = params;
-
-    if (!slug || Array.isArray(slug)) {
-        throw new Error('no slug');
-    }
-
-    const result = await fetch(`http://localhost:8081/pages/no-paths/fallback-blocking/${normalizeSlug(slug)}`);
-
-    if (!result.ok) {
-        return { notFound: true, revalidate: 10 };
-    }
-
-    const parsedResult = (await result.json()) as { count: number } | null;
-
-    if (!parsedResult) {
-        return { notFound: true, revalidate: 10 };
-    }
-
-    return { props: { count: parsedResult.count }, revalidate: 10 };
-}
+export const getStaticProps = createPagesGetStaticProps('pages/no-paths/fallback-blocking');
 
 export function getStaticPaths(): Promise<GetStaticPathsResult> {
     return Promise.resolve({
@@ -37,14 +11,4 @@ export function getStaticPaths(): Promise<GetStaticPathsResult> {
     });
 }
 
-function Index({ count }: PageProps): JSX.Element {
-    return (
-        <div data-pw="data" id="pages/no-paths/fallback-blocking">
-            {count}
-        </div>
-    );
-}
-
-Index.getLayout = RootLayout;
-
-export default Index;
+export default CommonPagesPage;
