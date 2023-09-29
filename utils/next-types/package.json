@@ -1,11 +1,10 @@
 {
     "name": "@neshca/next-types",
-    "version": "13.5.3-canary.4",
+    "version": "13.5.3",
     "homepage": "https://github.com/caching-tools/next-shared-cache",
     "bugs": "https://github.com/caching-tools/next-shared-cache/issues",
     "repository": "caching-tools/next-shared-cache",
     "license": "MIT",
-    "main": "./dist/next-types.js",
     "types": "./dist/next-types.d.ts",
     "files": [
         "dist/**"
@@ -17,7 +16,7 @@
         "lint": "eslint ."
     },
     "dependencies": {
-        "next": "13.5.3-canary.4"
+        "next": "13.5.3"
     },
     "devDependencies": {
         "@neshca/tsconfig": "*",

@@ -1,6 +1,6 @@
 {
-    "name": "@neshca/handler-redis",
-    "version": "13.5.3-canary.4",
+    "name": "@neshca/cache-handler",
+    "version": "13.5.3",
     "homepage": "https://github.com/caching-tools/next-shared-cache",
     "bugs": "https://github.com/caching-tools/next-shared-cache/issues",
     "repository": "caching-tools/next-shared-cache",
@@ -9,8 +9,8 @@
         "name": "Arseny Kruglikov",
         "email": "caching.tools@proton.me"
     },
-    "main": "./dist/handler-redis.js",
-    "types": "./dist/handler-redis.d.ts",
+    "main": "./dist/cache-handler.js",
+    "types": "./dist/cache-handler.d.ts",
     "files": [
         "dist/**"
     ],
@@ -22,6 +22,7 @@
     },
     "dependencies": {},
     "devDependencies": {
+        "@neshca/json-replacer-reviver": "*",
         "@neshca/next-types": "*",
         "@neshca/tsconfig": "*",
         "@types/node": "20.6.5",

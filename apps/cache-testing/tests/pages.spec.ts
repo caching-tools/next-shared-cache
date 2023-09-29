@@ -1,121 +1,50 @@
 import { test, expect } from '@playwright/test';
 
-test('Click on-demand revalidation with-paths fallback-blocking', async ({ page }) => {
-    await page.goto('http://localhost:3000/pages/with-paths/fallback-blocking/200');
+const urls = [
+    '/pages/with-paths/fallback-blocking/200',
+    '/pages/with-paths/fallback-true/200',
+    '/pages/with-paths/fallback-false/200',
+    '/pages/no-paths/fallback-blocking/200',
+    '/pages/no-paths/fallback-true/200',
+    // '/pages/no-paths/fallback-false/200', // this fails in native next.js cache
+];
 
-    let val = (await page.getByTestId('data').innerText()).valueOf();
+for (const url of urls) {
+    test(`testing ${url.split('/').join(' ')}`, async ({ page }) => {
+        await page.goto(url);
 
-    await page.reload();
+        await page.getByTestId('revalidate-button-path').click();
 
-    // Page should not have changed after reload if revalidation button was not clicked
+        await expect(page.getByTestId('is-revalidated-by-path')).toContainText('Revalidated at');
 
-    await expect(page.getByTestId('data')).toHaveText(val);
+        await page.reload();
 
-    // Click on revalidate by path button
+        let val = (await page.getByTestId('data').innerText()).valueOf();
 
-    await page.getByTestId('revalidate-button-path').click();
+        await page.reload();
 
-    await page.reload();
+        // Page should not have changed after reload if revalidation button was not clicked
 
-    // Page should have changed after reload if revalidation button was clicked
+        await expect(page.getByTestId('data')).toHaveText(val);
 
-    await expect(page.getByTestId('data')).not.toHaveText(val);
+        // Click on revalidate by path button
 
-    val = (await page.getByTestId('data').innerText()).valueOf();
+        await page.getByTestId('revalidate-button-path').click();
 
-    await page.reload();
+        await expect(page.getByTestId('is-revalidated-by-path')).toContainText('Revalidated at');
 
-    // Page should not have changed after reload if revalidation button was not clicked
+        await page.reload();
 
-    await expect(page.getByTestId('data')).toHaveText(val);
-});
+        // Page should have changed after reload if revalidation button was clicked
 
-test('Click on-demand revalidation with-paths fallback-true', async ({ page }) => {
-    await page.goto('http://localhost:3000/pages/with-paths/fallback-true/200');
+        await expect(page.getByTestId('data')).not.toHaveText(val);
 
-    let val = (await page.getByTestId('data').innerText()).valueOf();
+        val = (await page.getByTestId('data').innerText()).valueOf();
 
-    await page.reload();
+        await page.reload();
 
-    // Page should not have changed after reload if revalidation button was not clicked
+        // Page should not have changed after reload if revalidation button was not clicked
 
-    await expect(page.getByTestId('data')).toHaveText(val);
-
-    // Click on revalidate by path button
-
-    await page.getByTestId('revalidate-button-path').click();
-
-    await page.reload();
-
-    // Page should have changed after reload if revalidation button was clicked
-
-    await expect(page.getByTestId('data')).not.toHaveText(val);
-
-    val = (await page.getByTestId('data').innerText()).valueOf();
-
-    await page.reload();
-
-    // Page should not have changed after reload if revalidation button was not clicked
-
-    await expect(page.getByTestId('data')).toHaveText(val);
-});
-
-test('Click on-demand revalidation no-params fallback-blocking', async ({ page }) => {
-    await page.goto('http://localhost:3000/pages/no-paths/fallback-blocking/200');
-
-    let val = (await page.getByTestId('data').innerText()).valueOf();
-
-    await page.reload();
-
-    // Page should not have changed after reload if revalidation button was not clicked
-
-    await expect(page.getByTestId('data')).toHaveText(val);
-
-    // Click on revalidate by path button
-
-    await page.getByTestId('revalidate-button-path').click();
-
-    await page.reload();
-
-    // Page should have changed after reload if revalidation button was clicked
-
-    await expect(page.getByTestId('data')).not.toHaveText(val);
-
-    val = (await page.getByTestId('data').innerText()).valueOf();
-
-    await page.reload();
-
-    // Page should not have changed after reload if revalidation button was not clicked
-
-    await expect(page.getByTestId('data')).toHaveText(val);
-});
-
-test('Click on-demand revalidation no-params fallback-true', async ({ page }) => {
-    await page.goto('http://localhost:3000/pages/no-paths/fallback-true/200');
-
-    let val = (await page.getByTestId('data').innerText()).valueOf();
-
-    await page.reload();
-
-    // Page should not have changed after reload if revalidation button was not clicked
-
-    await expect(page.getByTestId('data')).toHaveText(val);
-
-    // Click on revalidate by path button
-
-    await page.getByTestId('revalidate-button-path').click();
-
-    await page.reload();
-
-    // Page should have changed after reload if revalidation button was clicked
-
-    await expect(page.getByTestId('data')).not.toHaveText(val);
-
-    val = (await page.getByTestId('data').innerText()).valueOf();
-
-    await page.reload();
-
-    // Page should not have changed after reload if revalidation button was not clicked
-
-    await expect(page.getByTestId('data')).toHaveText(val);
-});
+        await expect(page.getByTestId('data')).toHaveText(val);
+    });
+}

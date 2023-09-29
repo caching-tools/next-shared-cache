@@ -46,7 +46,7 @@ export function RevalidateButton({
             <button data-pw={`revalidate-button-${type}`} onClick={handleRevalidation} type="button">
                 Revalidate {type}
             </button>
-            <div>{revalidation}</div>
+            <div data-pw={`is-revalidated-by-${type}`}>{revalidation}</div>
         </div>
     );
 }

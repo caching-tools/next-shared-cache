@@ -1,6 +1,6 @@
 {
-    "name": "@neshca/handler",
-    "version": "13.5.3-canary.4",
+    "name": "@neshca/json-replacer-reviver",
+    "version": "13.5.3",
     "homepage": "https://github.com/caching-tools/next-shared-cache",
     "bugs": "https://github.com/caching-tools/next-shared-cache/issues",
     "repository": "caching-tools/next-shared-cache",
@@ -9,8 +9,8 @@
         "name": "Arseny Kruglikov",
         "email": "caching.tools@proton.me"
     },
-    "main": "./dist/handler.js",
-    "types": "./dist/handler.d.ts",
+    "main": "./dist/json-replacer-reviver.js",
+    "types": "./dist/json-replacer-reviver.d.ts",
     "files": [
         "dist/**"
     ],
@@ -18,17 +18,18 @@
         "build": "tsup",
         "clean": "rimraf ./dist ./.turbo ./node_modules",
         "dev": "tsup --watch",
-        "lint": "eslint ."
-    },
-    "dependencies": {
-        "undici": "5.25.2"
+        "lint": "eslint .",
+        "test": "jest",
+        "test:watch": "jest --watch"
     },
     "devDependencies": {
-        "@neshca/next-types": "*",
         "@neshca/tsconfig": "*",
+        "@types/jest": "29.5.5",
         "@types/node": "20.6.5",
         "eslint-config-neshca": "*",
+        "jest": "29.7.0",
         "rimraf": "5.0.1",
+        "ts-jest": "29.1.1",
         "tsup": "7.2.0",
         "typescript": "5.2.2"
     },

@@ -2,12 +2,7 @@
 
 import { pino } from 'pino';
 import Fastify from 'fastify';
-import type {
-    CacheHandlerParametersGetWithTags,
-    CacheHandlerParametersRevalidateTag,
-    CacheHandlerParametersSet,
-} from '@neshca/next-types';
-import { IncrementalCache } from './incremental-cache';
+import type { TagsManifest } from '@neshca/next-types';
 
 const logger = pino({
     transport: {
@@ -18,13 +13,17 @@ const logger = pino({
 
 const server = Fastify();
 
-const cache = new IncrementalCache();
+const cache = new Map<string, string>();
+
+const revalidatedTags = new Map<string, number>();
 
 const host = '::';
 const port = 8080;
 
-server.post('/get', async (request, reply): Promise<void> => {
-    const data = cache.get(...(request.body as CacheHandlerParametersGetWithTags));
+server.get('/get', async (request, reply): Promise<void> => {
+    const { key } = request.query as { key: string };
+
+    const data = cache.get(key);
 
     await reply
         .code(data ? 200 : 404)
@@ -33,15 +32,35 @@ server.post('/get', async (request, reply): Promise<void> => {
 });
 
 server.post('/set', async (request, reply): Promise<void> => {
-    cache.set(...(request.body as CacheHandlerParametersSet));
+    const kek = request.body as string;
+    const [key, data] = JSON.parse(kek) as [string, string, number];
 
-    await reply.code(200).header('Content-Type', 'application/json; charset=utf-8').send();
+    cache.set(key, data);
+
+    await reply.code(200).header('Content-Type', 'application/json; charset=utf-8').send(null);
+});
+
+server.get('/getTagsManifest', async (_request, reply): Promise<void> => {
+    const tagsManifest: TagsManifest = {
+        items: {},
+        version: 1,
+    };
+
+    for (const [tag, revalidatedAt] of revalidatedTags.entries()) {
+        tagsManifest.items[tag] = {
+            revalidatedAt,
+        };
+    }
+
+    await reply.code(200).header('Content-Type', 'application/json; charset=utf-8').send(tagsManifest);
 });
 
 server.post('/revalidateTag', async (request, reply): Promise<void> => {
-    cache.revalidateTag(...(request.body as CacheHandlerParametersRevalidateTag));
+    const [tag, revalidatedAt] = JSON.parse(request.body as string) as [string, number];
 
-    await reply.code(200).header('Content-Type', 'application/json; charset=utf-8').send();
+    revalidatedTags.set(tag, revalidatedAt);
+
+    await reply.code(200).header('Content-Type', 'application/json; charset=utf-8').send(null);
 });
 
 server

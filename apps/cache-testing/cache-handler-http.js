@@ -1,40 +1,3 @@
-# @neshca/server
-
-This is an example of a server that uses the `@neshca/cache-handler` package.
-
-## Installation
-
-### @neshca/server
-
-To install the `@neshca/server` package:
-
-```sh
-npm install -D @neshca/server
-```
-
-### @neshca/cache-handler in your Next.js app
-
-To install the `@neshca/cache-handler` package:
-
-```sh
-npm install -D @neshca/cache-handler
-```
-
-## Usage
-
-### @neshca/server
-
-Run server:
-
-```sh
-npx @neshca/server
-```
-
-### @neshca/cache-handler in your Next.js app
-
-Create a file called `cache-handler.js` next to you `next.config.js` with the following contents:
-
-```js
 const { IncrementalCache } = require('@neshca/cache-handler');
 const { reviveFromBase64Representation, replaceJsonWithBase64 } = require('@neshca/json-replacer-reviver');
 const { fetch } = require('undici');
@@ -85,19 +48,5 @@ IncrementalCache.cache = {
         });
     },
 };
+
 module.exports = IncrementalCache;
-```
-
-Then, use the following configuration in your `next.config.js` file:
-
-```js
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-    experimental: {
-        incrementalCacheHandlerPath: require.resolve('./cache-handler'), // path to the cache handler file you created
-        isrFlushToDisk: false, // disable writing cache to disk
-    },
-};
-
-module.exports = nextConfig;
-```

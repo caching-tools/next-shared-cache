@@ -11,15 +11,16 @@
         "start": "next start"
     },
     "dependencies": {
-        "@neshca/handler": "*",
-        "@neshca/handler-redis": "*",
-        "next": "13.5.3-canary.4",
+        "next": "13.5.3",
         "react": "18.2.0",
-        "react-dom": "18.2.0"
+        "react-dom": "18.2.0",
+        "undici": "5.25.2"
     },
     "devDependencies": {
+        "@neshca/cache-handler": "*",
+        "@neshca/json-replacer-reviver": "*",
         "@neshca/tsconfig": "*",
-        "@next/eslint-plugin-next": "13.5.3-canary.4",
+        "@next/eslint-plugin-next": "13.5.3",
         "@playwright/test": "1.38.1",
         "@types/node": "20.6.5",
         "@types/react": "18.2.22",
