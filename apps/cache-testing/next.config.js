@@ -3,7 +3,7 @@ const nextConfig = {
     poweredByHeader: false,
     reactStrictMode: true,
     experimental: {
-        incrementalCacheHandlerPath: require.resolve('./cache-handler'),
+        incrementalCacheHandlerPath: require.resolve('./cache-handler-redis'),
         isrFlushToDisk: false,
     },
 };

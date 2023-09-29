@@ -1,13 +1,12 @@
 import { defineConfig } from 'tsup';
 
 export const tsup = defineConfig({
-    name: 'Build handler-redis',
-    entry: ['src/handler-redis.ts'],
+    name: 'Build json-replacer-reviver',
+    entry: ['src/json-replacer-reviver.ts'],
     splitting: false,
     outDir: 'dist',
     clean: true,
     format: 'cjs',
     dts: true,
     target: 'node18.17',
-    noExternal: ['@neshca/next-types'],
 });

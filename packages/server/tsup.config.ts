@@ -42,7 +42,6 @@ export const tsup = defineConfig((options) => {
         outDir: 'dist',
         format: 'esm',
         target: 'node18.17',
-        noExternal: ['@neshca/next-types'],
         onSuccess: options.watch ? onSuccess : undefined,
     };
 });
