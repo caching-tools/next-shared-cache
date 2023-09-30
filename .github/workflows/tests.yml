@@ -1,21 +1,28 @@
 name: Tests
 on:
-    push:
-        branches: [canary]
-    pull_request:
-        branches: [canary]
+  push:
+    branches: [canary]
+  pull_request:
+    branches: [canary]
 jobs:
-    test:
-        name: 'Test all'
-        runs-on: ubuntu-latest
-        container:
-            image: mcr.microsoft.com/playwright:v1.38.1-jammy
-        steps:
-            - uses: actions/checkout@v4
-            - uses: actions/setup-node@v3
-              with:
-                  node-version-file: '.nvmrc'
-            - name: Install dependencies
-              run: npm ci
-            - name: Test all
-              run: ./scripts/test-all.sh
+  test:
+    name: 'Test all'
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.38.1-jammy
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
+      - name: Install dependencies
+        run: npm ci
+      - name: Run Jest tests
+        run: npm test
+      - name: Build
+        run: npm run build
+      - name: Build Next.js app and run tests
+        run: |
+          npm run start -w @neshca/backend &
+          npm run build:app
+          npm run e2e

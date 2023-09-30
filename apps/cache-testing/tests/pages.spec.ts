@@ -58,7 +58,7 @@ test.describe('time based revalidation', () => {
         '/pages/with-paths/fallback-false/200',
         '/pages/no-paths/fallback-blocking/200',
         '/pages/no-paths/fallback-true/200',
-        // '/pages/no-paths/fallback-false/200', // this fails in native next.js cache
+        // '/pages/no-paths/fallback-false/200', // this fails with native next.js cache
     ];
 
     for (const url of urls) {

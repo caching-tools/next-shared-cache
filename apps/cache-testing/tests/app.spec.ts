@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('on-demand revalidation', () => {
     const urls = [
         '/app/with-params/dynamic-true/200',
-        // '/app/with-params/dynamic-false/200', // this fails in native next.js cache
+        // '/app/with-params/dynamic-false/200', // this fails with native next.js cache
         '/app/no-params/dynamic-true/200',
         '/app/no-params/dynamic-false/200',
     ];

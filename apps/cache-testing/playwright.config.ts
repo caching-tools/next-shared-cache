@@ -7,7 +7,7 @@ export default defineConfig({
     retries: process.env.CI ? 2 : 0,
     workers: 1,
     reporter: 'html',
-    use: { baseURL: 'http://[::]:3000', trace: 'on-first-retry', testIdAttribute: 'data-pw' },
+    use: { baseURL: 'http://127.0.0.1:3000', trace: 'on-first-retry', testIdAttribute: 'data-pw' },
     projects: [
         {
             name: 'chromium',
@@ -16,7 +16,7 @@ export default defineConfig({
     ],
     webServer: {
         command: 'npm run start',
-        url: 'http://[::]:3000',
+        url: 'http://127.0.0.1:3000',
         reuseExistingServer: !process.env.CI,
     },
 });
