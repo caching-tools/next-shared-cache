@@ -14,7 +14,7 @@
         "dev:backend": "turbo run dev --log-prefix=none --filter=@neshca/backend",
         "dev:redis": "turbo run dev --log-prefix=none --filter=!@neshca/server",
         "e2e": "turbo run e2e",
-        "format": "prettier --write \"**/*.{ts,tsx,md,mdx,js,jsx,cjs,mjs,json,yaml,css}\"",
+        "format": "prettier --write \"**/*.{ts,tsx,md,mdx,js,jsx,cjs,mjs,json,yml,yaml,css}\"",
         "lint": "turbo run lint",
         "publish-packages": "turbo run build lint publish",
         "start": "turbo run start --log-prefix=none --filter=!@neshca/cache-testing",
