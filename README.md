@@ -9,9 +9,9 @@ This project is in the early stages of development. It is not ready for producti
 -   [x] Support for App routes;
 -   [x] Support for Pages routes;
 -   [x] Happy path tests;
--   [] Full test coverage;
--   [] Documentation;
--   [] Examples;
+-   [ ] Full test coverage;
+-   [ ] Documentation;
+-   [ ] Examples;
 
 ## Overview
 
