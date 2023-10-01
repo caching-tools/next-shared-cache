@@ -1,3 +1,5 @@
+// @ts-check
+
 const { IncrementalCache } = require('@neshca/cache-handler');
 const { reviveFromBase64Representation, replaceJsonWithBase64 } = require('@neshca/json-replacer-reviver');
 const { createClient } = require('redis');
@@ -13,11 +15,10 @@ client.on('error', (err) => {
     console.log('Redis Client Error', err);
 });
 
-IncrementalCache.prefix = 'app:cache-testing:';
-
-IncrementalCache.cache = {
-    async get(...args) {
-        const result = await client.get(...args);
+/** @type {import('@neshca/cache-handler').Cache} */
+const cache = {
+    async get(key) {
+        const result = await client.get(key);
 
         if (!result) {
             return null;
@@ -47,7 +48,7 @@ IncrementalCache.cache = {
 
         return { version: 1, items };
     },
-    async revalidateTag(prefix, tag, revalidatedAt) {
+    async revalidateTag(tag, revalidatedAt, prefix) {
         const options = {
             [tag]: revalidatedAt,
         };
@@ -55,5 +56,15 @@ IncrementalCache.cache = {
         await client.hSet(`${prefix}tagsManifest`, options);
     },
 };
+
+IncrementalCache.configure({
+    cache,
+    prefix: 'app:cache-testing:',
+    /**
+     * No need to write to disk, as we're using a shared cache.
+     * Read is required to get pre-rendering pages from disk
+     */
+    diskAccessMode: 'read-yes/write-no',
+});
 
 module.exports = IncrementalCache;

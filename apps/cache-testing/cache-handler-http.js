@@ -1,12 +1,13 @@
+// @ts-check
+
 const { IncrementalCache } = require('@neshca/cache-handler');
 const { reviveFromBase64Representation, replaceJsonWithBase64 } = require('@neshca/json-replacer-reviver');
 const { fetch } = require('undici');
 
 const baseUrl = process.env.BASE_URL ?? 'http://localhost:8080';
 
-IncrementalCache.prefix = 'cache-testing:';
-
-IncrementalCache.cache = {
+/** @type {import('@neshca/cache-handler').Cache} */
+const cache = {
     async get(key) {
         const result = await fetch(`${baseUrl}/get?${new URLSearchParams({ key })}`);
 
@@ -26,9 +27,12 @@ IncrementalCache.cache = {
         await fetch(`${baseUrl}/set`, {
             method: 'POST',
             body: JSON.stringify([key, JSON.stringify(value, replaceJsonWithBase64), ttl]),
-            contentType: 'text/plain',
+            headers: {
+                'Content-Type': 'application/json',
+            },
         });
     },
+    // @ts-ignore
     async getTagsManifest() {
         const response = await fetch(`${baseUrl}/getTagsManifest`);
 
@@ -40,13 +44,25 @@ IncrementalCache.cache = {
 
         return json;
     },
-    async revalidateTag(_prefix, tag, revalidatedAt) {
+    async revalidateTag(tag, revalidatedAt) {
         await fetch(`${baseUrl}/revalidateTag`, {
             method: 'POST',
             body: JSON.stringify([tag, revalidatedAt]),
-            contentType: 'text/plain',
+            headers: {
+                'Content-Type': 'application/json',
+            },
         });
     },
 };
+
+IncrementalCache.configure({
+    cache,
+    prefix: 'app:cache-testing:',
+    /**
+     * No need to write to disk, as we're using a shared cache.
+     * Read is required to get pre-rendering pages from disk
+     */
+    diskAccessMode: 'read-yes/write-no',
+});
 
 module.exports = IncrementalCache;

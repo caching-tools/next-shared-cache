@@ -32,8 +32,7 @@ server.get('/get', async (request, reply): Promise<void> => {
 });
 
 server.post('/set', async (request, reply): Promise<void> => {
-    const kek = request.body as string;
-    const [key, data] = JSON.parse(kek) as [string, string, number];
+    const [key, data] = request.body as [string, string, number];
 
     cache.set(key, data);
 
@@ -56,7 +55,7 @@ server.get('/getTagsManifest', async (_request, reply): Promise<void> => {
 });
 
 server.post('/revalidateTag', async (request, reply): Promise<void> => {
-    const [tag, revalidatedAt] = JSON.parse(request.body as string) as [string, number];
+    const [tag, revalidatedAt] = request.body as [string, number];
 
     revalidatedTags.set(tag, revalidatedAt);
 

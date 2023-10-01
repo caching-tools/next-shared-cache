@@ -1,6 +1,6 @@
 {
     "name": "@neshca/cache-handler",
-    "version": "13.5.3",
+    "version": "0.2.0",
     "homepage": "https://github.com/caching-tools/next-shared-cache",
     "bugs": "https://github.com/caching-tools/next-shared-cache/issues",
     "repository": "caching-tools/next-shared-cache",
@@ -20,7 +20,6 @@
         "dev": "tsup --watch",
         "lint": "eslint ."
     },
-    "dependencies": {},
     "devDependencies": {
         "@neshca/next-types": "*",
         "@neshca/tsconfig": "*",
@@ -30,8 +29,8 @@
         "tsup": "7.2.0",
         "typescript": "5.2.2"
     },
-    "peerDependencies": {
-        "redis": "^4.6.8"
+    "optionalDependencies": {
+        "lru-cache": "^10.0.0"
     },
     "engines": {
         "node": ">=18.17.0",
