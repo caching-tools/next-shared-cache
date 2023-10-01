@@ -5,8 +5,9 @@ export const tsup = defineConfig({
     entry: ['src/cache-handler.ts'],
     splitting: false,
     outDir: 'dist',
-    clean: true,
+    clean: false,
     format: 'cjs',
     dts: true,
     target: 'node18.17',
+    external: ['lru-cache'],
 });

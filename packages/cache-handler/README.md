@@ -1,5 +1,20 @@
 # @neshca/cache-handler
 
+## Current status
+
+This project is in the early stages of development. It is not ready for production use. API will change until the first stable release.
+
+### Roadmap
+
+-   [x] Support for App routes;
+-   [x] Support for Pages routes;
+-   [x] Happy path tests;
+-   [] Full test coverage;
+-   [] Documentation;
+-   [] Examples;
+
+## Overview
+
 This is a package that provides a cache handler for Next.js Incremental Static Regeneration (ISR). It is meant to be used with the `experimental.incrementalCacheHandlerPath` configuration option of Next.js. More information about this option can be found in the [Next.js documentation](https://nextjs.org/docs/app/api-reference/next-config-js/incrementalCacheHandlerPath).
 
 Native Next.js ISR cache can't be shared between multiple instances. `@neshca/cache-handler` on the other hand can be used with a local or remote cache store. So you can share the cache between multiple instances of your application. In the example below, you can see how to use Redis as a cache store.
@@ -34,11 +49,10 @@ client.on('error', (err) => {
     console.log('Redis Client Error', err);
 });
 
-IncrementalCache.prefix = 'app:cache-testing:';
-
-IncrementalCache.cache = {
-    async get(...args) {
-        const result = await client.get(...args);
+/** @type {import('@neshca/cache-handler').Cache} */
+const cache = {
+    async get(key) {
+        const result = await client.get(key);
 
         if (!result) {
             return null;
@@ -68,7 +82,7 @@ IncrementalCache.cache = {
 
         return { version: 1, items };
     },
-    async revalidateTag(prefix, tag, revalidatedAt) {
+    async revalidateTag(tag, revalidatedAt, prefix) {
         const options = {
             [tag]: revalidatedAt,
         };
@@ -76,6 +90,16 @@ IncrementalCache.cache = {
         await client.hSet(`${prefix}tagsManifest`, options);
     },
 };
+
+IncrementalCache.configure({
+    cache,
+    prefix: 'app:cache-testing:',
+    /**
+     * No need to write to disk, as we're using a shared cache.
+     * Read is required to get pre-rendering pages from disk
+     */
+    diskAccessMode: 'read-yes/write-no',
+});
 
 module.exports = IncrementalCache;
 ```
@@ -87,7 +111,7 @@ Then, use the following configuration in your `next.config.js` file:
 const nextConfig = {
     experimental: {
         incrementalCacheHandlerPath: require.resolve('./cache-handler'), // path to the cache handler file you created
-        isrFlushToDisk: false, // disable writing cache to disk
+        isrFlushToDisk: false, // disable writing cache to disk. @neshca/cache-handler will write cache to disk if ttlMode is set to 'not-ttl'
     },
 };
 

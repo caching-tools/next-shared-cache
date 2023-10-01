@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/method-signature-style -- need to use a method style */
 import type { OutgoingHttpHeaders } from 'node:http';
 import type { CacheHandler } from 'next/dist/server/lib/incremental-cache';
+import type IncrementalCache from 'next/dist/server/lib/incremental-cache/file-system-cache';
 
 export type { CacheHandler, CacheHandlerContext, CacheHandlerValue } from 'next/dist/server/lib/incremental-cache';
 export type {
@@ -11,6 +12,8 @@ export type {
     IncrementalCacheValue,
     IncrementalCacheEntry,
 } from 'next/dist/server/response-cache/types';
+
+export type FileSystemCacheContext = ConstructorParameters<typeof IncrementalCache>[0];
 
 export type CacheHandlerParametersGet = Parameters<CacheHandler['get']>;
 

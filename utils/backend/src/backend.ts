@@ -13,10 +13,8 @@ const logger = pino({
 const host = '::';
 const port = 8081;
 
-const initialTime = Date.now();
-
 function createCounter(): [count: number, lastRequestTime: number] {
-    return [0, initialTime];
+    return [0, Date.now()];
 }
 
 const pathMeta = new Map<string, [count: number, lastRequestTime: number]>();

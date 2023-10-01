@@ -7,19 +7,18 @@
         "utils/*"
     ],
     "scripts": {
-        "build": "turbo run build --log-prefix=none --filter=!@neshca/cache-testing",
-        "build:app": "turbo run build --log-prefix=none --filter=@neshca/cache-testing",
-        "clean": "turbo run clean",
-        "dev": "turbo run dev --log-prefix=none",
-        "dev:backend": "turbo run dev --log-prefix=none --filter=@neshca/backend",
-        "dev:redis": "turbo run dev --log-prefix=none --filter=!@neshca/server",
-        "e2e": "turbo run e2e",
+        "build": "FORCE_COLOR=1 turbo run build --log-prefix=none --filter=!@neshca/cache-testing",
+        "build:app": "FORCE_COLOR=1 turbo run build --log-prefix=none --filter=@neshca/cache-testing",
+        "clean": "FORCE_COLOR=1 turbo run clean",
+        "dev": "FORCE_COLOR=1 turbo run dev --log-prefix=none",
+        "dev:backend": "FORCE_COLOR=1 turbo run dev --log-prefix=none --filter=@neshca/backend",
+        "dev:redis": "FORCE_COLOR=1 turbo run dev --log-prefix=none --filter=!@neshca/server",
+        "e2e": "FORCE_COLOR=1 turbo run e2e --log-prefix=none",
         "format": "prettier --write \"**/*.{ts,tsx,md,mdx,js,jsx,cjs,mjs,json,yml,yaml,css}\"",
-        "lint": "turbo run lint",
-        "publish-packages": "turbo run build lint publish",
-        "start": "turbo run start --log-prefix=none --filter=!@neshca/cache-testing",
-        "start:app": "turbo run start --log-prefix=none --filter=@neshca/cache-testing",
-        "test": "turbo run test"
+        "lint": "FORCE_COLOR=1 turbo run lint",
+        "start": "FORCE_COLOR=1 turbo run start --log-prefix=none --filter=!@neshca/cache-testing",
+        "start:app": "FORCE_COLOR=1 turbo run start --log-prefix=none --filter=@neshca/cache-testing",
+        "test": "FORCE_COLOR=1 turbo run test"
     },
     "devDependencies": {
         "@neshca/prettier-config": "*",

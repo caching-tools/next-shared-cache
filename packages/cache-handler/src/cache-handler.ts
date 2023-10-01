@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/method-signature-style -- need to use a method style */
 
 import path from 'node:path';
+import fs from 'node:fs/promises';
 import type { OutgoingHttpHeaders } from 'node:http';
 import type {
     CacheHandler,
@@ -8,61 +9,136 @@ import type {
     CacheHandlerParametersSet,
     CacheHandlerParametersGet,
     TagsManifest,
-    CacheHandlerContext,
+    FileSystemCacheContext,
     CachedFetchValue,
     CacheHandlerParametersRevalidateTag,
 } from '@neshca/next-types';
+import { LRUCache } from 'lru-cache';
+
+export type { TagsManifest } from '@neshca/next-types';
 
 type Meta = { status: number; headers: OutgoingHttpHeaders };
 
-export type Cache = {
+export type Cache<T = unknown> = {
     get(key: string): Promise<CacheHandlerValue | null | undefined>;
-    set(key: string, value: unknown, ttl?: number): Promise<void>;
-    getTagsManifest(prefix: string): Promise<TagsManifest | null | undefined>;
-    revalidateTag(prefix: string, tag: string, revalidatedAt: number): Promise<void>;
+    set(key: string, value: T, ttl?: number): Promise<void>;
+    getTagsManifest(prefix: string): Promise<TagsManifest>;
+    revalidateTag(tag: string, revalidatedAt: number, prefix: string): Promise<void>;
 };
 
-type CacheMode = 'ttl' | 'not-ttl';
+type ReadCacheFromDisk = 'yes' | 'no';
+
+type WriteCacheFromDisk = 'yes' | 'no';
+
+type CacheDiskAccessMode = `read-${ReadCacheFromDisk}/write-${WriteCacheFromDisk}`;
+
+type CacheConfigDefaultCache = {
+    prefix?: string;
+    diskAccessMode?: CacheDiskAccessMode;
+    cache?: Cache;
+    defaultCacheOptions?: never;
+};
+
+type CacheConfigWithDefaultCache = {
+    prefix?: string;
+    diskAccessMode?: CacheDiskAccessMode;
+    cache?: never;
+    defaultCacheOptions?: {
+        max?: number;
+        maxSize?: number;
+    };
+};
+
+export type CacheConfig = CacheConfigDefaultCache | CacheConfigWithDefaultCache;
 
 const NEXT_CACHE_TAGS_HEADER = 'x-next-cache-tags';
 
 export class IncrementalCache implements CacheHandler {
-    public static prefix = '';
+    private static prefix: string;
 
-    public static ttlMode: CacheMode = 'not-ttl';
+    private static diskAccessMode: CacheDiskAccessMode = 'read-yes/write-yes';
 
-    public static cache: Cache | null = null;
+    private static cache: Cache;
+
+    public static configure({
+        prefix = '',
+        diskAccessMode = 'read-yes/write-yes',
+        cache,
+        defaultCacheOptions,
+    }: CacheConfig = {}): void {
+        this.prefix = prefix;
+        this.diskAccessMode = diskAccessMode;
+
+        if (cache) {
+            this.cache = cache;
+
+            return;
+        }
+
+        const lruCache = new LRUCache<string, CacheHandlerValue>({
+            max: defaultCacheOptions?.max ?? 1000,
+            maxSize: defaultCacheOptions?.maxSize ?? 1024 * 1024 * 500, // 500MB
+            // Credits to Next.js for the following code
+            sizeCalculation: ({ value }) => {
+                if (!value) {
+                    return 25;
+                } else if (value.kind === 'REDIRECT') {
+                    return JSON.stringify(value.props).length;
+                } else if (value.kind === 'IMAGE') {
+                    throw new Error('invariant image should not be incremental-cache');
+                } else if (value.kind === 'FETCH') {
+                    return JSON.stringify(value.data || '').length;
+                } else if (value.kind === 'ROUTE') {
+                    return value.body.length;
+                }
+                // rough estimate of size of cache value
+                return value.html.length + (JSON.stringify(value.pageData)?.length || 0);
+            },
+        });
+
+        const tagsManifest: TagsManifest = { items: {}, version: 1 };
+
+        const defaultCache: Cache<CacheHandlerValue> = {
+            get(key) {
+                return Promise.resolve(lruCache.get(key));
+            },
+            set(key, value) {
+                lruCache.set(key, value);
+                return Promise.resolve();
+            },
+            getTagsManifest() {
+                return Promise.resolve(tagsManifest);
+            },
+            revalidateTag(tag, revalidatedAt) {
+                tagsManifest.items[tag] = { revalidatedAt };
+                return Promise.resolve();
+            },
+        };
+
+        this.cache = defaultCache;
+    }
 
     private static getPrefixedCacheKey(cacheKey: string): string {
-        return `${this.prefix}${cacheKey}`;
+        return this.prefix + cacheKey;
     }
 
-    private static async getTagsManifest(): Promise<TagsManifest> {
-        return (await this.cache?.getTagsManifest(this.prefix)) ?? { items: {}, version: 1 };
-    }
+    revalidatedTags: FileSystemCacheContext['revalidatedTags'];
+    appDir: FileSystemCacheContext['_appDir'];
+    serverDistDir: FileSystemCacheContext['serverDistDir'];
 
-    revalidatedTags: CacheHandlerContext['revalidatedTags'];
-    appDir: NonNullable<CacheHandlerContext['_appDir']>;
-    serverDistDir: NonNullable<CacheHandlerContext['serverDistDir']>;
-    fs: NonNullable<CacheHandlerContext['fs']>;
-
-    public constructor(context: CacheHandlerContext) {
+    public constructor(context: FileSystemCacheContext) {
         this.revalidatedTags = context.revalidatedTags;
         this.appDir = context._appDir;
-
-        if (!context.fs) {
-            throw new Error('fs is required');
-        }
-
-        if (!context.serverDistDir) {
-            throw new Error('serverDistDir is required');
-        }
-
-        this.fs = context.fs;
         this.serverDistDir = context.serverDistDir;
     }
 
     public async get(...args: CacheHandlerParametersGet): Promise<CacheHandlerValue | null> {
+        if (!IncrementalCache.cache) {
+            throw new Error(
+                'IncrementalCache.cache is not configured. Please check if IncrementalCache.configure was called',
+            );
+        }
+
         const [cacheKey, ctx = {}] = args;
 
         const { tags = [], softTags = [], fetchCache } = ctx;
@@ -72,23 +148,23 @@ export class IncrementalCache implements CacheHandler {
         let cachedData: CacheHandlerValue | null = null;
 
         try {
-            cachedData = (await IncrementalCache.cache?.get(prefixedCacheKey)) ?? null;
+            cachedData = (await IncrementalCache.cache.get(prefixedCacheKey)) ?? null;
         } catch (error) {
             return null;
         }
 
-        if (!cachedData && IncrementalCache.ttlMode === 'not-ttl') {
+        if (!cachedData && IncrementalCache.diskAccessMode.includes('read-yes')) {
             try {
                 const { filePath } = await this.getFsPath({
                     pathname: `${cacheKey}.body`,
                     appDir: true,
                 });
 
-                const fileData = await this.fs.readFile(filePath);
-                const { mtime } = await this.fs.stat(filePath);
+                const fileData = await fs.readFile(filePath);
+                const { mtime } = await fs.stat(filePath);
 
                 const metaFilePath = filePath.replace(/\.body$/, '.meta');
-                const metaFileData = await this.fs.readFile(metaFilePath);
+                const metaFileData = await fs.readFile(metaFilePath);
                 const meta: Meta = JSON.parse(metaFileData.toString('utf8')) as Meta;
 
                 const cacheEntry: CacheHandlerValue = {
@@ -110,8 +186,8 @@ export class IncrementalCache implements CacheHandler {
                     pathname: fetchCache ? cacheKey : `${cacheKey}.html`,
                     fetchCache,
                 });
-                const htmlFileData = (await this.fs.readFile(htmlFilePath)).toString('utf-8');
-                const { mtime } = await this.fs.stat(htmlFilePath);
+                const htmlFileData = (await fs.readFile(htmlFilePath)).toString('utf-8');
+                const { mtime } = await fs.stat(htmlFilePath);
 
                 if (fetchCache) {
                     const lastModified = mtime.getTime();
@@ -137,7 +213,7 @@ export class IncrementalCache implements CacheHandler {
                         pathname: isHtmlFileInAppPath ? `${cacheKey}.rsc` : `${cacheKey}.json`,
                         appDir: isHtmlFileInAppPath,
                     });
-                    const fileData = (await this.fs.readFile(filePath)).toString('utf-8');
+                    const fileData = (await fs.readFile(filePath)).toString('utf-8');
 
                     const pageData = isHtmlFileInAppPath ? fileData : (JSON.parse(fileData) as object);
 
@@ -146,7 +222,7 @@ export class IncrementalCache implements CacheHandler {
                     if (isHtmlFileInAppPath) {
                         try {
                             const metaFilePath = htmlFilePath.replace(/\.html$/, '.meta');
-                            const metaFileData = await this.fs.readFile(metaFilePath);
+                            const metaFileData = await fs.readFile(metaFilePath);
                             meta = JSON.parse(metaFileData.toString('utf-8')) as Partial<Meta>;
                         } catch {
                             // no .meta data for the related key
@@ -166,14 +242,19 @@ export class IncrementalCache implements CacheHandler {
                 }
 
                 if (cachedData) {
-                    await IncrementalCache.cache?.set(prefixedCacheKey, cachedData);
+                    await IncrementalCache.cache.set(prefixedCacheKey, cachedData);
                 }
             } catch (_) {
                 // unable to get data from disk
             }
         }
 
-        if (cachedData?.value?.kind === 'PAGE') {
+        if (!cachedData) {
+            return null;
+        }
+
+        // credits to Next.js for the following code
+        if (cachedData.value?.kind === 'PAGE') {
             let cacheTags: undefined | string[];
             const tagsHeader = cachedData.value.headers?.[NEXT_CACHE_TAGS_HEADER as string];
 
@@ -181,7 +262,7 @@ export class IncrementalCache implements CacheHandler {
                 cacheTags = tagsHeader.split(',');
             }
 
-            const tagsManifest = await IncrementalCache.getTagsManifest();
+            const tagsManifest = await IncrementalCache.cache.getTagsManifest(IncrementalCache.prefix);
 
             if (cacheTags?.length) {
                 const isStale = cacheTags.some((tag) => {
@@ -199,10 +280,10 @@ export class IncrementalCache implements CacheHandler {
             }
         }
 
-        if (cachedData?.value?.kind === 'FETCH') {
+        if (cachedData.value?.kind === 'FETCH') {
             const combinedTags = [...tags, ...softTags];
 
-            const tagsManifest = await IncrementalCache.getTagsManifest();
+            const tagsManifest = await IncrementalCache.cache.getTagsManifest(IncrementalCache.prefix);
 
             const wasRevalidated = combinedTags.some((tag: string) => {
                 if (this.revalidatedTags.includes(tag)) {
@@ -227,6 +308,12 @@ export class IncrementalCache implements CacheHandler {
      * set
      */
     public async set(...args: CacheHandlerParametersSet): Promise<void> {
+        if (!IncrementalCache.cache) {
+            throw new Error(
+                'IncrementalCache.cache is not configured. Please check if IncrementalCache.configure was called',
+            );
+        }
+
         const [cacheKey, data, ctx] = args;
 
         const prefixedCacheKey = IncrementalCache.getPrefixedCacheKey(cacheKey);
@@ -235,11 +322,11 @@ export class IncrementalCache implements CacheHandler {
 
         const { revalidate } = ctx;
 
-        if (IncrementalCache.ttlMode === 'ttl' && typeof revalidate === 'number') {
+        if (IncrementalCache.diskAccessMode === 'read-no/write-no' && typeof revalidate === 'number') {
             ttl = revalidate;
         }
 
-        await IncrementalCache.cache?.set(
+        await IncrementalCache.cache.set(
             prefixedCacheKey,
             {
                 value: data,
@@ -247,17 +334,90 @@ export class IncrementalCache implements CacheHandler {
             },
             ttl,
         );
+
+        if (!data || IncrementalCache.diskAccessMode.includes('write-no')) {
+            return;
+        }
+
+        // credits to Next.js for the following code
+        if (data.kind === 'ROUTE') {
+            const { filePath } = await this.getFsPath({
+                pathname: `${cacheKey}.body`,
+                appDir: true,
+            });
+            await fs.mkdir(path.dirname(filePath), { recursive: true });
+            await fs.writeFile(filePath, data.body);
+            await fs.writeFile(
+                filePath.replace(/\.body$/, '.meta'),
+                JSON.stringify({ headers: data.headers, status: data.status }),
+            );
+
+            return;
+        }
+
+        if (data.kind === 'PAGE') {
+            const isAppPath = typeof data.pageData === 'string';
+            const { filePath: htmlPath } = await this.getFsPath({
+                pathname: `${cacheKey}.html`,
+                appDir: isAppPath,
+            });
+            await fs.mkdir(path.dirname(htmlPath), { recursive: true });
+            await fs.writeFile(htmlPath, data.html);
+
+            await fs.writeFile(
+                (
+                    await this.getFsPath({
+                        pathname: `${cacheKey}.${isAppPath ? 'rsc' : 'json'}`,
+                        appDir: isAppPath,
+                    })
+                ).filePath,
+                isAppPath ? JSON.stringify(data.pageData) : JSON.stringify(data.pageData),
+            );
+
+            if (data.headers || data.status) {
+                await fs.writeFile(
+                    htmlPath.replace(/\.html$/, '.meta'),
+                    JSON.stringify({
+                        headers: data.headers,
+                        status: data.status,
+                    }),
+                );
+            }
+            return;
+        }
+
+        if (data.kind === 'FETCH') {
+            const { filePath } = await this.getFsPath({
+                pathname: cacheKey,
+                fetchCache: true,
+            });
+            await fs.mkdir(path.dirname(filePath), { recursive: true });
+            await fs.writeFile(
+                filePath,
+                JSON.stringify({
+                    ...data,
+                    tags: ctx.tags,
+                }),
+            );
+        }
     }
 
     /**
      * revalidatedTags
      */
     public async revalidateTag(...args: CacheHandlerParametersRevalidateTag): Promise<void> {
+        if (!IncrementalCache.cache) {
+            throw new Error(
+                'IncrementalCache.cache is not configured. Please check if IncrementalCache.configure was called',
+            );
+        }
+
         const [tag] = args;
 
-        await IncrementalCache.cache?.revalidateTag(IncrementalCache.prefix, tag, Date.now());
+        await IncrementalCache.cache.revalidateTag(tag, Date.now(), IncrementalCache.prefix);
     }
 
+    // credits to Next.js for the following code
     private async getFsPath({
         pathname,
         appDir,
@@ -281,13 +441,15 @@ export class IncrementalCache implements CacheHandler {
         const isAppPath = false;
         const filePath = path.join(this.serverDistDir, 'pages', pathname);
 
-        if (!this.appDir || appDir === false)
+        if (!this.appDir || appDir === false) {
             return {
                 filePath,
                 isAppPath,
             };
+        }
+
         try {
-            await this.fs.readFile(filePath);
+            await fs.stat(filePath);
             return {
                 filePath,
                 isAppPath,
