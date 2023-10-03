@@ -19,7 +19,7 @@ export type { TagsManifest } from '@neshca/next-types';
 
 type Meta = { status: number; headers: OutgoingHttpHeaders };
 
-export type Cache<T = unknown> = {
+export type Cache<T = CacheHandlerValue> = {
     get(key: string): Promise<CacheHandlerValue | null | undefined>;
     set(key: string, value: T, ttl?: number): Promise<void>;
     getTagsManifest(prefix: string): Promise<TagsManifest>;
@@ -98,7 +98,7 @@ export class IncrementalCache implements CacheHandler {
 
         const tagsManifest: TagsManifest = { items: {}, version: 1 };
 
-        const defaultCache: Cache<CacheHandlerValue> = {
+        const defaultCache: Cache = {
             get(key) {
                 return Promise.resolve(lruCache.get(key));
             },
@@ -130,15 +130,13 @@ export class IncrementalCache implements CacheHandler {
         this.revalidatedTags = context.revalidatedTags;
         this.appDir = context._appDir;
         this.serverDistDir = context.serverDistDir;
+
+        if (!IncrementalCache.cache) {
+            IncrementalCache.configure();
+        }
     }
 
     public async get(...args: CacheHandlerParametersGet): Promise<CacheHandlerValue | null> {
-        if (!IncrementalCache.cache) {
-            throw new Error(
-                'IncrementalCache.cache is not configured. Please check if IncrementalCache.configure was called',
-            );
-        }
-
         const [cacheKey, ctx = {}] = args;
 
         const { tags = [], softTags = [], fetchCache } = ctx;
@@ -308,12 +306,6 @@ export class IncrementalCache implements CacheHandler {
      * set
      */
     public async set(...args: CacheHandlerParametersSet): Promise<void> {
-        if (!IncrementalCache.cache) {
-            throw new Error(
-                'IncrementalCache.cache is not configured. Please check if IncrementalCache.configure was called',
-            );
-        }
-
         const [cacheKey, data, ctx] = args;
 
         const prefixedCacheKey = IncrementalCache.getPrefixedCacheKey(cacheKey);
@@ -406,12 +398,6 @@ export class IncrementalCache implements CacheHandler {
      * revalidatedTags
      */
     public async revalidateTag(...args: CacheHandlerParametersRevalidateTag): Promise<void> {
-        if (!IncrementalCache.cache) {
-            throw new Error(
-                'IncrementalCache.cache is not configured. Please check if IncrementalCache.configure was called',
-            );
-        }
-
         const [tag] = args;
 
         await IncrementalCache.cache.revalidateTag(tag, Date.now(), IncrementalCache.prefix);

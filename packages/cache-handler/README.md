@@ -1,5 +1,13 @@
 # @neshca/cache-handler
 
+## Overview
+
+This is a package that provides a cache handler for Next.js Incremental Static Regeneration (ISR). It is meant to be used with the `experimental.incrementalCacheHandlerPath` configuration option of Next.js. More information about this option can be found in the [Next.js documentation](https://nextjs.org/docs/app/api-reference/next-config-js/incrementalCacheHandlerPath).
+
+Native Next.js ISR cache can't be shared between multiple instances. `@neshca/cache-handler` on the other hand can be used with a local or remote cache store. So you can share the cache between multiple instances of your application. In the example below, you can see how to use Redis as a cache store.
+
+Sharing the cache between multiple instances is useful if you are using a load balancer or Kubernetes for deployment.
+
 ## Current status
 
 This project is in the early stages of development. It is not ready for production use. API will change until the first stable release.
@@ -13,20 +21,14 @@ This project is in the early stages of development. It is not ready for producti
 -   [ ] Documentation;
 -   [ ] Examples;
 
-## Overview
-
-This is a package that provides a cache handler for Next.js Incremental Static Regeneration (ISR). It is meant to be used with the `experimental.incrementalCacheHandlerPath` configuration option of Next.js. More information about this option can be found in the [Next.js documentation](https://nextjs.org/docs/app/api-reference/next-config-js/incrementalCacheHandlerPath).
-
-Native Next.js ISR cache can't be shared between multiple instances. `@neshca/cache-handler` on the other hand can be used with a local or remote cache store. So you can share the cache between multiple instances of your application. In the example below, you can see how to use Redis as a cache store.
-
-Sharing the cache between multiple instances is useful if you are using a load balancer or Kubernetes for deployment.
-
 ## Installation
 
 To install the `@neshca/cache-handler` package, run the following command:
 
 ```sh
 npm install -D @neshca/cache-handler
+npm install -D @neshca/json-replacer-reviver
+npm install -D redis
 ```
 
 ## Usage with Redis
@@ -111,7 +113,6 @@ Then, use the following configuration in your `next.config.js` file:
 const nextConfig = {
     experimental: {
         incrementalCacheHandlerPath: require.resolve('./cache-handler'), // path to the cache handler file you created
-        isrFlushToDisk: false, // disable writing cache to disk. @neshca/cache-handler will write cache to disk if ttlMode is set to 'not-ttl'
     },
 };
 

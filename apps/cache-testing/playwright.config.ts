@@ -1,5 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const ports = ['3000', '3001'];
+
 export default defineConfig({
     testDir: './tests',
     fullyParallel: false,
@@ -7,16 +9,19 @@ export default defineConfig({
     retries: process.env.CI ? 2 : 0,
     workers: 1,
     reporter: 'html',
-    use: { baseURL: 'http://127.0.0.1:3000', trace: 'on-first-retry', testIdAttribute: 'data-pw' },
+    use: { baseURL: 'http://localhost', trace: 'on-first-retry', testIdAttribute: 'data-pw' },
     projects: [
         {
             name: 'chromium',
             use: { ...devices['Desktop Chrome'] },
         },
     ],
-    webServer: {
-        command: 'npm run start',
-        url: 'http://127.0.0.1:3000',
+    webServer: ports.map((port) => ({
+        command: `node .next/__instances/${port}/server.js`,
+        url: `http://localhost:${port}`,
         reuseExistingServer: !process.env.CI,
-    },
+        env: { PORT: port, HOSTNAME: 'localhost' },
+        stdout: process.env.CI ? 'ignore' : 'pipe',
+        stderr: 'pipe',
+    })),
 });

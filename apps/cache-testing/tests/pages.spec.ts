@@ -1,18 +1,20 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('on-demand revalidation', () => {
-    const urls = [
-        '/pages/with-paths/fallback-blocking/200',
-        '/pages/with-paths/fallback-true/200',
-        '/pages/with-paths/fallback-false/200',
-        '/pages/no-paths/fallback-blocking/200',
-        '/pages/no-paths/fallback-true/200',
-        // '/pages/no-paths/fallback-false/200', // this fails in native next.js cache
-    ];
+const paths = [
+    '/pages/with-paths/fallback-blocking/200',
+    '/pages/with-paths/fallback-true/200',
+    '/pages/with-paths/fallback-false/200',
+    '/pages/no-paths/fallback-blocking/200',
+    '/pages/no-paths/fallback-true/200',
+    // '/pages/no-paths/fallback-false/200', // this fails with native next.js cache
+];
 
-    for (const url of urls) {
-        test(`testing ${url.split('/').join(' ')}`, async ({ page }) => {
-            await page.goto(url);
+test.describe('On-demand revalidation', () => {
+    for (const path of paths) {
+        test(`If revalidate is clicked, then page should be fresh after reload ${path}`, async ({ page, baseURL }) => {
+            const url = new URL(path, `${baseURL}:3000`);
+
+            await page.goto(url.href);
 
             await page.getByTestId('revalidate-button-path').click();
 
@@ -20,13 +22,13 @@ test.describe('on-demand revalidation', () => {
 
             await page.reload();
 
-            let val = (await page.getByTestId('data').innerText()).valueOf();
+            let pageValue = (await page.getByTestId('data').innerText()).valueOf();
 
             await page.reload();
 
             // Page should not have changed after reload if revalidation button was not clicked
 
-            await expect(page.getByTestId('data')).toHaveText(val);
+            await expect(page.getByTestId('data')).toHaveText(pageValue);
 
             // Click on revalidate by path button
 
@@ -38,32 +40,54 @@ test.describe('on-demand revalidation', () => {
 
             // Page should have changed after reload if revalidation button was clicked
 
-            await expect(page.getByTestId('data')).not.toHaveText(val);
+            await expect(page.getByTestId('data')).not.toHaveText(pageValue);
 
-            val = (await page.getByTestId('data').innerText()).valueOf();
+            pageValue = (await page.getByTestId('data').innerText()).valueOf();
 
             await page.reload();
 
             // Page should not have changed after reload if revalidation button was not clicked
 
-            await expect(page.getByTestId('data')).toHaveText(val);
+            await expect(page.getByTestId('data')).toHaveText(pageValue);
+        });
+    }
+
+    for (const path of paths) {
+        test(`If revalidate is clicked on page A, then page B should be fresh on load ${path}`, async ({
+            context,
+            baseURL,
+        }) => {
+            const pageAUrl = new URL(path, `${baseURL}:3000`);
+
+            const pageA = await context.newPage();
+
+            await pageA.goto(pageAUrl.href);
+
+            await pageA.getByTestId('revalidate-button-path').click();
+
+            await expect(pageA.getByTestId('is-revalidated-by-path')).toContainText('Revalidated at');
+
+            const pageBUrl = new URL(path, `${baseURL}:3001`);
+
+            const pageB = await context.newPage();
+
+            await pageB.goto(pageBUrl.href);
+
+            const valueFromPageA = Number.parseInt((await pageA.getByTestId('data').innerText()).valueOf(), 10);
+
+            const valueFromPageB = Number.parseInt((await pageB.getByTestId('data').innerText()).valueOf(), 10);
+
+            expect(valueFromPageA + 1 === valueFromPageB).toBe(true);
         });
     }
 });
 
-test.describe('time based revalidation', () => {
-    const urls = [
-        '/pages/with-paths/fallback-blocking/200',
-        '/pages/with-paths/fallback-true/200',
-        '/pages/with-paths/fallback-false/200',
-        '/pages/no-paths/fallback-blocking/200',
-        '/pages/no-paths/fallback-true/200',
-        // '/pages/no-paths/fallback-false/200', // this fails with native next.js cache
-    ];
+test.describe('Time-based revalidation', () => {
+    for (const path of paths) {
+        test(`Page should be fresh after becoming stale and reloaded twice ${path}`, async ({ page, baseURL }) => {
+            const url = new URL(path, `${baseURL}:3000`);
 
-    for (const url of urls) {
-        test(`testing ${url.split('/').join(' ')}`, async ({ page }) => {
-            await page.goto('/pages/no-paths/fallback-blocking/200');
+            await page.goto(url.href);
 
             await page.getByTestId('revalidate-button-path').click();
 
@@ -71,27 +95,132 @@ test.describe('time based revalidation', () => {
 
             await page.reload();
 
-            const val = (await page.getByTestId('data').innerText()).valueOf();
+            const pageValue = (await page.getByTestId('data').innerText()).valueOf();
 
             await page.reload();
 
             // Page should not have changed after reload if revalidation button was not clicked
 
-            await expect(page.getByTestId('data')).toHaveText(val);
+            await expect(page.getByTestId('data')).toHaveText(pageValue);
 
             // wait for text in data-pw="cache-state" to change from "Cache state fresh" to "Cache state stale"
 
-            await expect(page.getByTestId('cache-state')).toContainText('stale', { timeout: 15000 });
+            await expect(page.getByTestId('cache-state')).toContainText('stale', { timeout: 7500 });
 
             // reload page twice to revalidate
 
             await page.reload();
 
-            await expect(page.getByTestId('data')).toHaveText(val);
+            await expect(page.getByTestId('data')).toHaveText(pageValue);
 
             await page.reload();
 
-            await expect(page.getByTestId('data')).not.toHaveText(val);
+            await expect(page.getByTestId('data')).not.toHaveText(pageValue);
+        });
+    }
+
+    for (const path of paths) {
+        test(`If page A is stale, then page B should be fresh after load and reload ${path}`, async ({
+            context,
+            baseURL,
+        }) => {
+            const pageA = await context.newPage();
+
+            const pageAUrl = new URL(path, `${baseURL}:3000`);
+
+            await pageA.goto(pageAUrl.href);
+
+            await pageA.getByTestId('revalidate-button-path').click();
+
+            await expect(pageA.getByTestId('is-revalidated-by-path')).toContainText('Revalidated at');
+
+            await pageA.reload();
+
+            await expect(pageA.getByTestId('cache-state')).toContainText('stale', { timeout: 7500 });
+
+            const pageB = await context.newPage();
+
+            const pageBUrl = new URL(path, `${baseURL}:3001`);
+
+            await pageB.goto(pageBUrl.href);
+
+            await expect(pageB.getByTestId('cache-state')).toContainText('stale', { timeout: 7500 });
+
+            await pageB.reload();
+
+            const valueFromPageA = Number.parseInt((await pageA.getByTestId('data').innerText()).valueOf(), 10);
+
+            const valueFromPageB = Number.parseInt((await pageB.getByTestId('data').innerText()).valueOf(), 10);
+
+            expect(valueFromPageA + 1 === valueFromPageB).toBe(true);
+        });
+    }
+
+    for (const path of paths) {
+        test(`If page A is stale and reloaded, then page B should be fresh after load ${path}`, async ({
+            context,
+            baseURL,
+        }) => {
+            const pageAUrl = new URL(path, `${baseURL}:3000`);
+
+            const pageA = await context.newPage();
+
+            await pageA.goto(pageAUrl.href);
+
+            await pageA.getByTestId('revalidate-button-path').click();
+
+            await expect(pageA.getByTestId('is-revalidated-by-path')).toContainText('Revalidated at');
+
+            await pageA.reload();
+
+            await expect(pageA.getByTestId('cache-state')).toContainText('stale', { timeout: 7500 });
+
+            await pageA.reload();
+
+            await pageA.reload();
+
+            const pageB = await context.newPage();
+
+            const pageBUrl = new URL(path, `${baseURL}:3001`);
+
+            await pageB.goto(pageBUrl.href);
+
+            const valueFromPageA = Number.parseInt((await pageA.getByTestId('data').innerText()).valueOf(), 10);
+
+            const valueFromPageB = Number.parseInt((await pageA.getByTestId('data').innerText()).valueOf(), 10);
+
+            expect(valueFromPageA === valueFromPageB).toBe(true);
+        });
+    }
+});
+
+test.describe('Cache should be shared between two app instances for the same page', () => {
+    for (const path of paths) {
+        test(`Page A and Page B should have the same data when loaded at the same time ${path}`, async ({
+            context,
+            baseURL,
+        }) => {
+            const pageAUrl = new URL(path, `${baseURL}:3000`);
+            const pageBUrl = new URL(path, `${baseURL}:3001`);
+
+            const pageA = await context.newPage();
+            const pageB = await context.newPage();
+
+            await pageA.goto(pageAUrl.href);
+            await pageB.goto(pageBUrl.href);
+
+            await pageA.getByTestId('revalidate-button-path').click();
+
+            await expect(pageA.getByTestId('is-revalidated-by-path')).toContainText('Revalidated at');
+
+            await pageA.reload();
+            await pageB.reload();
+
+            const valueFromPageA = Number.parseInt((await pageA.getByTestId('data').innerText()).valueOf(), 10);
+
+            const valueFromPageB = Number.parseInt((await pageB.getByTestId('data').innerText()).valueOf(), 10);
+
+            expect(valueFromPageA === valueFromPageB).toBe(true);
         });
     }
 });

@@ -1,6 +1,6 @@
 {
     "name": "@neshca/server",
-    "version": "0.2.1",
+    "version": "0.2.2",
     "homepage": "https://github.com/caching-tools/next-shared-cache",
     "bugs": "https://github.com/caching-tools/next-shared-cache/issues",
     "repository": "caching-tools/next-shared-cache",
@@ -24,12 +24,12 @@
     },
     "dependencies": {
         "fastify": "4.23.2",
-        "pino": "8.15.1"
+        "pino": "8.15.3"
     },
     "devDependencies": {
         "@neshca/next-types": "*",
         "@neshca/tsconfig": "*",
-        "@types/node": "20.8.0",
+        "@types/node": "20.8.2",
         "eslint-config-neshca": "*",
         "rimraf": "5.0.5",
         "tsup": "7.2.0",

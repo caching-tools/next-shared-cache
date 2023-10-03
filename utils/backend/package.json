@@ -22,11 +22,11 @@
     },
     "dependencies": {
         "fastify": "4.23.2",
-        "pino": "8.15.1"
+        "pino": "8.15.3"
     },
     "devDependencies": {
         "@neshca/tsconfig": "*",
-        "@types/node": "20.8.0",
+        "@types/node": "20.8.2",
         "eslint-config-neshca": "*",
         "pino-pretty": "10.2.0",
         "rimraf": "5.0.5",

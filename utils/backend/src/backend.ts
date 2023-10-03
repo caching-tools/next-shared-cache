@@ -41,12 +41,13 @@ server.addHook('preHandler', (request, _reply, done) => {
     done();
 });
 
-server.get('/:nextApi/:rerendered:/:fallback/:page', async (request, reply): Promise<void> => {
+server.get('/:routerType/:preRendered:/:fallback/:page', async (request, reply): Promise<void> => {
     const meta = pathMeta.get(request.url);
 
     if (!meta) {
-        throw new Error('');
+        throw new Error('meta not found');
     }
+
     const [count] = meta;
 
     const { page } = request.params as { page: string };
