@@ -4,7 +4,7 @@ const { IncrementalCache } = require('@neshca/cache-handler');
 const { reviveFromBase64Representation, replaceJsonWithBase64 } = require('@neshca/json-replacer-reviver');
 const { fetch } = require('undici');
 
-const baseUrl = process.env.BASE_URL ?? 'http://localhost:8080';
+const baseUrl = process.env.REMOTE_CACHE_SERVER_BASE_URL ?? 'http://localhost:8080';
 
 /** @type {import('@neshca/cache-handler').Cache} */
 const cache = {

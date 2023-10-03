@@ -62,6 +62,12 @@ server.post('/revalidateTag', async (request, reply): Promise<void> => {
     await reply.code(200).header('Content-Type', 'application/json; charset=utf-8').send(null);
 });
 
+server.get('/clear-cache', async (_request, reply): Promise<void> => {
+    cache.clear();
+
+    await reply.code(200).header('Content-Type', 'application/json; charset=utf-8').send({ cleaned: true });
+});
+
 server
     .listen({ port, host })
     .then((address) => {

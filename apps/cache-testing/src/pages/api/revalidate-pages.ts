@@ -15,7 +15,15 @@ export default async function handler(request: NextApiRequest, result: NextApiRe
 
     try {
         await result.revalidate(path);
-        result.json({ revalidated: true, now: Date.now() });
+        result.json({
+            revalidated: true,
+            now: new Date().toLocaleTimeString('ru-RU', {
+                fractionalSecondDigits: 3,
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+            }),
+        });
     } catch (err) {
         result.status(500).send('Error revalidating');
     }

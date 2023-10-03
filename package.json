@@ -27,7 +27,6 @@
         "prettier": "3.0.3",
         "turbo": "1.10.14"
     },
-    "packageManager": "npm@9.6.7",
     "engines": {
         "node": ">=18.17.0",
         "npm": ">=9.6.7"

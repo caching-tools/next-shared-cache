@@ -18,6 +18,8 @@ To install the `@neshca/cache-handler` package:
 
 ```sh
 npm install -D @neshca/cache-handler
+npm install -D @neshca/json-replacer-reviver
+npm install -D undici
 ```
 
 ## Usage
@@ -37,13 +39,12 @@ Create a file called `cache-handler.js` next to you `next.config.js` with the fo
 ```js
 const { IncrementalCache } = require('@neshca/cache-handler');
 const { reviveFromBase64Representation, replaceJsonWithBase64 } = require('@neshca/json-replacer-reviver');
-const { fetch } = require('undici');
+const { fetch } = require('undici'); // use undici because Next.js pollutes the global fetch
 
-const baseUrl = process.env.BASE_URL ?? 'http://localhost:8080';
+const baseUrl = process.env.REMOTE_CACHE_SERVER_BASE_URL ?? 'http://localhost:8080';
 
-IncrementalCache.prefix = 'cache-testing:';
-
-IncrementalCache.cache = {
+/** @type {import('@neshca/cache-handler').Cache} */
+const cache = {
     async get(key) {
         const result = await fetch(`${baseUrl}/get?${new URLSearchParams({ key })}`);
 
@@ -63,9 +64,12 @@ IncrementalCache.cache = {
         await fetch(`${baseUrl}/set`, {
             method: 'POST',
             body: JSON.stringify([key, JSON.stringify(value, replaceJsonWithBase64), ttl]),
-            contentType: 'text/plain',
+            headers: {
+                'Content-Type': 'application/json',
+            },
         });
     },
+    // @ts-ignore
     async getTagsManifest() {
         const response = await fetch(`${baseUrl}/getTagsManifest`);
 
@@ -77,14 +81,27 @@ IncrementalCache.cache = {
 
         return json;
     },
-    async revalidateTag(_prefix, tag, revalidatedAt) {
+    async revalidateTag(tag, revalidatedAt) {
         await fetch(`${baseUrl}/revalidateTag`, {
             method: 'POST',
             body: JSON.stringify([tag, revalidatedAt]),
-            contentType: 'text/plain',
+            headers: {
+                'Content-Type': 'application/json',
+            },
         });
     },
 };
+
+IncrementalCache.configure({
+    cache,
+    prefix: 'app:cache-testing:',
+    /**
+     * No need to write to disk, as we're using a shared cache.
+     * Read is required to get pre-rendering pages from disk
+     */
+    diskAccessMode: 'read-yes/write-no',
+});
+
 module.exports = IncrementalCache;
 ```
 
@@ -95,9 +112,10 @@ Then, use the following configuration in your `next.config.js` file:
 const nextConfig = {
     experimental: {
         incrementalCacheHandlerPath: require.resolve('./cache-handler'), // path to the cache handler file you created
-        isrFlushToDisk: false, // disable writing cache to disk
     },
 };
 
 module.exports = nextConfig;
 ```
+
+Then, build production of your Next.js app and start as usual.
