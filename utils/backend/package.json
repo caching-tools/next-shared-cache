@@ -22,7 +22,7 @@
     },
     "dependencies": {
         "fastify": "4.23.2",
-        "pino": "8.15.3"
+        "pino": "8.15.4"
     },
     "devDependencies": {
         "@neshca/tsconfig": "*",
