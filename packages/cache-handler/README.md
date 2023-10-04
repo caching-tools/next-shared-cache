@@ -17,116 +17,19 @@ This project is in the early stages of development. It is not ready for producti
 -   [x] Support for App routes;
 -   [x] Support for Pages routes;
 -   [x] Happy path tests;
+-   [x] Examples;
 -   [ ] Full test coverage;
 -   [ ] Documentation;
--   [ ] Examples;
 
-## Installation
+## Examples
 
-To install the `@neshca/cache-handler` package, run the following command:
+-   [Redis](../../docs/examples/use-with-redis.md)
+-   [HTTP server](../../docs/examples/use-with-http-server.md)
 
-```sh
-npm install -D @neshca/cache-handler
-npm install -D @neshca/json-replacer-reviver
-npm install -D redis
-```
+## Developing and contributing
 
-## Usage with Redis
+[Developing and contributing](../../docs/contributing/main.md)
 
-Create a file called `cache-handler.js` next to you `next.config.js` with the following contents:
+## License
 
-```js
-const { IncrementalCache } = require('@neshca/cache-handler');
-const { reviveFromBase64Representation, replaceJsonWithBase64 } = require('@neshca/json-replacer-reviver');
-const { createClient } = require('redis');
-
-const client = createClient({
-    url: process.env.REDIS_URL,
-    name: 'app:cache-testing',
-});
-
-client.connect().then();
-
-client.on('error', (err) => {
-    console.log('Redis Client Error', err);
-});
-
-/** @type {import('@neshca/cache-handler').Cache} */
-const cache = {
-    async get(key) {
-        const result = await client.get(key);
-
-        if (!result) {
-            return null;
-        }
-
-        try {
-            return JSON.parse(result, reviveFromBase64Representation);
-        } catch (error) {
-            return null;
-        }
-    },
-    async set(key, value, ttl) {
-        await client.set(key, JSON.stringify(value, replaceJsonWithBase64), { EX: ttl });
-    },
-    async getTagsManifest(prefix) {
-        const tagsManifest = await client.hGetAll(`${prefix}tagsManifest`);
-
-        if (!tagsManifest) {
-            return { version: 1, items: {} };
-        }
-
-        const items = {};
-
-        for (const [tag, revalidatedAt] of Object.entries(tagsManifest)) {
-            items[tag] = { revalidatedAt: parseInt(revalidatedAt ?? '0', 10) };
-        }
-
-        return { version: 1, items };
-    },
-    async revalidateTag(tag, revalidatedAt, prefix) {
-        const options = {
-            [tag]: revalidatedAt,
-        };
-
-        await client.hSet(`${prefix}tagsManifest`, options);
-    },
-};
-
-IncrementalCache.configure({
-    cache,
-    prefix: 'app:cache-testing:',
-    /**
-     * No need to write to disk, as we're using a shared cache.
-     * Read is required to get pre-rendering pages from disk
-     */
-    diskAccessMode: 'read-yes/write-no',
-});
-
-module.exports = IncrementalCache;
-```
-
-Then, use the following configuration in your `next.config.js` file:
-
-```js
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-    experimental: {
-        incrementalCacheHandlerPath: require.resolve('./cache-handler'), // path to the cache handler file you created
-    },
-};
-
-module.exports = nextConfig;
-```
-
-Use the `REDIS_URL` environment variable to set the URL of your Redis instance. If the environment variable is not set, the default URL [redis://localhost:6379](redis://localhost:6379) will be used
-
-```sh
-REDIS_URL=redis://localhost:6379/
-```
-
-For local development, you can use Docker to start a Redis instance with the following command:
-
-```sh
-docker run -d --name redis-stack -p 6379:6379 -p 8001:8001 redis/redis-stack:latest
-```
+[MIT](./LICENSE)

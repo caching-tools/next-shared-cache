@@ -20,7 +20,7 @@ export default defineConfig({
         command: `node .next/__instances/${port}/server.js`,
         url: `http://localhost:${port}`,
         reuseExistingServer: !process.env.CI,
-        env: { PORT: port, HOSTNAME: 'localhost' },
+        env: { PORT: port, HOSTNAME: 'localhost', SERVER_STARTED: '1' },
         stdout: process.env.CI ? 'ignore' : 'pipe',
         stderr: 'pipe',
     })),

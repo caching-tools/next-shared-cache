@@ -1,8 +1,47 @@
-// @ts-check
+## Remote cache server side
 
+### Prepare your remote cache server
+
+You can create you own remote cache server or use `@neshca/server` package.
+
+#### Using `@neshca/server`
+
+```sh
+npm install -D @neshca/server
+npm install -D pino fastify pino-pretty
+```
+
+Run your server:
+
+```sh
+npx @neshca/server
+```
+
+You can use `PORT` and `HOST` environment variables to configure the server.
+
+[Available HOST options](https://fastify.dev/docs/latest/Reference/Server#listentextresolver)
+
+## Next.js app side
+
+### Install dependencies
+
+```sh
+npm install -D @neshca/cache-handler
+npm install -D undici
+npm install -D @neshca/json-replacer-reviver
+```
+
+In this example we assume that in your deployment you have `REMOTE_CACHE_SERVER_BASE_URL` environment variable set to the URL of your remote caching server.
+
+Create a file called `cache-handler.js` next to you `next.config.js` with the following contents:
+
+### cache-handler.js
+
+```js
 const { IncrementalCache } = require('@neshca/cache-handler');
+// use `@neshca/json-replacer-reviver` to efficiently store Buffers in your cache.
 const { reviveFromBase64Representation, replaceJsonWithBase64 } = require('@neshca/json-replacer-reviver');
-const { fetch } = require('undici');
+const { fetch } = require('undici'); // use `undici` because Next.js pollutes global `fetch`.
 
 IncrementalCache.onCreation(() => {
     if (!process.env.SERVER_STARTED) {
@@ -71,3 +110,15 @@ IncrementalCache.onCreation(() => {
 });
 
 module.exports = IncrementalCache;
+```
+
+### Build and start your app
+
+Finally, build the production version of your Next.js app and start it using the `SERVER_STARTED` environment variable:
+
+```sh
+npm run build
+SERVER_STARTED=1 npm run start
+```
+
+Note that in the `build` step you don't need to set `SERVER_STARTED` environment variable.
