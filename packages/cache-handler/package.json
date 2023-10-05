@@ -1,6 +1,6 @@
 {
     "name": "@neshca/cache-handler",
-    "version": "0.3.2",
+    "version": "0.3.3",
     "homepage": "https://github.com/caching-tools/next-shared-cache",
     "bugs": "https://github.com/caching-tools/next-shared-cache/issues",
     "repository": {
