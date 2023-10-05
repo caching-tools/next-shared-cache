@@ -25,6 +25,7 @@
         "clean": "rimraf ./dist ./.turbo ./node_modules",
         "dev": "tsup --watch",
         "lint": "eslint .",
+        "ncc": "ncc run src/server.ts",
         "start": "./dist/server.mjs"
     },
     "dependencies": {
@@ -35,6 +36,7 @@
         "@neshca/next-types": "*",
         "@neshca/tsconfig": "*",
         "@types/node": "20.8.2",
+        "@vercel/ncc": "0.38.0",
         "eslint-config-neshca": "*",
         "rimraf": "5.0.5",
         "tsup": "7.2.0",
@@ -43,5 +45,9 @@
     "engines": {
         "node": ">=18.17.0",
         "npm": ">=9.6.7"
-    }
+    },
+    "distTags": [
+        "next13.5.3",
+        "next13.5.4"
+    ]
 }
