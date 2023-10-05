@@ -4,11 +4,14 @@
     "private": true,
     "homepage": "https://github.com/caching-tools/next-shared-cache",
     "bugs": "https://github.com/caching-tools/next-shared-cache/issues",
-    "repository": "caching-tools/next-shared-cache",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/caching-tools/next-shared-cache.git"
+    },
     "license": "MIT",
     "main": "./dist/backend.mjs",
     "bin": {
-        "backend": "./dist/backend.mjs"
+        "backend": "dist/backend.mjs"
     },
     "files": [
         "dist/**"

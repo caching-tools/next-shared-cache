@@ -3,7 +3,10 @@
     "version": "0.3.2",
     "homepage": "https://github.com/caching-tools/next-shared-cache",
     "bugs": "https://github.com/caching-tools/next-shared-cache/issues",
-    "repository": "caching-tools/next-shared-cache",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/caching-tools/next-shared-cache.git"
+    },
     "license": "MIT",
     "types": "./dist/next-types.d.ts",
     "files": [
