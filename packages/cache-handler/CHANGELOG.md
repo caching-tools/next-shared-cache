@@ -1,5 +1,11 @@
 # @neshca/cache-handler
 
+## 0.3.4
+
+### Patch Changes
+
+-   577ea45: Automatically add dist-tags to npm packages
+
 ## 0.3.3
 
 ### Patch Changes
