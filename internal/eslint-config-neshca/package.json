@@ -5,7 +5,7 @@
     "license": "MIT",
     "devDependencies": {
         "@vercel/style-guide": "5.0.1",
-        "eslint-config-turbo": "1.10.14"
+        "eslint-config-turbo": "1.10.15"
     },
     "engines": {
         "node": ">=18.17.0",
