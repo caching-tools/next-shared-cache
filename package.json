@@ -1,10 +1,11 @@
 {
     "name": "next-shared-cache",
+    "version": "0.0.0",
     "private": true,
     "workspaces": [
         "apps/*",
         "packages/*",
-        "utils/*"
+        "internal/*"
     ],
     "scripts": {
         "build": "FORCE_COLOR=1 turbo run build --log-prefix=none --filter=!@neshca/cache-testing",
@@ -14,11 +15,16 @@
         "dev:backend": "FORCE_COLOR=1 turbo run dev --log-prefix=none --filter=@neshca/backend",
         "dev:redis": "FORCE_COLOR=1 turbo run dev --log-prefix=none --filter=!@neshca/server",
         "e2e": "FORCE_COLOR=1 turbo run e2e --log-prefix=none",
-        "format": "prettier --write \"**/*.{ts,tsx,md,mdx,js,jsx,cjs,mjs,json,yml,yaml,css}\"",
+        "format": "prettier --write .",
         "lint": "FORCE_COLOR=1 turbo run lint",
+        "release": "FORCE_COLOR=1 turbo run build lint --log-prefix=none && changeset publish",
         "start": "FORCE_COLOR=1 turbo run start --log-prefix=none --filter=!@neshca/cache-testing",
         "start:app": "FORCE_COLOR=1 turbo run start --log-prefix=none --filter=@neshca/cache-testing",
-        "test": "FORCE_COLOR=1 turbo run test"
+        "test": "FORCE_COLOR=1 turbo run test",
+        "version-packages": "changeset version && npm run prettier"
+    },
+    "dependencies": {
+        "@changesets/cli": "2.26.2"
     },
     "devDependencies": {
         "@neshca/prettier-config": "*",
