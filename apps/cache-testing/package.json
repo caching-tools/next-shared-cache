@@ -9,7 +9,7 @@
         "e2e": "playwright test --config=./playwright.config.ts",
         "e2e:ui": "playwright test --ui --config=./playwright.config.ts",
         "lint": "next lint",
-        "start": "node .next/__instances/3000/server.js"
+        "start": "SERVER_STARTED=1 node .next/__instances/3000/server.js"
     },
     "dependencies": {
         "lru-cache": "10.0.1",
@@ -26,7 +26,7 @@
         "@playwright/test": "1.38.1",
         "@types/node": "20.8.2",
         "@types/react": "18.2.24",
-        "@types/react-dom": "18.2.8",
+        "@types/react-dom": "18.2.10",
         "eslint-config-neshca": "*",
         "redis": "4.6.10",
         "rimraf": "5.0.5",

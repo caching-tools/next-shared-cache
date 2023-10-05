@@ -17,8 +17,8 @@ const cache = new Map<string, string>();
 
 const revalidatedTags = new Map<string, number>();
 
-const host = '::';
-const port = 8080;
+const host = process.env.HOST ?? 'localhost';
+const port = Number.parseInt(process.env.PORT ?? '8080', 10);
 
 server.get('/get', async (request, reply): Promise<void> => {
     const { key } = request.query as { key: string };
@@ -71,7 +71,7 @@ server.get('/clear-cache', async (_request, reply): Promise<void> => {
 server
     .listen({ port, host })
     .then((address) => {
-        logger.info(`server listening on %s`, address);
+        logger.info(`@neshca/server listening on %s`, address);
     })
     .catch((err) => {
         logger.error(err);

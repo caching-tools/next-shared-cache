@@ -10,8 +10,8 @@ const logger = pino({
     level: 'info',
 });
 
-const host = '::';
-const port = 8081;
+const host = process.env.HOST ?? 'localhost';
+const port = Number.parseInt(process.env.PORT ?? '8081', 10);
 
 function createCounter(): [count: number, lastRequestTime: number] {
     return [0, Date.now()];

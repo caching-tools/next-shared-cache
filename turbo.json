@@ -5,7 +5,7 @@
     "pipeline": {
         "build": {
             "dependsOn": ["^build"],
-            "env": ["REDIS_URL", "REMOTE_CACHE_SERVER_BASE_URL"],
+            "env": ["REDIS_URL", "REMOTE_CACHE_SERVER_BASE_URL", "SERVER_STARTED", "PORT"],
             "outputs": [".next/**", "!.next/cache/**", "dist/**"]
         },
         "lint": {},
