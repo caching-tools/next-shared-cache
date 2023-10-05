@@ -6,31 +6,60 @@ const { execSync } = require('child_process');
 const { globSync } = require('glob');
 const fs = require('fs');
 
-try {
-    const packagesPaths = globSync('packages/**/package.json', {
-        absolute: true,
-    });
+function run() {
+    try {
+        const published = core.getInput('published', { required: true });
 
-    for (const packagePath of packagesPaths) {
-        const packageData = fs.readFileSync(packagePath, 'utf8');
-        const { name, version, private, distTags } = JSON.parse(packageData);
+        if (published !== 'true') {
+            core.debug('Not published');
 
-        if (!Array.isArray(distTags)) {
-            continue;
+            return;
         }
 
-        if (private === true || private === 'true') {
-            continue;
+        const publishedPackagesInput = core.getInput('publishedPackages', { required: false });
+
+        /** @type {{ name: string; version: string }[]} */
+        const publishedPackages = JSON.parse(publishedPackagesInput || '[]');
+
+        if (!Array.isArray(publishedPackages) || publishedPackages.length === 0) {
+            core.debug('No published packages found');
+
+            return;
         }
 
-        if (!name || !version) {
-            continue;
-        }
+        const packagesPaths = globSync('packages/**/package.json', {
+            absolute: true,
+        });
 
-        for (const tag of distTags) {
-            execSync(`npm dist-tag add ${name}@${version} ${tag}`, { stdio: 'inherit' });
+        for (const packagePath of packagesPaths) {
+            const packageData = fs.readFileSync(packagePath, 'utf8');
+            const { name, version, private, distTags } = JSON.parse(packageData);
+
+            if (!Array.isArray(distTags)) {
+                continue;
+            }
+
+            if (private === true || private === 'true') {
+                continue;
+            }
+
+            if (!name || !version) {
+                continue;
+            }
+
+            const package = publishedPackages.find((pkg) => pkg.name === name);
+
+            if (!package) {
+                continue;
+            }
+
+            for (const tag of distTags) {
+                execSync(`npm dist-tag add ${package.name}@${package.version} ${tag}`, { stdio: 'inherit' });
+            }
         }
+    } catch (error) {
+        core.setFailed(error);
     }
-} catch (error) {
-    core.setFailed(error);
 }
+
+run();

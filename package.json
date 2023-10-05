@@ -10,6 +10,7 @@
     "scripts": {
         "build": "FORCE_COLOR=1 turbo run build --log-prefix=none --filter=!@neshca/cache-testing",
         "build:app": "FORCE_COLOR=1 turbo run build --log-prefix=none --filter=@neshca/cache-testing",
+        "changeset": "changeset",
         "clean": "FORCE_COLOR=1 turbo run clean",
         "dev": "FORCE_COLOR=1 turbo run dev --log-prefix=none",
         "dev:backend": "FORCE_COLOR=1 turbo run dev --log-prefix=none --filter=@neshca/backend",

@@ -1,5 +1,12 @@
 name: 'Add dist-tags'
 description: 'Add tags to npm package listed in dist-tags.json'
+inputs:
+  publishedPackages:
+    description: 'List of published packages'
+    required: false
+  published:
+    description: 'Is published'
+    required: true
 runs:
   using: 'node20'
   main: 'add-dist-tags.js'

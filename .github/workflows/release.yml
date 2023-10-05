@@ -33,7 +33,11 @@ jobs:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Add dist-tags
+        if: steps.changesets.outputs.publishedPackages == 'true'
         id: dist-tags
         uses: ./.github/actions/add-dist-tags
+        with:
+          publishedPackages: ${{ steps.changesets.outputs.publishedPackages }}
+          published: ${{ steps.changesets.outputs.published }}
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
