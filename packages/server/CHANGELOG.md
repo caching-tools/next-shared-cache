@@ -1,5 +1,11 @@
 # @neshca/server
 
+## 0.3.5
+
+### Patch Changes
+
+-   8abe6ea: Add supported Next.js versions to distTags
+
 ## 0.3.4
 
 ### Patch Changes
