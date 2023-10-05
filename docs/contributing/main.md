@@ -52,5 +52,5 @@ npm run format
 ## Running tests locally
 
 ```sh
-npm run e2e:ui -w ./apps/cache-testing
+npm run e2e:ui -w @neshca/cache-testing
 ```
