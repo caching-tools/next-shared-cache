@@ -1,28 +1,16 @@
-/* eslint-disable no-console -- console needed just for dev server  */
+/* eslint-disable no-console -- it's a config file  */
 import { spawn } from 'node:child_process';
 import { defineConfig } from 'tsup';
 
 function onSuccess(): Promise<() => void> {
-    const process = spawn('./dist/server.mjs');
-
-    process.stdout.on('data', (chunk) => {
-        console.log(String(chunk));
-    });
-
-    process.stderr.on('data', (chunk) => {
-        console.log(String(chunk));
-    });
+    const process = spawn('./dist/server.mjs', { stdio: 'inherit' });
 
     process.on('error', (error) => {
-        console.log(`dev server error: ${error.message}`);
-    });
-
-    process.on('close', (code) => {
-        console.log(`dev server is off. Code ${code}`);
+        console.log(`server error: ${error.message}`);
     });
 
     process.on('exit', (code) => {
-        console.log(`dev server is off. Code ${code}`);
+        console.log(`server is off. Code ${code}`);
     });
 
     return new Promise<() => void>((res) => {

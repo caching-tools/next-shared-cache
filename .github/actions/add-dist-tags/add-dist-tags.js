@@ -2,7 +2,7 @@
 // @ts-check
 
 const core = require('@actions/core');
-const { execSync } = require('child_process');
+const { execSync, execFileSync } = require('child_process');
 const { globSync } = require('glob');
 const fs = require('fs');
 
@@ -54,7 +54,9 @@ function run() {
             }
 
             for (const tag of distTags) {
-                execSync(`npm dist-tag add ${package.name}@${package.version} ${tag}`, { stdio: 'inherit' });
+                execFileSync('npm', ['dist-tag', 'add', `${package.name}@${package.version}`, tag], {
+                    stdio: 'inherit',
+                });
             }
         }
     } catch (error) {
