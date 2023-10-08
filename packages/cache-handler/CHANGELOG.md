@@ -1,5 +1,11 @@
 # @neshca/cache-handler
 
+## 0.3.7
+
+### Patch Changes
+
+-   a6862db: Add test for app restarting functionality
+
 ## 0.3.6
 
 ### Patch Changes

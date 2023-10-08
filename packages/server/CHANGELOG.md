@@ -1,5 +1,11 @@
 # @neshca/server
 
+## 0.3.7
+
+### Patch Changes
+
+-   a6862db: Change result of /clear-cache route, update pino, remove @vercel/ncc
+
 ## 0.3.6
 
 ### Patch Changes
