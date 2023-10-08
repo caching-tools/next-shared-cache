@@ -5,6 +5,12 @@ import process from 'node:process';
 import Fastify from 'fastify';
 import pm2 from 'pm2';
 
+function wait(delay: number): Promise<void> {
+    return new Promise((resolve) => {
+        setTimeout(resolve, delay);
+    });
+}
+
 const args = process.argv.slice(2).reduce<Record<string, string>>((acc, arg) => {
     const [key, value] = arg.split('=');
     acc[key] = value;
@@ -64,7 +70,10 @@ app.get('/restart/:port', async (request, reply) => {
             void reply.code(500).send({ status: 'error' });
         }
 
-        void reply.code(200).send({ restarted: name });
+        // workaround for unstable tests
+        void wait(1000).then(async () => {
+            await reply.code(200).send({ restarted: name });
+        });
     });
 
     return reply;
