@@ -8,7 +8,7 @@ const logger = pino({
     transport: {
         target: 'pino-pretty',
     },
-    logLevel: 'info',
+    level: process.env.CI ? 'silent' : 'info',
 });
 
 const server = Fastify();
@@ -65,7 +65,7 @@ server.post('/revalidateTag', async (request, reply): Promise<void> => {
 server.get('/clear-cache', async (_request, reply): Promise<void> => {
     cache.clear();
 
-    await reply.code(200).header('Content-Type', 'application/json; charset=utf-8').send({ cleaned: true });
+    await reply.code(200).header('Content-Type', 'application/json; charset=utf-8').send({ cache: 'cleared' });
 });
 
 server

@@ -16,12 +16,11 @@ export default defineConfig({
             use: { ...devices['Desktop Chrome'] },
         },
     ],
-    webServer: ports.map((port) => ({
-        command: `node .next/__instances/${port}/server.js`,
-        url: `http://localhost:${port}`,
+    webServer: {
+        command: `./dist/run-app-instances.mjs ports=${ports.join(',')}`,
+        url: 'http://localhost:9000',
         reuseExistingServer: !process.env.CI,
-        env: { PORT: port, HOSTNAME: 'localhost', SERVER_STARTED: '1' },
-        stdout: process.env.CI ? 'ignore' : 'pipe',
+        stdout: 'pipe',
         stderr: 'pipe',
-    })),
+    },
 });

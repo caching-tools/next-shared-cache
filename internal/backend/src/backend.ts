@@ -7,7 +7,7 @@ const logger = pino({
     transport: {
         target: 'pino-pretty',
     },
-    level: 'info',
+    level: process.env.CI ? 'silent' : 'info',
 });
 
 const host = process.env.HOST ?? 'localhost';

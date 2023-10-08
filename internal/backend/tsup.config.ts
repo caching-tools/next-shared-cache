@@ -3,26 +3,14 @@ import { spawn } from 'node:child_process';
 import { defineConfig } from 'tsup';
 
 function onSuccess(): Promise<() => void> {
-    const process = spawn('./dist/backend.mjs');
-
-    process.stdout.on('data', (chunk) => {
-        console.log(String(chunk));
-    });
-
-    process.stderr.on('data', (chunk) => {
-        console.log(String(chunk));
-    });
+    const process = spawn('./dist/backend.mjs', { stdio: 'inherit' });
 
     process.on('error', (error) => {
-        console.log(`dev server error: ${error.message}`);
-    });
-
-    process.on('close', (code) => {
-        console.log(`dev server is off. Code ${code}`);
+        console.log(`backend error: ${error.message}`);
     });
 
     process.on('exit', (code) => {
-        console.log(`dev server is off. Code ${code}`);
+        console.log(`backend off. Code ${code}`);
     });
 
     return new Promise<() => void>((res) => {
