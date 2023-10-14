@@ -24,7 +24,7 @@
         "start": "./dist/backend.mjs"
     },
     "dependencies": {
-        "fastify": "4.23.2",
+        "fastify": "4.24.1",
         "pino": "8.16.0"
     },
     "devDependencies": {
