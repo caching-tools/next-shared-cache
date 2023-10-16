@@ -1,5 +1,11 @@
 # @neshca/server
 
+## 0.3.8
+
+### Patch Changes
+
+-   6a33283: Rewrite README to be more clear
+
 ## 0.3.7
 
 ### Patch Changes
