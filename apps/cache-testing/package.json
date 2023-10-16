@@ -23,7 +23,7 @@
         "@neshca/cache-handler": "*",
         "@neshca/json-replacer-reviver": "*",
         "@neshca/tsconfig": "*",
-        "@next/eslint-plugin-next": "13.5.4",
+        "@next/eslint-plugin-next": "13.5.5",
         "@playwright/test": "1.39.0",
         "@types/node": "20.8.6",
         "@types/react": "18.2.28",
