@@ -1,16 +1,14 @@
-# neshca or next-shared-cache
+# `@neshca/cache-handler`
 
 ## Overview
 
-This is a monorepo for `@neshca/cache-handler` package that provides a cache handler for Next.js Incremental Static Regeneration (ISR). It is meant to be used with the `experimental.incrementalCacheHandlerPath` configuration option of Next.js. More information about this option can be found in the [Next.js documentation](https://nextjs.org/docs/app/api-reference/next-config-js/incrementalCacheHandlerPath).
+Next.js, by default, utilizes an [in-memory cache](https://nextjs.org/blog/next-13-2#nextjs-cache-when-self-hosted) and the file system for storing `.html` (entire pages), `.json`, and `.rsc` (page props or React Server Components). Suppose you're self-hosting and running multiple instances of Next.js apps. In that case, the Next.js team recommends turning off in-memory caching and using a shared network mount within your Kubernetes pods or a similar configuration. This approach allows different containers to access the same file-system cache. Check out [this guide](https://nextjs.org/docs/pages/building-your-application/data-fetching/incremental-static-regeneration#self-hosting-isr). While effective, this method does demand a persistent shared network mount, which might not always be feasible, and it can add a layer of infrastructure complexity. Also, opting out of in-memory caching can hurt performance.
 
-Native Next.js ISR cache can't be shared between multiple instances. `@neshca/cache-handler` on the other hand can be used with a local or remote cache store. So you can share the cache between multiple instances of your application. In the example below, you can see how to use Redis as a cache store.
+`@neshca/cache-handler` provides an API for [custom cache handlers](https://nextjs.org/docs/app/api-reference/next-config-js/incrementalCacheHandlerPath) that can seamlessly replace the default Next.js Cache. The API is designed to be flexible and allow you to use any cache-store.
 
-Sharing the cache between multiple instances is useful if you are using a load balancer or Kubernetes for deployment.
+## Project Status
 
-## Current status
-
-This project is in the early stages of development. It is not ready for production use. API will change until the first stable release.
+This project is currently in the field test phase. Any changes made to the API will result in a minor version increase of the package until it reaches a stable version. You are welcome to try it out and provide feedback.
 
 ### Roadmap
 
@@ -20,6 +18,10 @@ This project is in the early stages of development. It is not ready for producti
 -   [x] Examples;
 -   [ ] Full test coverage;
 -   [ ] Documentation;
+
+## Supported Next.js versions
+
+Next.js 13.5.0 and above.
 
 ## Examples
 
