@@ -1,5 +1,7 @@
 # `@neshca/cache-handler`
 
+Flexible API to replace the default Next.js cache, accommodating custom cache solutions for multi-instance deployments.
+
 ## Overview
 
 Next.js, by default, utilizes an [in-memory cache](https://nextjs.org/blog/next-13-2#nextjs-cache-when-self-hosted) and the file system for storing `.html` (entire pages), `.json`, and `.rsc` (page props or React Server Components). Suppose you're self-hosting and running multiple instances of Next.js apps. In that case, the Next.js team recommends turning off in-memory caching and using a shared network mount within your Kubernetes pods or a similar configuration. This approach allows different containers to access the same file-system cache. Check out [this guide](https://nextjs.org/docs/pages/building-your-application/data-fetching/incremental-static-regeneration#self-hosting-isr). While effective, this method does demand a persistent shared network mount, which might not always be feasible, and it can add a layer of infrastructure complexity. Also, opting out of in-memory caching can hurt performance.
