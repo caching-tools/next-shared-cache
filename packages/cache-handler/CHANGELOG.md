@@ -1,5 +1,11 @@
 # @neshca/cache-handler
 
+## 0.3.9
+
+### Patch Changes
+
+-   a52f32e: Update README and fix paths to docs
+
 ## 0.3.8
 
 ### Patch Changes
