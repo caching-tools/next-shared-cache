@@ -28,7 +28,7 @@ export const tsup = defineConfig((options) => {
         clean: true,
         outDir: 'dist',
         format: 'esm',
-        target: 'node18.17',
+        target: 'node18',
         onSuccess: options.watch ? onSuccess : undefined,
     };
 });

@@ -2,6 +2,7 @@
     "name": "@neshca/cache-testing",
     "version": "0.0.0",
     "private": true,
+    "license": "MIT",
     "scripts": {
         "build": "tsup && next build && ./create-instances.sh",
         "clean": "rimraf ./.next ./dist ./.turbo ./node_modules ./playwright-report",

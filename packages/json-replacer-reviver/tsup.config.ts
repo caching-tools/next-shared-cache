@@ -8,5 +8,5 @@ export const tsup = defineConfig({
     clean: true,
     format: 'cjs',
     dts: true,
-    target: 'node18.17',
+    target: 'node18',
 });

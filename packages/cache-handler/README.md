@@ -32,7 +32,7 @@ Next.js 13.5.0 and above.
 
 ## Developing and contributing
 
-[Developing and contributing](../../docs/contributing/main.md)
+[Developing and contributing](../../docs/contributing/cache-handler.md)
 
 ## License
 

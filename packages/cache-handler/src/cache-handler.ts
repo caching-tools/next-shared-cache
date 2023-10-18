@@ -1,6 +1,5 @@
 import path from 'node:path';
-import fsPromises from 'node:fs/promises';
-import fs from 'node:fs';
+import fs, { promises as fsPromises } from 'node:fs';
 import type { OutgoingHttpHeaders } from 'node:http';
 import type {
     CacheHandler,

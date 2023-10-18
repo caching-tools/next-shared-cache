@@ -8,6 +8,6 @@ export const tsup = defineConfig({
     clean: false,
     format: 'cjs',
     dts: true,
-    target: 'node18.17',
+    target: 'node18',
     external: ['lru-cache'],
 });

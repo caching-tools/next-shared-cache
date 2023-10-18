@@ -1,8 +1,8 @@
 {
-    "name": "@neshca/json-replacer-reviver",
-    "version": "1.0.1",
-    "description": "Utility library for handling `Buffer` object serialization and deserialization with JSON, offering base64 representations",
-    "homepage": "https://github.com/caching-tools/next-shared-cache/tree/canary/packages/json-replacer-reviver",
+    "name": "diffscribe",
+    "version": "0.1.0",
+    "description": "An intelligent CLI tool designed to automatically generate meaningful commit messages using Git diffstat, status, and insights from OpenAI and you",
+    "homepage": "https://github.com/caching-tools/next-shared-cache/tree/canary/packages/diffscribe",
     "bugs": "https://github.com/caching-tools/next-shared-cache/issues",
     "repository": {
         "type": "git",
@@ -13,8 +13,10 @@
         "name": "Arseny Kruglikov",
         "email": "caching.tools@proton.me"
     },
-    "main": "./dist/json-replacer-reviver.js",
-    "types": "./dist/json-replacer-reviver.d.ts",
+    "module": "./dist/diffscribe.mjs",
+    "bin": {
+        "diffscribe": "./dist/diffscribe.mjs"
+    },
     "files": [
         "dist/**"
     ],
@@ -22,20 +24,20 @@
         "build": "tsup",
         "clean": "rimraf ./dist ./.turbo ./node_modules",
         "dev": "tsup --watch",
-        "lint": "eslint .",
-        "test": "jest",
-        "test:watch": "jest --watch"
+        "lint": "eslint ."
     },
     "devDependencies": {
         "@neshca/tsconfig": "*",
         "@types/jest": "29.5.5",
         "@types/node": "20.8.6",
         "eslint-config-neshca": "*",
-        "jest": "29.7.0",
         "rimraf": "5.0.5",
-        "ts-jest": "29.1.1",
         "tsup": "7.2.0",
         "typescript": "5.2.2"
+    },
+    "peerDependencies": {
+        "dotenv": "^16.3.1",
+        "openai": "^4.12.3"
     },
     "engines": {
         "node": ">=18.17.0",

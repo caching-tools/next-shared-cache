@@ -1,6 +1,6 @@
 # @neshca/json-replacer-reviver
 
-This package provides a set of functions for encoding and decoding Buffer objects in JSON.
+Utility library for handling `Buffer` object serialization and deserialization with JSON, offering base64 representations.
 
 ## Installation
 
@@ -31,3 +31,17 @@ console.log(jsonBase64); // '{"type":"BufferBase64","data":"aGVsbG8="}'
 const parsedFromBase64 = JSON.parse(jsonBase64, reviveFromBase64Representation);
 console.log(parsed); // <Buffer 68 65 6c 6c 6f>
 ```
+
+## Developing and contributing
+
+[Developing and contributing in this monorepo](../../docs/contributing/monorepo.md)
+
+### Running tests locally
+
+```bash
+npm run test -w ./packages/json-replacer-reviver
+```
+
+## License
+
+[MIT](./LICENSE)

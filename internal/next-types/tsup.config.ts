@@ -9,6 +9,6 @@ export const tsup = defineConfig(() => {
         clean: false,
         outDir: 'dist',
         format: 'cjs',
-        target: 'node18.17',
+        target: 'node18',
     };
 });
