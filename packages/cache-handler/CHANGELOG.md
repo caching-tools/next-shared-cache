@@ -1,5 +1,11 @@
 # @neshca/cache-handler
 
+## 0.3.10
+
+### Patch Changes
+
+-   be8d389: Improve documentation
+
 ## 0.3.9
 
 ### Patch Changes
