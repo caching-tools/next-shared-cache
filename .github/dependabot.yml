@@ -15,3 +15,16 @@ updates:
         patterns:
           - 'turbo'
           - 'eslint-config-turbo'
+      definitely-typed:
+        patterns:
+          - '@types/*'
+      react:
+        patterns:
+          - 'react'
+          - 'react-dom'
+          - '@types/react'
+          - '@types/react-dom'
+      pino:
+        patterns:
+          - 'pino'
+          - 'pino-pretty'
