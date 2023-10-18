@@ -9,7 +9,7 @@ export const tsup = defineConfig(() => {
         clean: true,
         outDir: 'dist',
         format: 'esm',
-        target: 'node18.17',
+        target: 'node18',
         external: ['fastify', 'pm2'],
     };
 });

@@ -6,14 +6,14 @@ You can create you own remote cache server or use `@neshca/server` package.
 
 #### Using `@neshca/server`
 
-```sh
-npm install -D @neshca/server
-npm install -D pino fastify pino-pretty
+```bash
+npm i -D @neshca/server
+npm i -D pino fastify pino-pretty
 ```
 
 Run your server:
 
-```sh
+```bash
 npx @neshca/server
 ```
 
@@ -25,10 +25,10 @@ You can use `PORT` and `HOST` environment variables to configure the server.
 
 ### Install dependencies
 
-```sh
-npm install -D @neshca/cache-handler
-npm install -D undici
-npm install -D @neshca/json-replacer-reviver
+```bash
+npm i -D @neshca/cache-handler
+npm i -D undici
+npm i -D @neshca/json-replacer-reviver
 ```
 
 In this example we assume that in your deployment you have `REMOTE_CACHE_SERVER_BASE_URL` environment variable set to the URL of your remote caching server.
@@ -116,7 +116,7 @@ module.exports = IncrementalCache;
 
 Finally, build the production version of your Next.js app and start it using the `SERVER_STARTED` environment variable:
 
-```sh
+```bash
 npm run build
 SERVER_STARTED=1 npm run start
 ```

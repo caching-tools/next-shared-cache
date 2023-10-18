@@ -2,14 +2,8 @@
     "name": "@neshca/backend",
     "version": "0.0.0",
     "private": true,
-    "homepage": "https://github.com/caching-tools/next-shared-cache",
-    "bugs": "https://github.com/caching-tools/next-shared-cache/issues",
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/caching-tools/next-shared-cache.git"
-    },
     "license": "MIT",
-    "main": "./dist/backend.mjs",
+    "module": "./dist/backend.mjs",
     "bin": {
         "backend": "dist/backend.mjs"
     },

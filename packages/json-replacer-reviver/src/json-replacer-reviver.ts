@@ -1,15 +1,38 @@
 import { Buffer } from 'node:buffer';
 
-export type BufferJsonRepresentation = { type: 'Buffer'; data: number[] };
-
-export type BufferBase64Representation = { type: 'BufferBase64'; data: string };
+/**
+ * Represents the JSON structure of a `Buffer` object.
+ */
+export type BufferJsonRepresentation = {
+    /**
+     * Indicates the representation type; always 'Buffer' for this structure.
+     */
+    type: 'Buffer';
+    /**
+     * An array of numbers representing the buffer's byte data.
+     */
+    data: number[];
+};
 
 /**
- * Checks if a value is a JSON representation of a `Buffer` object.
+ * Represents the base64-encoded JSON structure of a `Buffer` object.
+ */
+export type BufferBase64Representation = {
+    /**
+     * Indicates the representation type; always 'BufferBase64' for this structure.
+     */
+    type: 'BufferBase64';
+    /**
+     * A string containing the base64-encoded data of the buffer.
+     */
+    data: string;
+};
+
+/**
+ * Determines if a value corresponds to the JSON representation of a `Buffer` object.
  *
- * @param value - The value to check.
- *
- * @returns `true` if the value is a JSON representation of a `Buffer` object, `false` otherwise.
+ * @param value - Value to be verified.
+ * @returns `true` if the value matches the JSON representation of a `Buffer`, otherwise `false`.
  */
 export function isBufferJsonRepresentation(value: unknown): value is BufferJsonRepresentation {
     return (
@@ -21,11 +44,10 @@ export function isBufferJsonRepresentation(value: unknown): value is BufferJsonR
 }
 
 /**
- * Checks if a value is a base64-encoded JSON representation of a `Buffer` object.
+ * Determines if a value matches the base64-encoded JSON format of a `Buffer` object.
  *
- * @param value - The value to check.
- *
- * @returns `true` if the value is a base64-encoded JSON representation of a `Buffer` object, `false` otherwise.
+ * @param value - Value to be verified.
+ * @returns `true` if the value matches the base64-encoded JSON format of a `Buffer`, otherwise `false`.
  */
 export function isBufferBase64Representation(value: unknown): value is BufferBase64Representation {
     return (
@@ -37,13 +59,11 @@ export function isBufferBase64Representation(value: unknown): value is BufferBas
 }
 
 /**
- * Revives a `Buffer` object from its JSON representation.
+ * Converts a JSON representation of a `Buffer` object back to the actual `Buffer` object.
  *
- * @param key - The key of the property being parsed.
- * @param value - The value of the property being parsed.
- *
- * @returns The `Buffer` object, or the original value if it is not a `BufferJsonRepresentation` object.
- *
+ * @param key - Property key during parsing.
+ * @param value - Associated value during parsing.
+ * @returns A `Buffer` object if the value is a JSON representation of it; otherwise, returns the original value.
  * @example
  * ```js
  * const buffer = Buffer.from('hello');
@@ -66,13 +86,11 @@ export function reviveFromJsonRepresentation(key: string, value: unknown): unkno
 }
 
 /**
- * Replaces a JSON representation of a `Buffer` with a base64-encoded JSON representation.
+ * Transforms a JSON representation of a `Buffer` object into its base64-encoded JSON format.
  *
- * @param key - The key of the property being stringified.
- * @param value - The value of the property being stringified.
- *
- * @returns Base64 representation of a `Buffer`, or the original value if it is not a `BufferJsonRepresentation` object.
- *
+ * @param key - Property key during stringification.
+ * @param value - Associated value during stringification.
+ * @returns A base64-encoded representation if the value is a `Buffer`; otherwise, returns the original value.
  * @example
  * ```js
  * const buffer = Buffer.from('hello');
@@ -94,13 +112,11 @@ export function replaceJsonWithBase64(key: string, value: unknown): unknown {
 }
 
 /**
- * Revives a `Buffer` object from its base64-encoded JSON representation.
+ * Recovers a `Buffer` object from its base64-encoded JSON format.
  *
- * @param key - The key of the property being parsed.
- * @param value - The value of the property being parsed.
- *
- * @returns The revived `Buffer` object, or the original value if it is not a `BufferJsonBase64Representation` object.
- *
+ * @param key - Property key during parsing.
+ * @param value - Associated value during parsing.
+ * @returns A `Buffer` object if the value is a base64-encoded JSON representation of it; otherwise, returns the original value.
  * @example
  * ```js
  * const buffer = Buffer.from('hello');

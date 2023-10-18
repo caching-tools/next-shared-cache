@@ -2,9 +2,9 @@
 
 To install the `@neshca/cache-handler` package, run the following command:
 
-```sh
-npm install -D @neshca/cache-handler
-npm install -D redis
+```bash
+npm i -D @neshca/cache-handler
+npm i -D redis
 ```
 
 ## Usage with Redis
@@ -17,8 +17,8 @@ Create a file called `cache-handler.js` next to you `next.config.js` with the fo
 
 Install `@neshca/json-replacer-reviver` to efficiently store Buffers in Redis.
 
-```sh
-npm install -D @neshca/json-replacer-reviver
+```bash
+npm i -D @neshca/json-replacer-reviver
 ```
 
 ```js
@@ -193,7 +193,7 @@ module.exports = nextConfig;
 
 Finally, build the production version of your Next.js app and start it using the `SERVER_STARTED` environment variable:
 
-```sh
+```bash
 npm run build
 SERVER_STARTED=1 npm run start
 ```

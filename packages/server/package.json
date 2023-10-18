@@ -12,7 +12,7 @@
         "name": "Arseny Kruglikov",
         "email": "caching.tools@proton.me"
     },
-    "main": "./dist/server.mjs",
+    "module": "./dist/server.mjs",
     "types": "./dist/types.d.mts",
     "bin": {
         "server": "dist/server.mjs"
