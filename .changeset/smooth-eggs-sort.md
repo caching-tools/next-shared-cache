@@ -1,5 +1,0 @@
----
-'diffscribe': major
----
-
-Initial release

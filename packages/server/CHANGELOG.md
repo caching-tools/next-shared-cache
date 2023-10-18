@@ -1,5 +1,11 @@
 # @neshca/server
 
+## 0.3.9
+
+### Patch Changes
+
+-   be8d389: Improve documentation
+
 ## 0.3.8
 
 ### Patch Changes
