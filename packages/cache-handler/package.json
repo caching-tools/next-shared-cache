@@ -36,10 +36,6 @@
     "optionalDependencies": {
         "lru-cache": "^10.0.0"
     },
-    "engines": {
-        "node": ">=18.17.0",
-        "npm": ">=9.6.7"
-    },
     "distTags": [
         "next13.5.1",
         "next13.5.2",

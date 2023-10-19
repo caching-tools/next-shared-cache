@@ -28,3 +28,8 @@ updates:
         patterns:
           - 'pino'
           - 'pino-pretty'
+      jest:
+        patterns:
+          - 'jest'
+          - 'ts-jest'
+          - '@types/jest'

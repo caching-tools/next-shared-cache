@@ -28,7 +28,6 @@
     },
     "devDependencies": {
         "@neshca/tsconfig": "*",
-        "@types/jest": "29.5.6",
         "@types/node": "20.8.7",
         "eslint-config-neshca": "*",
         "rimraf": "5.0.5",
@@ -38,9 +37,5 @@
     "peerDependencies": {
         "dotenv": "^16.3.1",
         "openai": "^4.12.3"
-    },
-    "engines": {
-        "node": ">=18.17.0",
-        "npm": ">=9.6.7"
     }
 }

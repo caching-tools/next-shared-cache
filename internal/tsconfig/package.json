@@ -2,9 +2,5 @@
     "name": "@neshca/tsconfig",
     "version": "0.0.0",
     "private": true,
-    "license": "MIT",
-    "engines": {
-        "node": ">=18.17.0",
-        "npm": ">=9.6.7"
-    }
+    "license": "MIT"
 }
