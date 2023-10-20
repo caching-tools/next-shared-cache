@@ -1,5 +1,11 @@
 # @neshca/cache-handler
 
+## 0.3.11
+
+### Patch Changes
+
+-   334890f: Add next13.5.6 in distTags
+
 ## 0.3.10
 
 ### Patch Changes
