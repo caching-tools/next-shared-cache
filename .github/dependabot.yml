@@ -4,6 +4,8 @@ updates:
     directory: '/'
     schedule:
       interval: 'daily'
+    reviewers:
+      - "better-salmon"
     versioning-strategy: increase
     open-pull-requests-limit: 20
     groups:
