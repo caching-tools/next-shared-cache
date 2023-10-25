@@ -23,7 +23,7 @@
     },
     "devDependencies": {
         "@neshca/tsconfig": "*",
-        "@types/node": "20.8.8",
+        "@types/node": "20.8.9",
         "eslint-config-neshca": "*",
         "pino-pretty": "10.2.3",
         "rimraf": "5.0.5",
