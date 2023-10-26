@@ -13,7 +13,7 @@ In this example we assume that in your deployment you have `REDIS_URL` environme
 
 Create a file called `cache-handler.js` next to you `next.config.js` with the following contents:
 
-### cache-handler.js with plain Redis
+### cache-handler.js with Redis
 
 Install `@neshca/json-replacer-reviver` to efficiently store Buffers in Redis.
 
@@ -22,87 +22,109 @@ npm i -D @neshca/json-replacer-reviver
 ```
 
 ```js
-const { IncrementalCache } = require('@neshca/cache-handler');
 const { reviveFromBase64Representation, replaceJsonWithBase64 } = require('@neshca/json-replacer-reviver');
+const { IncrementalCache } = require('@neshca/cache-handler');
 const { createClient } = require('redis');
 
-const client = createClient({
-    url: process.env.REDIS_URL,
-});
+if (!process.env.REDIS_URL) {
+    console.warn('Make sure that REDIS_URL is added to the .env.local file and loaded properly.');
+}
 
-client.on('error', (err) => {
-    console.log('Redis Client Error', err);
-});
+/** @type {import('@neshca/cache-handler').TagsManifest} */
+const localTagsManifest = {
+    version: 1,
+    items: {},
+};
 
-IncrementalCache.onCreation(() => {
-    if (!process.env.SERVER_STARTED) {
-        return;
-    }
+const PREFIX = 'string:';
+const TAGS_MANIFEST_KEY = `${PREFIX}sharedTagsManifest`;
+const CONNECT_TIMEOUT_MS = 5 * 50 * 1000;
 
-    // Connect to Redis only when app is started.
-    client.connect().then(() => {
-        console.log('Redis connected');
+function createRedisClient(url) {
+    const client = createClient({
+        url,
+        name: `cache-handler:${PREFIX}${process.env.PORT ?? process.pid}`,
+        socket: {
+            connectTimeout: CONNECT_TIMEOUT_MS,
+        },
     });
 
-    /**
-     * Prefix is Redis' way of namespace keys. It's not required, but it's a good practice.
-     * It allows you to use the same Redis instance for multiple apps.
-     * You can also use it to separate different environments (e.g. dev, staging, prod).
-     * For a single app prefix should be the same across all apps instances.
-     */
-    const prefix = 'app:cache-testing:';
+    client.on('error', (error) => {
+        console.error('Redis error:', error.message);
+    });
 
-    /** @type {import('@neshca/cache-handler').Cache} */
-    const cache = {
-        get: async (key) => {
-            const result = await client.get(prefix + key);
+    return client;
+}
 
-            if (!result) {
-                return null;
-            }
+async function connect(client) {
+    try {
+        await client.connect();
+    } catch (error) {
+        console.error('Redis connection error:', error.message);
+    }
+}
 
-            try {
-                return JSON.parse(result, reviveFromBase64Representation);
-            } catch (error) {
-                return null;
-            }
-        },
-        set: async (key, value) => {
-            await client.set(prefix + key, JSON.stringify(value, replaceJsonWithBase64));
-        },
-        getTagsManifest: async () => {
-            const tagsManifest = await client.hGetAll(`${prefix}tagsManifest`);
+if (process.env.SERVER_STARTED) {
+    IncrementalCache.onCreation(() => {
+        const client = createRedisClient(process.env.REDIS_URL);
 
-            if (!tagsManifest) {
-                return { version: 1, items: {} };
-            }
+        connect(client).then(() => {
+            console.log('Redis connected');
+        });
 
-            const items = {};
+        return {
+            cache: {
+                async get(key) {
+                    try {
+                        const result = await client.get(PREFIX + key);
 
-            for (const [tag, revalidatedAt] of Object.entries(tagsManifest)) {
-                items[tag] = { revalidatedAt: parseInt(revalidatedAt ?? '0', 10) };
-            }
+                        if (!result) {
+                            return null;
+                        }
 
-            return { version: 1, items };
-        },
-        revalidateTag: async (tag, revalidatedAt) => {
-            const options = {
-                [tag]: revalidatedAt,
-            };
+                        return JSON.parse(result, reviveFromBase64Representation);
+                    } catch (error) {
+                        return null;
+                    }
+                },
+                async set(key, value) {
+                    try {
+                        await client.set(PREFIX + key, JSON.stringify(value, replaceJsonWithBase64));
+                    } catch (error) {
+                        // ignore because value will be written to disk
+                    }
+                },
+                async getTagsManifest() {
+                    try {
+                        const remoteTagsManifest = await client.hGetAll(TAGS_MANIFEST_KEY);
 
-            await client.hSet(`${prefix}tagsManifest`, options);
-        },
-    };
+                        if (!remoteTagsManifest) {
+                            return localTagsManifest;
+                        }
 
-    return {
-        cache,
-        /**
-         * No need to write to disk, as we're using a shared cache.
-         * Read is required to get pre-rendering pages from disk.
-         */
-        diskAccessMode: 'read-yes/write-no',
-    };
-});
+                        Object.entries(remoteTagsManifest).reduce((acc, [tag, revalidatedAt]) => {
+                            acc[tag] = { revalidatedAt: parseInt(revalidatedAt ?? '0', 10) };
+                            return acc;
+                        }, localTagsManifest.items);
+
+                        return localTagsManifest;
+                    } catch (error) {
+                        return localTagsManifest;
+                    }
+                },
+                async revalidateTag(tag, revalidatedAt) {
+                    try {
+                        await client.hSet(TAGS_MANIFEST_KEY, {
+                            [tag]: revalidatedAt,
+                        });
+                    } catch (error) {
+                        localTagsManifest.items[tag] = { revalidatedAt };
+                    }
+                },
+            },
+        };
+    });
+}
 
 module.exports = IncrementalCache;
 ```
@@ -113,65 +135,98 @@ module.exports = IncrementalCache;
 const { IncrementalCache } = require('@neshca/cache-handler');
 const { createClient } = require('redis');
 
-const client = createClient({
-    url: process.env.REDIS_URL,
-});
+if (!process.env.REDIS_URL) {
+    console.warn('Make sure that REDIS_URL is added to the .env.local file and loaded properly.');
+}
 
-client.on('error', (err) => {
-    console.log('Redis Client Error', err);
-});
+/** @type {import('@neshca/cache-handler').TagsManifest} */
+let localTagsManifest = {
+    version: 1,
+    items: {},
+};
 
-IncrementalCache.onCreation(() => {
-    if (!process.env.SERVER_STARTED) {
-        return;
-    }
+const PREFIX = 'JSON:';
+const TAGS_MANIFEST_KEY = `${PREFIX}sharedTagsManifest`;
+const CONNECT_TIMEOUT_MS = 5 * 50 * 1000;
 
-    /**
-     * Prefix is Redis' way of namespace keys. It's not required, but it's a good practice.
-     * It allows you to use the same Redis instance for multiple apps.
-     * You can also use it to separate different environments (e.g. dev, staging, prod).
-     * For a single app prefix should be the same across all apps instances.
-     */
-    const prefix = 'app:cache-testing:';
-
-    // Connect to Redis only when app is started.
-    client.connect().then(() => {
-        console.log('Redis connected');
-        client.json.set(`${prefix}tagsManifest`, '.', { version: 1, items: {} }).then();
+function createRedisClient(url) {
+    const client = createClient({
+        url,
+        name: `cache-handler:${PREFIX}${process.env.PORT ?? process.pid}`,
+        socket: {
+            connectTimeout: CONNECT_TIMEOUT_MS,
+        },
     });
 
-    /** @type {import('@neshca/cache-handler').Cache} */
-    const cache = {
-        // @ts-ignore
-        async get(key) {
-            const result = await client.json.get(prefix + key);
+    client.on('error', (error) => {
+        console.error('Redis error:', error.message);
+    });
 
-            return result;
-        },
-        async set(key, value) {
-            // @ts-ignore
-            await client.json.set(prefix + key, '.', value);
-        },
-        // @ts-ignore
-        async getTagsManifest() {
-            const tagsManifest = await client.json.get(`${prefix}tagsManifest`);
+    return client;
+}
 
-            return tagsManifest ?? { version: 1, items: {} };
-        },
-        async revalidateTag(tag, revalidatedAt) {
-            await client.json.set(`${prefix}tagsManifest`, `.items.${tag}`, { revalidatedAt });
-        },
-    };
+async function connectAndSetManifest(client) {
+    try {
+        await client.connect();
+    } catch (error) {
+        console.error('Redis connection error:', error.message);
+    }
 
-    return {
-        cache,
-        /**
-         * No need to write to disk, as we're using a shared cache.
-         * Read is required to get pre-rendering pages from disk
-         */
-        diskAccessMode: 'read-yes/write-no',
-    };
-});
+    try {
+        await client.json.set(TAGS_MANIFEST_KEY, '.', localTagsManifest, { NX: true });
+    } catch (error) {
+        console.error('Redis set tagsManifest error:', error.message);
+    }
+}
+
+if (process.env.SERVER_STARTED) {
+    const client = createRedisClient(process.env.REDIS_URL);
+
+    connectAndSetManifest(client).then(() => {
+        console.log('Redis connected');
+    });
+
+    IncrementalCache.onCreation(() => {
+        return {
+            cache: {
+                async get(key) {
+                    try {
+                        return (await client.json.get(PREFIX + key)) ?? null;
+                    } catch (error) {
+                        return null;
+                    }
+                },
+                async set(key, value) {
+                    try {
+                        await client.json.set(PREFIX + key, '.', value);
+                    } catch (error) {
+                        // ignore because value will be written to disk
+                    }
+                },
+                async getTagsManifest() {
+                    try {
+                        const sharedTagsManifest = (await client.json.get(TAGS_MANIFEST_KEY)) ?? null;
+
+                        if (sharedTagsManifest) {
+                            localTagsManifest = sharedTagsManifest;
+                        }
+
+                        return localTagsManifest;
+                    } catch (error) {
+                        return localTagsManifest;
+                    }
+                },
+                async revalidateTag(tag, revalidatedAt) {
+                    try {
+                        await client.json.set(TAGS_MANIFEST_KEY, `.items.${tag}`, { revalidatedAt });
+                    } catch (error) {
+                        localTagsManifest.items[tag] = { revalidatedAt };
+                    }
+                },
+            },
+        };
+    });
+}
 
 module.exports = IncrementalCache;
 ```
