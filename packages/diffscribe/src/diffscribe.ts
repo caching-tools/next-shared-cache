@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-/* eslint-disable no-await-in-loop -- asdf */
 
 import { execFileSync } from 'node:child_process';
 import { createInterface } from 'node:readline/promises';

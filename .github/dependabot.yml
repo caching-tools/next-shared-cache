@@ -5,7 +5,7 @@ updates:
     schedule:
       interval: 'daily'
     reviewers:
-      - "better-salmon"
+      - 'better-salmon'
     versioning-strategy: increase
     open-pull-requests-limit: 20
     groups:
@@ -30,8 +30,3 @@ updates:
         patterns:
           - 'pino'
           - 'pino-pretty'
-      jest:
-        patterns:
-          - 'jest'
-          - 'ts-jest'
-          - '@types/jest'

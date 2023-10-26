@@ -6,7 +6,7 @@ export const tsup = defineConfig({
     splitting: false,
     outDir: 'dist',
     clean: true,
-    format: 'cjs',
+    format: ['cjs', 'esm'],
     dts: true,
     target: 'node18',
 });

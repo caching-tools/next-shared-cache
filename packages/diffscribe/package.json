@@ -1,6 +1,6 @@
 {
     "name": "diffscribe",
-    "version": "1.0.0",
+    "version": "0.1.0",
     "description": "An intelligent CLI tool designed to automatically generate meaningful commit messages using Git diffstat, status, and insights from OpenAI and you",
     "homepage": "https://github.com/caching-tools/next-shared-cache/tree/canary/packages/diffscribe",
     "bugs": "https://github.com/caching-tools/next-shared-cache/issues",
