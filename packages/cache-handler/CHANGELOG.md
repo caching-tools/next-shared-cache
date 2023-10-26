@@ -1,5 +1,11 @@
 # @neshca/cache-handler
 
+## 0.3.12
+
+### Patch Changes
+
+-   d83d9fe: Fix TagsManifest type export
+
 ## 0.3.11
 
 ### Patch Changes
