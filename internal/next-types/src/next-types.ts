@@ -2,6 +2,7 @@
 import type { OutgoingHttpHeaders } from 'node:http';
 import type { CacheHandler } from 'next/dist/server/lib/incremental-cache';
 import type IncrementalCache from 'next/dist/server/lib/incremental-cache/file-system-cache';
+import type { RouteMetadata as NextRouteMetadata } from 'next/dist/export/routes/types';
 
 export type { CacheHandler, CacheHandlerContext, CacheHandlerValue } from 'next/dist/server/lib/incremental-cache';
 export type {
@@ -12,6 +13,12 @@ export type {
     IncrementalCacheValue,
     IncrementalCacheEntry,
 } from 'next/dist/server/response-cache/types';
+
+export type RouteMetadata = NextRouteMetadata;
+
+export type NonNullableRouteMetadata = {
+    [K in keyof RouteMetadata]: NonNullable<RouteMetadata[K]>;
+};
 
 export type FileSystemCacheContext = ConstructorParameters<typeof IncrementalCache>[0];
 
@@ -39,8 +46,9 @@ export type IncrementalCachedPageValue = {
     kind: 'PAGE';
     html: string;
     pageData: object;
-    headers?: OutgoingHttpHeaders;
-    status?: number;
+    postponed: string | undefined;
+    headers: OutgoingHttpHeaders | undefined;
+    status: number | undefined;
 };
 
 export type TagsManifest = {
