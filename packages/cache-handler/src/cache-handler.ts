@@ -1,6 +1,5 @@
 import path from 'node:path';
 import fs, { promises as fsPromises } from 'node:fs';
-import type { OutgoingHttpHeaders } from 'node:http';
 import type {
     CacheHandler,
     CacheHandlerValue,
@@ -9,10 +8,10 @@ import type {
     FileSystemCacheContext,
     CachedFetchValue,
     CacheHandlerParametersRevalidateTag,
+    RouteMetadata,
+    NonNullableRouteMetadata,
 } from '@neshca/next-types';
 import { LRUCache } from 'lru-cache';
-
-type Meta = { status: number; headers: OutgoingHttpHeaders };
 
 export type TagsManifest = {
     version: 1;
@@ -120,7 +119,7 @@ export class IncrementalCache implements CacheHandler {
 
         if (this.tagsManifestPath) {
             try {
-                const tagsManifestData = fs.readFileSync(this.tagsManifestPath).toString('utf8');
+                const tagsManifestData = fs.readFileSync(this.tagsManifestPath, 'utf-8');
 
                 if (tagsManifestData) {
                     tagsManifest = JSON.parse(tagsManifestData) as TagsManifest;
@@ -189,8 +188,8 @@ export class IncrementalCache implements CacheHandler {
                 const { mtime } = await fsPromises.stat(filePath);
 
                 const metaFilePath = filePath.replace(/\.body$/, '.meta');
-                const metaFileData = await fsPromises.readFile(metaFilePath);
-                const meta: Meta = JSON.parse(metaFileData.toString('utf8')) as Meta;
+                const metaFileData = await fsPromises.readFile(metaFilePath, 'utf-8');
+                const meta: NonNullableRouteMetadata = JSON.parse(metaFileData) as NonNullableRouteMetadata;
 
                 const cacheEntry: CacheHandlerValue = {
                     lastModified: mtime.getTime(),
@@ -201,6 +200,7 @@ export class IncrementalCache implements CacheHandler {
                         status: meta.status,
                     },
                 };
+
                 return cacheEntry;
             } catch (_) {
                 // no .meta data for the related key
@@ -211,7 +211,7 @@ export class IncrementalCache implements CacheHandler {
                     pathname: fetchCache ? cacheKey : `${cacheKey}.html`,
                     fetchCache,
                 });
-                const htmlFileData = (await fsPromises.readFile(htmlFilePath)).toString('utf-8');
+                const htmlFileData = await fsPromises.readFile(htmlFilePath, 'utf-8');
                 const { mtime } = await fsPromises.stat(htmlFilePath);
 
                 if (fetchCache) {
@@ -238,17 +238,17 @@ export class IncrementalCache implements CacheHandler {
                         pathname: isHtmlFileInAppPath ? `${cacheKey}.rsc` : `${cacheKey}.json`,
                         appDir: isHtmlFileInAppPath,
                     });
-                    const fileData = (await fsPromises.readFile(filePath)).toString('utf-8');
+                    const fileData = await fsPromises.readFile(filePath, 'utf-8');
 
                     const pageData = isHtmlFileInAppPath ? fileData : (JSON.parse(fileData) as object);
 
-                    let meta: Partial<Meta> = {};
+                    let meta: RouteMetadata | undefined;
 
                     if (isHtmlFileInAppPath) {
                         try {
                             const metaFilePath = htmlFilePath.replace(/\.html$/, '.meta');
-                            const metaFileData = await fsPromises.readFile(metaFilePath);
-                            meta = JSON.parse(metaFileData.toString('utf-8')) as Partial<Meta>;
+                            const metaFileData = await fsPromises.readFile(metaFilePath, 'utf-8');
+                            meta = JSON.parse(metaFileData) as RouteMetadata;
                         } catch {
                             // no .meta data for the related key
                         }
@@ -260,8 +260,9 @@ export class IncrementalCache implements CacheHandler {
                             kind: 'PAGE',
                             html: htmlFileData,
                             pageData,
-                            headers: meta.headers,
-                            status: meta.status,
+                            postponed: meta?.postponed,
+                            headers: meta?.headers,
+                            status: meta?.status,
                         },
                     };
                 }
@@ -359,12 +360,16 @@ export class IncrementalCache implements CacheHandler {
                 pathname: `${cacheKey}.body`,
                 appDir: true,
             });
+
+            const meta: RouteMetadata = {
+                headers: data.headers,
+                status: data.status,
+                postponed: undefined,
+            };
+
             await fsPromises.mkdir(path.dirname(filePath), { recursive: true });
             await fsPromises.writeFile(filePath, data.body);
-            await fsPromises.writeFile(
-                filePath.replace(/\.body$/, '.meta'),
-                JSON.stringify({ headers: data.headers, status: data.status }),
-            );
+            await fsPromises.writeFile(filePath.replace(/\.body$/, '.meta'), JSON.stringify(meta, null, 2));
 
             return;
         }
@@ -389,13 +394,13 @@ export class IncrementalCache implements CacheHandler {
             );
 
             if (data.headers || data.status) {
-                await fsPromises.writeFile(
-                    htmlPath.replace(/\.html$/, '.meta'),
-                    JSON.stringify({
-                        headers: data.headers,
-                        status: data.status,
-                    }),
-                );
+                const meta: RouteMetadata = {
+                    headers: data.headers,
+                    status: data.status,
+                    postponed: data.postponed,
+                };
+
+                await fsPromises.writeFile(htmlPath.replace(/\.html$/, '.meta'), JSON.stringify(meta));
             }
             return;
         }

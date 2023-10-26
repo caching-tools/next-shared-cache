@@ -32,7 +32,7 @@ function run() {
         });
 
         for (const packagePath of packagesPaths) {
-            const packageData = fs.readFileSync(packagePath, 'utf8');
+            const packageData = fs.readFileSync(packagePath, 'utf-8');
             const { name, version, private, distTags } = JSON.parse(packageData);
 
             if (!Array.isArray(distTags)) {
