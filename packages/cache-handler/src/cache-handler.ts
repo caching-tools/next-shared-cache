@@ -6,16 +6,18 @@ import type {
     CacheHandlerValue,
     CacheHandlerParametersSet,
     CacheHandlerParametersGet,
-    TagsManifest,
     FileSystemCacheContext,
     CachedFetchValue,
     CacheHandlerParametersRevalidateTag,
 } from '@neshca/next-types';
 import { LRUCache } from 'lru-cache';
 
-export type { TagsManifest } from '@neshca/next-types';
-
 type Meta = { status: number; headers: OutgoingHttpHeaders };
+
+export type TagsManifest = {
+    version: 1;
+    items: Record<string, { revalidatedAt: number }>;
+};
 
 export type Cache<T = CacheHandlerValue> = {
     get: (key: string) => Promise<CacheHandlerValue | null | undefined>;
