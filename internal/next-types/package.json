@@ -14,7 +14,7 @@
         "lint": "eslint ."
     },
     "dependencies": {
-        "next": "13.5.6"
+        "next": "14.0.0"
     },
     "devDependencies": {
         "@neshca/tsconfig": "*",
