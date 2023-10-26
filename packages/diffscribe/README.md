@@ -2,6 +2,8 @@
 
 `diffscribe` is an intelligent CLI tool designed to automatically generate meaningful commit messages using Git diffstat, status, and insights from OpenAI and you.
 
+Please note that this project is in its beta version and may undergo significant changes.
+
 ## Features:
 
 -   **Smart Analysis**: Evaluates Git status and Git diffstat to identify essential changes.
@@ -71,12 +73,11 @@ What happened behind the scenes:
 
 ## Notes:
 
--   Ensure you have the `.env` file in the same directory where you are running `diffscribe` from..
+-   Ensure you have the `.env` file in the same directory from which you are running `diffscribe`.
 -   If you encounter errors related to model selection, temperature, or commit length, please check the passed arguments for validity.
 
 ## Developing and contributing
 
-[Developing and contributing in this monorepo](../../docs/contributing/monorepo.md)
 [Developing and contributing `diffscribe`](../../docs/contributing/diffscribe.md)
 
 ## License:

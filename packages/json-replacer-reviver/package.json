@@ -13,7 +13,9 @@
         "name": "Arseny Kruglikov",
         "email": "caching.tools@proton.me"
     },
-    "main": "./dist/json-replacer-reviver.js",
+    "type": "module",
+    "main": "./dist/json-replacer-reviver.cjs",
+    "module": "./dist/json-replacer-reviver.js",
     "types": "./dist/json-replacer-reviver.d.ts",
     "files": [
         "dist/**"
@@ -23,18 +25,16 @@
         "clean": "rimraf ./dist ./.turbo ./node_modules",
         "dev": "tsup --watch",
         "lint": "eslint .",
-        "test": "jest",
-        "test:watch": "jest --watch"
+        "test": "node --test --import tsx/esm **/*.test.ts",
+        "test:watch": "node --watch --test --import tsx/esm **/*.test.ts"
     },
     "devDependencies": {
         "@neshca/tsconfig": "*",
-        "@types/jest": "29.5.6",
         "@types/node": "20.8.9",
         "eslint-config-neshca": "*",
-        "jest": "29.7.0",
         "rimraf": "5.0.5",
-        "ts-jest": "29.1.1",
         "tsup": "7.2.0",
+        "tsx": "3.14.0",
         "typescript": "5.2.2"
     }
 }

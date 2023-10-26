@@ -21,7 +21,7 @@ jobs:
         run: npm run build
       - name: Lint
         run: npm run lint
-      - name: Run Jest tests
+      - name: Run unit tests
         run: npm test
       - name: Build Next.js app and run tests
         run: |
