@@ -1,6 +1,6 @@
 {
     "name": "@neshca/cache-handler",
-    "version": "0.3.12",
+    "version": "0.4.0",
     "description": "Flexible API to replace the default Next.js cache, accommodating custom cache solutions for multi-instance deployments.    ",
     "homepage": "https://github.com/caching-tools/next-shared-cache/tree/canary/packages/cache-handler",
     "bugs": "https://github.com/caching-tools/next-shared-cache/issues",

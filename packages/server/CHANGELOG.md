@@ -1,5 +1,11 @@
 # @neshca/server
 
+## 0.4.0
+
+### Minor Changes
+
+-   b811b66: Upgrade to Next.js v14.0.0
+
 ## 0.3.10
 
 ### Patch Changes
