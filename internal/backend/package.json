@@ -3,9 +3,11 @@
     "version": "0.0.0",
     "private": true,
     "license": "MIT",
-    "module": "./dist/backend.mjs",
+    "type": "module",
     "bin": {
-        "backend": "dist/backend.mjs"
+        "backend": "dist/backend.js",
+        "backend/cjs": "dist/backend.cjs",
+        "backend/esm": "dist/backend.js"
     },
     "files": [
         "dist/**"
@@ -15,7 +17,7 @@
         "clean": "rimraf ./dist ./.turbo ./node_modules",
         "dev": "tsup --watch",
         "lint": "eslint .",
-        "start": "./dist/backend.mjs"
+        "start": "./dist/backend.js"
     },
     "dependencies": {
         "fastify": "4.24.3",

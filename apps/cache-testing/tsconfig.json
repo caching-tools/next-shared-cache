@@ -1,11 +1,9 @@
 {
     "extends": "@neshca/tsconfig/nextjs.json",
     "compilerOptions": {
-        "plugins": [
-            {
-                "name": "next"
-            }
-        ],
+        "paths": {
+            "cache-testing/*": ["./src/*"]
+        },
         "strictNullChecks": true
     },
     "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],

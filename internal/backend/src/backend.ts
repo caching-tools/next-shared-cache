@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import { randomBytes } from 'node:crypto';
 import Fastify from 'fastify';
 import { pino } from 'pino';
 
@@ -41,7 +42,9 @@ server.addHook('preHandler', (request, _reply, done) => {
     done();
 });
 
-server.get('/:routerType/:preRendered:/:fallback/:page', async (request, reply): Promise<void> => {
+server.get('/count/:routerType/:preRendered:/:fallback/:page', async (request, reply): Promise<void> => {
+    const { page } = request.params as { page: string };
+
     const meta = pathMeta.get(request.url);
 
     if (!meta) {
@@ -50,18 +53,28 @@ server.get('/:routerType/:preRendered:/:fallback/:page', async (request, reply):
 
     const [count] = meta;
 
-    const { page } = request.params as { page: string };
-
-    if (page === '404') {
-        await reply.code(404).header('Content-Type', 'application/json; charset=utf-8').send({ count });
-    } else if (page === '200') {
-        await reply.code(200).header('Content-Type', 'application/json; charset=utf-8').send({ count });
-    } else if (page === 'alternate-200-404') {
-        await reply
-            .code(count % 2 === 0 ? 200 : 404)
-            .header('Content-Type', 'application/json; charset=utf-8')
-            .send({ count });
+    switch (page) {
+        case '404':
+            await reply.code(404).header('Content-Type', 'application/json; charset=utf-8').send({ count });
+            break;
+        case '200':
+            await reply.code(200).header('Content-Type', 'application/json; charset=utf-8').send({ count });
+            break;
+        case 'alternate-200-404':
+            await reply
+                .code(count % 2 === 0 ? 200 : 404)
+                .header('Content-Type', 'application/json; charset=utf-8')
+                .send({ count });
+            break;
     }
+});
+
+server.get('/randomHex/:length', async (request, reply): Promise<void> => {
+    const { length = '100000' } = request.params as { length?: string };
+
+    const randomHex = randomBytes(Number.parseInt(length, 10)).toString('hex');
+
+    await reply.code(200).header('Content-Type', 'application/json; charset=utf-8').send({ randomHex });
 });
 
 server

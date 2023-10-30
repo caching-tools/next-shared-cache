@@ -3,7 +3,7 @@ import { spawn } from 'node:child_process';
 import { defineConfig } from 'tsup';
 
 function onSuccess(): Promise<() => void> {
-    const process = spawn('./dist/backend.mjs', { stdio: 'inherit' });
+    const process = spawn('./dist/backend.js', { stdio: 'inherit' });
 
     process.on('error', (error) => {
         console.log(`backend error: ${error.message}`);
@@ -27,7 +27,7 @@ export const tsup = defineConfig((options) => {
         splitting: false,
         clean: true,
         outDir: 'dist',
-        format: 'esm',
+        format: ['esm', 'cjs'],
         target: 'node18',
         onSuccess: options.watch ? onSuccess : undefined,
     };

@@ -13,9 +13,10 @@
         "name": "Arseny Kruglikov",
         "email": "caching.tools@proton.me"
     },
-    "module": "./dist/diffscribe.mjs",
+    "type": "module",
+    "module": "./dist/diffscribe.js",
     "bin": {
-        "diffscribe": "./dist/diffscribe.mjs"
+        "diffscribe": "./dist/diffscribe.js"
     },
     "files": [
         "dist/**"

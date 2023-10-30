@@ -1,6 +1,6 @@
 import type { GetStaticPathsResult } from 'next';
-import { createPagesGetStaticProps } from '../../../../utils/create-pages-get-static-props';
-import CommonPagesPage from '../fallback-blocking/[slug]';
+import { createPagesGetStaticProps } from 'cache-testing/utils/create-pages-get-static-props';
+import { CommonPagesPage } from 'cache-testing/utils/common-pages-page';
 
 export const getStaticProps = createPagesGetStaticProps('pages/no-paths/fallback-true');
 

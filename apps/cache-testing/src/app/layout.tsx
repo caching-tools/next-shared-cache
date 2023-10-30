@@ -1,14 +1,15 @@
+import type { PropsWithChildren } from 'react';
 import { Suspense } from 'react';
-import { RevalidateButton } from '../components/revalidate-button';
-import { RestartButton } from '../components/restart-button';
-import '../globals.css';
+import { RevalidateButton } from 'cache-testing/components/revalidate-button';
+import { RestartButton } from 'cache-testing/components/restart-button';
+import 'cache-testing/globals.css';
 
 export const metadata = {
     title: 'Cache testing app',
     description: '',
 };
 
-export default function RootLayout({ children }): JSX.Element {
+export default function RootLayout({ children }: PropsWithChildren): JSX.Element {
     return (
         <html lang="en">
             <body>
