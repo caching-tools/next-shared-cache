@@ -22,6 +22,7 @@
         "release": "npm run build && npm run lint && changeset publish",
         "start": "FORCE_COLOR=1 turbo run start --log-prefix=none --filter=!@neshca/cache-testing",
         "start:app": "FORCE_COLOR=1 turbo run start --log-prefix=none --filter=@neshca/cache-testing",
+        "start:backend": "FORCE_COLOR=1 turbo run start --log-prefix=none --filter=@neshca/backend",
         "test": "FORCE_COLOR=1 turbo run test",
         "version-packages": "changeset version && npm run format"
     },

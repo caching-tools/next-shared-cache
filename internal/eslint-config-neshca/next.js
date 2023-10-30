@@ -39,5 +39,6 @@ module.exports = {
         'import/no-default-export': 'off',
         'no-console': 'off',
         '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
+        'import/no-extraneous-dependencies': ['error', { includeTypes: true }],
     },
 };

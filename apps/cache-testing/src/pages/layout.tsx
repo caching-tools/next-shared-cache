@@ -1,8 +1,9 @@
-import { RestartButton } from '../components/restart-button';
-import { RevalidateButton } from '../components/revalidate-button';
-import '../globals.css';
+import type { PropsWithChildren } from 'react';
+import { RestartButton } from 'cache-testing/components/restart-button';
+import { RevalidateButton } from 'cache-testing/components/revalidate-button';
+import 'cache-testing/globals.css';
 
-export default function Layout({ children }): JSX.Element {
+export default function Layout({ children }: PropsWithChildren): JSX.Element {
     return (
         <main>
             {children}

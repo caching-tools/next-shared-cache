@@ -1,16 +1,12 @@
 import type { GetStaticPathsResult } from 'next';
-import CommonPagesPage from '../../no-paths/fallback-blocking/[slug]';
-import { createPagesGetStaticProps } from '../../../../utils/create-pages-get-static-props';
+import { createPagesGetStaticProps } from 'cache-testing/utils/create-pages-get-static-props';
+import { CommonPagesPage } from 'cache-testing/utils/common-pages-page';
 
 export const getStaticProps = createPagesGetStaticProps('pages/with-paths/fallback-blocking');
 
 export function getStaticPaths(): Promise<GetStaticPathsResult> {
     return Promise.resolve({
-        paths: [
-            '/pages/with-paths/fallback-blocking/200',
-            '/pages/with-paths/fallback-blocking/404',
-            '/pages/with-paths/fallback-blocking/alternate-200-404',
-        ],
+        paths: [{ params: { slug: '200' } }, { params: { slug: '404' } }, { params: { slug: 'alternate-200-404' } }],
         fallback: 'blocking',
     });
 }

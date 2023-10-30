@@ -1,4 +1,6 @@
-const incrementalCacheHandlerPath = require.resolve(process.env.CI ? './cache-handler-http' : './cache-handler-redis');
+const incrementalCacheHandlerPath = require.resolve(
+    process.env.CI ? './cache-handler-http' : './cache-handler-redis-stack',
+);
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -7,6 +9,7 @@ const nextConfig = {
     output: 'standalone',
     experimental: {
         incrementalCacheHandlerPath,
+        largePageDataBytes: 1024 * 1024, // 1MB
     },
 };
 

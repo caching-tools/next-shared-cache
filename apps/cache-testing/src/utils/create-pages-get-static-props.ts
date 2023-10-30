@@ -3,7 +3,9 @@ import type { PageProps } from './types';
 
 const revalidate = 5;
 
-export function createPagesGetStaticProps(path: string) {
+export function createPagesGetStaticProps(
+    path: string,
+): ({ params }: GetStaticPropsContext) => Promise<GetStaticPropsResult<PageProps>> {
     return async function getStaticProps({ params }: GetStaticPropsContext): Promise<GetStaticPropsResult<PageProps>> {
         if (!params) {
             throw new Error('no params');
@@ -15,7 +17,11 @@ export function createPagesGetStaticProps(path: string) {
             throw new Error('no slug');
         }
 
-        const result = await fetch(`http://localhost:8081/${path}/${slug}`);
+        const pathAndTag = `/count/${path}/${slug}`;
+
+        const url = new URL(pathAndTag, 'http://localhost:8081');
+
+        const result = await fetch(url);
 
         if (!result.ok) {
             return { notFound: true, revalidate };

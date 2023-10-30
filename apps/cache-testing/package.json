@@ -6,12 +6,14 @@
     "scripts": {
         "build": "tsup && next build && ./create-instances.sh",
         "clean": "rimraf ./.next ./dist ./.turbo ./node_modules ./playwright-report",
+        "cluster:start": "pm2 start cluster.config.js --env production",
+        "cluster:stop": "pm2 kill",
         "dev": "tsup --watch",
         "dev:app": "next dev",
         "e2e": "playwright test --config=./playwright.config.ts",
         "e2e:ui": "playwright test --ui --config=./playwright.config.ts",
         "lint": "next lint",
-        "start": "./dist/run-app-instances.mjs"
+        "start": "REDIS_URL=redis://localhost:6379 SERVER_STARTED=1 node .next/__instances/3000/server.js"
     },
     "dependencies": {
         "lru-cache": "10.0.1",
