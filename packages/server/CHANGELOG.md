@@ -1,5 +1,11 @@
 # @neshca/server
 
+## 0.4.1
+
+### Patch Changes
+
+-   cc5323d: Add next14.0.1 to dist tags
+
 ## 0.4.0
 
 ### Minor Changes
