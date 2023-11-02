@@ -2,6 +2,10 @@
 
 Utility library for handling `Buffer` object serialization and deserialization with JSON, offering base64 representations.
 
+[![npm package](https://img.shields.io/npm/v/@neshca/json-replacer-reviver/latest.svg)](https://www.npmjs.com/package/@neshca/json-replacer-reviver)
+[![Dependencies](https://img.shields.io/npm/dm/@neshca/json-replacer-reviver)](https://www.npmjs.com/package/@neshca/json-replacer-reviver)
+[![License](https://img.shields.io/npm/l/express.svg)](https://github.com/caching-tools/next-shared-cache/blob/canary/packages/json-replacer-reviver/LICENSE)
+
 ## Installation
 
 ```bash

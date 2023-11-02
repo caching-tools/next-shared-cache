@@ -4,6 +4,10 @@
 
 Please note that this project is in its beta version and may undergo significant changes.
 
+[![npm package](https://img.shields.io/npm/v/diffscribe/latest.svg)](https://www.npmjs.com/package/diffscribe)
+[![Dependencies](https://img.shields.io/npm/dm/diffscribe)](https://www.npmjs.com/package/diffscribe)
+[![License](https://img.shields.io/npm/l/express.svg)](https://github.com/caching-tools/next-shared-cache/blob/canary/packages/diffscribe/LICENSE)
+
 ## Features:
 
 -   **Smart Analysis**: Evaluates Git status and Git diffstat to identify essential changes.

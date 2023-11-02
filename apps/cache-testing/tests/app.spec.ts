@@ -1,5 +1,11 @@
 import { test, expect } from '@playwright/test';
 
+function wait(ms: number): Promise<void> {
+    return new Promise((resolve) => {
+        setTimeout(resolve, ms);
+    });
+}
+
 const paths = [
     // '/app/with-params/dynamic-true/200', // this fails with native next.js cache
     // '/app/with-params/dynamic-false/200', // this fails with native next.js cache
@@ -137,7 +143,10 @@ test.describe('Time-based revalidation', () => {
 
             await expect(page.getByTestId('data')).toHaveText(pageValue);
 
-            await expect(page.getByTestId('cache-state')).toContainText('stale', { timeout: 15000 });
+            await expect(page.getByTestId('cache-state')).toContainText('stale', { timeout: 7500 });
+
+            // Temporary workaround: Addressing intermittent test failures observed in GitHub Actions.
+            await wait(100);
 
             await page.reload();
 
