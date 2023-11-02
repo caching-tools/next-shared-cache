@@ -4,19 +4,11 @@ Welcome to the `neshca` monorepo, a centralized repository containing a collecti
 
 ## Featured Projects
 
-1. **`@neshca/cache-handler`**
+[**`@neshca/cache-handler`**](./packages/cache-handler/README.md) — a flexible API to replace the default Next.js cache, accommodating custom cache solutions for multi-instance deployments.
 
-    - [Read more](./packages/cache-handler/README.md)
-    - **Description**: flexible API to replace the default Next.js cache, accommodating custom cache solutions for multi-instance deployments.
+[**`diffscribe`**](./packages/diffscribe/README.md) — an intelligent CLI tool designed to automatically generate meaningful commit messages using Git diffstat, status, and insights from OpenAI and you.
 
-2. **`diffscribe`**
-
-    - [Read more](./packages/diffscribe/README.md)
-    - **Description**: intelligent CLI tool designed to automatically generate meaningful commit messages using Git diffstat, status, and insights from OpenAI and you.
-
-3. **`@neshca/json-replacer-reviver`**
-    - [Read more](./packages/json-replacer-reviver/README.md)
-    - **Description**: Utility library for handling `Buffer` object serialization and deserialization with JSON, offering base64 representations.
+[**`@neshca/json-replacer-reviver`**](./packages/json-replacer-reviver/README.md) — a utility library for handling `Buffer` object serialization and deserialization with JSON, offering base64 representations.
 
 ## Getting Started
 
@@ -28,4 +20,4 @@ To start working with any projects in this monorepo, navigate to the respective 
 
 ## License
 
-[MIT](./LICENSE)
+All projects in this monorepo are licensed under the [MIT License](./LICENSE).
