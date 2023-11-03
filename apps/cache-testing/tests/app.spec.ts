@@ -146,7 +146,7 @@ test.describe('Time-based revalidation', () => {
             await expect(page.getByTestId('cache-state')).toContainText('stale', { timeout: 7500 });
 
             // Temporary workaround: Addressing intermittent test failures observed in GitHub Actions.
-            await wait(100);
+            await wait(1000);
 
             await page.reload();
 
