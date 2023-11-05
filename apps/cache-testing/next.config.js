@@ -1,3 +1,5 @@
+const path = require('node:path');
+
 const incrementalCacheHandlerPath = require.resolve(
     process.env.CI ? './cache-handler-http' : './cache-handler-redis-stack',
 );
@@ -8,8 +10,11 @@ const nextConfig = {
     reactStrictMode: true,
     output: 'standalone',
     experimental: {
-        incrementalCacheHandlerPath,
+        incrementalCacheHandlerPath: process.env.NODE_ENV !== 'development' ? incrementalCacheHandlerPath : undefined,
+        // PPR should only be configured via the PPR_ENABLED env variable due to conditional logic in tests.
+        ppr: process.env.PPR_ENABLED === 'true',
         largePageDataBytes: 1024 * 1024, // 1MB
+        outputFileTracingRoot: path.join(__dirname, '../../'),
     },
 };
 

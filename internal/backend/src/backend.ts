@@ -53,28 +53,38 @@ server.get('/count/:routerType/:preRendered:/:fallback/:page', async (request, r
 
     const [count] = meta;
 
+    const result = { count, unixTimeMs: Date.now() };
+
     switch (page) {
         case '404':
-            await reply.code(404).header('Content-Type', 'application/json; charset=utf-8').send({ count });
+            await reply.code(404).header('Content-Type', 'application/json; charset=utf-8').send(result);
             break;
         case '200':
-            await reply.code(200).header('Content-Type', 'application/json; charset=utf-8').send({ count });
+            await reply.code(200).header('Content-Type', 'application/json; charset=utf-8').send(result);
             break;
         case 'alternate-200-404':
             await reply
                 .code(count % 2 === 0 ? 200 : 404)
                 .header('Content-Type', 'application/json; charset=utf-8')
-                .send({ count });
+                .send(result);
             break;
     }
 });
 
-server.get('/randomHex/:length', async (request, reply): Promise<void> => {
+server.get('/randomHex/:routerType/:length', async (request, reply): Promise<void> => {
     const { length = '100000' } = request.params as { length?: string };
 
     const randomHex = randomBytes(Number.parseInt(length, 10)).toString('hex');
 
-    await reply.code(200).header('Content-Type', 'application/json; charset=utf-8').send({ randomHex });
+    const result = { randomHex, unixTimeMs: Date.now() };
+
+    await reply.code(200).header('Content-Type', 'application/json; charset=utf-8').send(result);
+});
+
+server.get('/time', async (_request, reply): Promise<void> => {
+    const result = { unixTimeMs: Date.now() };
+
+    await reply.code(200).header('Content-Type', 'application/json; charset=utf-8').send(result);
 });
 
 server

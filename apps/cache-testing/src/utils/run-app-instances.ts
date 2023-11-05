@@ -34,7 +34,7 @@ pm2.connect(true, (connectError?: Error) => {
 
         pm2.start(
             {
-                script: `.next/__instances/${port}/server.js`,
+                script: `.next/__instances/${port}/apps/cache-testing/server.js`,
                 name,
                 env: {
                     ...process.env,

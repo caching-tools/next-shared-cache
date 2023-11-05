@@ -1,11 +1,11 @@
 {
     "$schema": "https://turbo.build/schema.json",
     "globalDependencies": ["**/.env.*local"],
-    "globalEnv": ["CI"],
+    "globalEnv": ["CI", "NODE_ENV"],
     "pipeline": {
         "build": {
             "dependsOn": ["^build"],
-            "env": ["REDIS_URL", "REMOTE_CACHE_SERVER_BASE_URL", "SERVER_STARTED", "PORT"],
+            "env": ["REDIS_URL", "REMOTE_CACHE_SERVER_BASE_URL", "SERVER_STARTED", "PORT", "PPR_ENABLED"],
             "outputs": [".next/**", "!.next/cache/**", "dist/**"]
         },
         "lint": {},
