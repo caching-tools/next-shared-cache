@@ -66,7 +66,7 @@ IncrementalCache.onCreation(() => {
          * No need to write to disk, as we're using a shared cache.
          * Read is required to get pre-rendering pages from disk
          */
-        diskAccessMode: 'read-yes/write-no',
+        diskAccessMode: 'read-no/write-no',
     };
 });
 
