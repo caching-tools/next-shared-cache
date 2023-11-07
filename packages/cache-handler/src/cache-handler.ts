@@ -13,6 +13,9 @@ import type {
 } from '@neshca/next-types';
 import { LRUCache } from 'lru-cache';
 
+const RSC_PREFETCH_SUFFIX = '.prefetch.rsc';
+const RSC_SUFFIX = '.rsc';
+
 export type TagsManifest = {
     version: 1;
     items: Record<string, { revalidatedAt: number }>;
@@ -93,7 +96,6 @@ export class IncrementalCache implements CacheHandler {
         }
 
         // if no cache is provided, we use a default LRU cache
-
         const lruCache = new LRUCache<string, CacheHandlerValue>({
             max: defaultLruCacheOptions?.max ?? 1000,
             maxSize: defaultLruCacheOptions?.maxSize ?? 1024 * 1024 * 500, // 500MB
@@ -149,14 +151,18 @@ export class IncrementalCache implements CacheHandler {
         this.cache = defaultCache;
     }
 
-    revalidatedTags: FileSystemCacheContext['revalidatedTags'];
-    appDir: FileSystemCacheContext['_appDir'];
-    serverDistDir: FileSystemCacheContext['serverDistDir'];
+    private revalidatedTags: FileSystemCacheContext['revalidatedTags'];
+    private appDir: FileSystemCacheContext['_appDir'];
+    private serverDistDir: FileSystemCacheContext['serverDistDir'];
+    private pagesDir: FileSystemCacheContext['_pagesDir'];
+    private readonly experimental: FileSystemCacheContext['experimental'];
 
     public constructor(context: FileSystemCacheContext) {
         this.revalidatedTags = context.revalidatedTags;
-        this.appDir = context._appDir;
+        this.appDir = Boolean(context._appDir);
+        this.pagesDir = Boolean(context._pagesDir);
         this.serverDistDir = context.serverDistDir;
+        this.experimental = context.experimental;
 
         if (!context.dev && !IncrementalCache.cache) {
             IncrementalCache.serverDistDir = this.serverDistDir;
@@ -167,7 +173,7 @@ export class IncrementalCache implements CacheHandler {
     public async get(...args: CacheHandlerParametersGet): Promise<CacheHandlerValue | null> {
         const [cacheKey, ctx = {}] = args;
 
-        const { tags = [], softTags = [], fetchCache } = ctx;
+        const { tags = [], softTags = [], kindHint } = ctx;
 
         let cachedData: CacheHandlerValue | null = null;
 
@@ -179,15 +185,12 @@ export class IncrementalCache implements CacheHandler {
 
         if (!cachedData && IncrementalCache.diskAccessMode.includes('read-yes')) {
             try {
-                const { filePath } = await this.getFsPath({
-                    pathname: `${cacheKey}.body`,
-                    appDir: true,
-                });
+                const bodyFilePath = this.getFilePath(`${cacheKey}.body`, 'app');
 
-                const fileData = await fsPromises.readFile(filePath);
-                const { mtime } = await fsPromises.stat(filePath);
+                const bodyFileData = await fsPromises.readFile(bodyFilePath);
+                const { mtime } = await fsPromises.stat(bodyFilePath);
 
-                const metaFilePath = filePath.replace(/\.body$/, '.meta');
+                const metaFilePath = bodyFilePath.replace(/\.body$/, '.meta');
                 const metaFileData = await fsPromises.readFile(metaFilePath, 'utf-8');
                 const meta: NonNullableRouteMetadata = JSON.parse(metaFileData) as NonNullableRouteMetadata;
 
@@ -195,7 +198,7 @@ export class IncrementalCache implements CacheHandler {
                     lastModified: mtime.getTime(),
                     value: {
                         kind: 'ROUTE',
-                        body: fileData,
+                        body: bodyFileData,
                         headers: meta.headers,
                         status: meta.status,
                     },
@@ -207,16 +210,22 @@ export class IncrementalCache implements CacheHandler {
             }
 
             try {
-                const { filePath: htmlFilePath, isAppPath: isHtmlFileInAppPath } = await this.getFsPath({
-                    pathname: fetchCache ? cacheKey : `${cacheKey}.html`,
-                    fetchCache,
-                });
-                const htmlFileData = await fsPromises.readFile(htmlFilePath, 'utf-8');
-                const { mtime } = await fsPromises.stat(htmlFilePath);
+                // Determine the file kind if we didn't know it already.
+                let kind = kindHint;
 
-                if (fetchCache) {
+                if (!kind) {
+                    kind = this.detectFileKind(`${cacheKey}.html`);
+                }
+
+                const isAppPath = kind === 'app';
+                const pageFilePath = this.getFilePath(kind === 'fetch' ? cacheKey : `${cacheKey}.html`, kind);
+
+                const pageFile = await fsPromises.readFile(pageFilePath, 'utf-8');
+                const { mtime } = await fsPromises.stat(pageFilePath);
+
+                if (kind === 'fetch') {
                     const lastModified = mtime.getTime();
-                    const parsedData = JSON.parse(htmlFileData) as CachedFetchValue;
+                    const parsedData = JSON.parse(pageFile) as CachedFetchValue;
 
                     cachedData = {
                         lastModified,
@@ -234,19 +243,22 @@ export class IncrementalCache implements CacheHandler {
                         }
                     }
                 } else {
-                    const { filePath } = await this.getFsPath({
-                        pathname: isHtmlFileInAppPath ? `${cacheKey}.rsc` : `${cacheKey}.json`,
-                        appDir: isHtmlFileInAppPath,
-                    });
-                    const fileData = await fsPromises.readFile(filePath, 'utf-8');
+                    const pageDataFilePath = isAppPath
+                        ? this.getFilePath(
+                              `${cacheKey}${this.experimental.ppr ? RSC_PREFETCH_SUFFIX : RSC_SUFFIX}`,
+                              'app',
+                          )
+                        : this.getFilePath(`${cacheKey}.json`, 'pages');
 
-                    const pageData = isHtmlFileInAppPath ? fileData : (JSON.parse(fileData) as object);
+                    const pageDataFile = await fsPromises.readFile(pageDataFilePath, 'utf-8');
+
+                    const pageData = isAppPath ? pageDataFile : (JSON.parse(pageDataFile) as object);
 
                     let meta: RouteMetadata | undefined;
 
-                    if (isHtmlFileInAppPath) {
+                    if (isAppPath) {
                         try {
-                            const metaFilePath = htmlFilePath.replace(/\.html$/, '.meta');
+                            const metaFilePath = pageFilePath.replace(/\.html$/, '.meta');
                             const metaFileData = await fsPromises.readFile(metaFilePath, 'utf-8');
                             meta = JSON.parse(metaFileData) as RouteMetadata;
                         } catch {
@@ -258,7 +270,7 @@ export class IncrementalCache implements CacheHandler {
                         lastModified: mtime.getTime(),
                         value: {
                             kind: 'PAGE',
-                            html: htmlFileData,
+                            html: pageFile,
                             pageData,
                             postponed: meta?.postponed,
                             headers: meta?.headers,
@@ -356,10 +368,7 @@ export class IncrementalCache implements CacheHandler {
 
         // credits to Next.js for the following code
         if (data.kind === 'ROUTE') {
-            const { filePath } = await this.getFsPath({
-                pathname: `${cacheKey}.body`,
-                appDir: true,
-            });
+            const filePath = this.getFilePath(`${cacheKey}.body`, 'app');
 
             const meta: RouteMetadata = {
                 headers: data.headers,
@@ -376,20 +385,12 @@ export class IncrementalCache implements CacheHandler {
 
         if (data.kind === 'PAGE') {
             const isAppPath = typeof data.pageData === 'string';
-            const { filePath: htmlPath } = await this.getFsPath({
-                pathname: `${cacheKey}.html`,
-                appDir: isAppPath,
-            });
+            const htmlPath = this.getFilePath(`${cacheKey}.html`, isAppPath ? 'app' : 'pages');
             await fsPromises.mkdir(path.dirname(htmlPath), { recursive: true });
             await fsPromises.writeFile(htmlPath, data.html);
 
             await fsPromises.writeFile(
-                (
-                    await this.getFsPath({
-                        pathname: `${cacheKey}.${isAppPath ? 'rsc' : 'json'}`,
-                        appDir: isAppPath,
-                    })
-                ).filePath,
+                this.getFilePath(`${cacheKey}.${isAppPath ? 'rsc' : 'json'}`, isAppPath ? 'app' : 'pages'),
                 isAppPath ? JSON.stringify(data.pageData) : JSON.stringify(data.pageData),
             );
 
@@ -406,10 +407,8 @@ export class IncrementalCache implements CacheHandler {
         }
 
         if (data.kind === 'FETCH') {
-            const { filePath } = await this.getFsPath({
-                pathname: cacheKey,
-                fetchCache: true,
-            });
+            const filePath = this.getFilePath(cacheKey, 'fetch');
+
             await fsPromises.mkdir(path.dirname(filePath), { recursive: true });
             await fsPromises.writeFile(
                 filePath,
@@ -442,47 +441,49 @@ export class IncrementalCache implements CacheHandler {
     }
 
     // credits to Next.js for the following code
-    private async getFsPath({
-        pathname,
-        appDir,
-        fetchCache,
-    }: {
-        pathname: string;
-        appDir?: boolean;
-        fetchCache?: boolean;
-    }): Promise<{
-        filePath: string;
-        isAppPath: boolean;
-    }> {
-        if (fetchCache) {
-            // we store in .next/cache/fetch-cache so it can be persisted
-            // across deploys
-            return {
-                filePath: path.join(this.serverDistDir, '..', 'cache', 'fetch-cache', pathname),
-                isAppPath: false,
-            };
-        }
-        const isAppPath = false;
-        const filePath = path.join(this.serverDistDir, 'pages', pathname);
-
-        if (!this.appDir || appDir === false) {
-            return {
-                filePath,
-                isAppPath,
-            };
+    private detectFileKind(pathname: string): 'app' | 'pages' {
+        if (!this.appDir && !this.pagesDir) {
+            throw new Error("Invariant: Can't determine file path kind, no page directory enabled");
         }
 
-        try {
-            await fsPromises.stat(filePath);
-            return {
-                filePath,
-                isAppPath,
-            };
-        } catch (err) {
-            return {
-                filePath: path.join(this.serverDistDir, 'app', pathname),
-                isAppPath: true,
-            };
+        // If app directory isn't enabled, then assume it's pages and avoid the fs
+        // hit.
+        if (!this.appDir && this.pagesDir) {
+            return 'pages';
+        }
+        // Otherwise assume it's a pages file if the pages directory isn't enabled.
+        else if (this.appDir && !this.pagesDir) {
+            return 'app';
+        }
+
+        // If both are enabled, we need to test each in order, starting with
+        // `pages`.
+        let filePath = this.getFilePath(pathname, 'pages');
+        if (fs.existsSync(filePath)) {
+            return 'pages';
+        }
+
+        filePath = this.getFilePath(pathname, 'app');
+        if (fs.existsSync(filePath)) {
+            return 'app';
+        }
+
+        throw new Error(`Invariant: Unable to determine file path kind for ${pathname}`);
+    }
+
+    // credits to Next.js for the following code
+    private getFilePath(pathname: string, kind: 'app' | 'fetch' | 'pages'): string {
+        switch (kind) {
+            case 'fetch':
+                // we store in .next/cache/fetch-cache so it can be persisted
+                // across deploys
+                return path.join(this.serverDistDir, '..', 'cache', 'fetch-cache', pathname);
+            case 'pages':
+                return path.join(this.serverDistDir, 'pages', pathname);
+            case 'app':
+                return path.join(this.serverDistDir, 'app', pathname);
+            default:
+                throw new Error("Invariant: Can't determine file path kind");
         }
     }
 }

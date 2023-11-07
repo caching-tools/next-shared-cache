@@ -1,5 +1,8 @@
 import { notFound } from 'next/navigation';
+import { Suspense } from 'react';
 import type { RandomHexPageProps } from 'cache-testing/utils/types';
+import { CacheStateWatcher } from 'cache-testing/components/cache-state-watcher';
+import { PreRenderedAt } from 'cache-testing/components/pre-rendered-at';
 
 const lengthSteps = new Array(5).fill(0).map((_, i) => 10 ** (i + 1));
 
@@ -10,21 +13,29 @@ export function generateStaticParams(): PageParams['params'][] {
 }
 
 export default async function Page({ params: { length } }: PageParams): Promise<JSX.Element> {
-    const path = `/randomHex/${length}`;
+    const path = `/randomHex/app/${length}`;
 
     const url = new URL(path, 'http://localhost:8081');
 
-    const result = await fetch(url);
+    const result = await fetch(url, {
+        next: {
+            tags: [`/app/randomHex/${length}`],
+        },
+    });
 
     if (!result.ok) {
         notFound();
     }
 
-    const { randomHex } = (await result.json()) as RandomHexPageProps;
+    const props = (await result.json()) as RandomHexPageProps;
 
     return (
         <div>
-            <div data-pw="randomHex">{randomHex}</div>
+            <div data-pw="random-hex">{props.randomHex}</div>
+            <PreRenderedAt time={props.unixTimeMs} />
+            <Suspense fallback={null}>
+                <CacheStateWatcher revalidateAfter={Infinity} time={props.unixTimeMs} />
+            </Suspense>
         </div>
     );
 }

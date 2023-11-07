@@ -1,4 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { formatTime } from 'cache-testing/utils/format-time';
 
 export default async function handler(request: NextApiRequest, result: NextApiResponse): Promise<void> {
     const { path } = request.query;
@@ -17,12 +18,7 @@ export default async function handler(request: NextApiRequest, result: NextApiRe
         await result.revalidate(path);
         result.json({
             revalidated: true,
-            now: new Date().toLocaleTimeString('ru-RU', {
-                fractionalSecondDigits: 3,
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit',
-            }),
+            now: formatTime(Date.now(), 3),
         });
     } catch (err) {
         result.status(500).send('Error revalidating');

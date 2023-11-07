@@ -34,16 +34,8 @@ export function CacheStateWatcher({ time, revalidateAfter }: CacheStateWatcherPr
         };
     }, [revalidateAfter, time]);
 
-    const formattedTime = new Date(time).toLocaleTimeString('ru-RU', {
-        fractionalSecondDigits: 3,
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-    });
-
     return (
         <div>
-            <div data-pw="pre-rendered-at">Pre-rendered at {formattedTime}</div>
             <div data-pw="cache-state">Cache state: {cacheState}</div>
             <div data-pw="stale-after">Stale after: {countDown}</div>
         </div>

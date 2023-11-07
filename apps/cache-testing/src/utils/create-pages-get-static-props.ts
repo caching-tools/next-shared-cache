@@ -1,5 +1,5 @@
 import type { GetStaticPropsContext, GetStaticPropsResult } from 'next';
-import type { PageProps } from './types';
+import type { CountBackendApiResponseJson, PageProps } from './types';
 
 const revalidate = 5;
 
@@ -27,14 +27,16 @@ export function createPagesGetStaticProps(
             return { notFound: true, revalidate };
         }
 
-        const parsedResult = (await result.json()) as { count: number } | null;
-
-        if (!parsedResult) {
-            return { notFound: true, revalidate };
-        }
-
-        const time = Date.now();
-
-        return { props: { count: parsedResult.count, revalidateAfter: revalidate * 1000, time, path }, revalidate };
+        const parsedResult = (await result.json()) as CountBackendApiResponseJson;
+        //
+        return {
+            props: {
+                count: parsedResult.count,
+                time: parsedResult.unixTimeMs,
+                revalidateAfter: revalidate * 1000,
+                path,
+            },
+            revalidate,
+        };
     };
 }
