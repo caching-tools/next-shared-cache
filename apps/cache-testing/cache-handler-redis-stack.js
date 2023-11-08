@@ -57,7 +57,13 @@ if (process.env.SERVER_STARTED) {
             cache: {
                 async get(key) {
                     try {
-                        return (await client.json.get(PREFIX + key)) ?? null;
+                        const value = (await client.json.get(PREFIX + key)) ?? null;
+
+                        if (value && value.kind === 'ROUTE' && value.body.type === 'Buffer') {
+                            value.body = Buffer.from(value.body);
+                        }
+
+                        return value;
                     } catch (error) {
                         return null;
                     }
@@ -77,7 +83,7 @@ if (process.env.SERVER_STARTED) {
                             localTagsManifest = sharedTagsManifest;
                         }
 
-                        return localTagsManifest;
+                        return sharedTagsManifest;
                     } catch (error) {
                         return localTagsManifest;
                     }
