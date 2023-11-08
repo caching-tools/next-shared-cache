@@ -17,7 +17,7 @@
     },
     "dependencies": {
         "lru-cache": "10.0.1",
-        "next": "14.0.2-canary.21",
+        "next": "14.0.2-canary.23",
         "react": "18.2.0",
         "react-dom": "18.2.0",
         "undici": "5.27.2"
@@ -26,7 +26,7 @@
         "@neshca/cache-handler": "*",
         "@neshca/json-replacer-reviver": "*",
         "@neshca/tsconfig": "*",
-        "@next/eslint-plugin-next": "14.0.2-canary.21",
+        "@next/eslint-plugin-next": "14.0.2-canary.23",
         "@playwright/test": "1.39.0",
         "@types/node": "20.9.0",
         "@types/react": "18.2.37",
