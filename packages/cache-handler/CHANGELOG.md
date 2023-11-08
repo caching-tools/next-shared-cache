@@ -1,5 +1,11 @@
 # @neshca/cache-handler
 
+## 0.4.2
+
+### Patch Changes
+
+-   a89c527: Update Redis cache handler example and docs
+
 ## 0.4.1
 
 ### Patch Changes
