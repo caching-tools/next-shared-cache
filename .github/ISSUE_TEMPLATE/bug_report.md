@@ -1,40 +1,47 @@
 ---
-name: Bug report
-about: Create a report to help us improve
+name: neshca/cache-handler bug report
+about: Create a report to help improve neshca/cache-handler
 title: ''
 labels: bug
 assignees: ''
 ---
 
-**Describe the bug**
+**Brief Description of the Bug**
 A clear and concise description of what the bug is.
 
-**To Reproduce**
-Steps to reproduce the behavior:
+**Severity**
+[Critical/Major/Minor/Cosmetic]
 
-1. Go to '...'
-2. Click on '....'
-3. Scroll down to '....'
-4. See error
+**Frequency of Occurrence**
+[Always/Sometimes/Rarely]
 
-**Expected behavior**
-A clear and concise description of what you expected to happen.
+**Steps to Reproduce**
+Provide detailed steps to reproduce the behavior, including any specific conditions or configurations where the bug occurs:
 
-**Screenshots**
-If applicable, add screenshots to help explain your problem.
+1. ...
+2. ...
 
-**Desktop (please complete the following information):**
+**Expected vs. Actual Behavior**
+Describe what you expected to happen and what actually happened.
 
--   OS: [e.g. iOS]
--   Browser [e.g. chrome, safari]
--   Version [e.g. 22]
+**Screenshots/Logs**
+If applicable, add screenshots or error logs to help explain your problem.
 
-**Smartphone (please complete the following information):**
+**Environment:**
 
--   Device: [e.g. iPhone6]
--   OS: [e.g. iOS8.1]
--   Browser [e.g. stock browser, safari]
--   Version [e.g. 22]
+-   OS: [e.g., MacOS, Windows, Linux]
+-   Node.js version: [e.g., 20.9.0]
+-   `@neshca/cache-handler` version: [e.g., 0.4.3]
+-   `next` version: [e.g., 14.0.2]
+
+**Dependencies and Versions**
+List any relevant dependencies and their versions.
+
+**Attempted Solutions or Workarounds**
+Describe any attempted solutions or workarounds and their outcomes.
+
+**Impact of the Bug**
+Describe how this bug is affecting your work.
 
 **Additional context**
-Add any other context about the problem here.
+Provide any other information or context about the problem here.
