@@ -1,5 +1,11 @@
 # @neshca/cache-handler
 
+## 0.4.3
+
+### Patch Changes
+
+-   e6869ea: Fix usage of `cache-handler` in dev environment
+
 ## 0.4.2
 
 ### Patch Changes
