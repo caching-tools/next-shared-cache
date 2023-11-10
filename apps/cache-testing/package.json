@@ -16,7 +16,7 @@
         "start": "dotenv -e .env.local -v SERVER_STARTED=1 node .next/standalone/apps/cache-testing/server.js"
     },
     "dependencies": {
-        "lru-cache": "10.0.1",
+        "lru-cache": "10.0.2",
         "next": "canary",
         "react": "18.2.0",
         "react-dom": "18.2.0",
