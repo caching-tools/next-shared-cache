@@ -164,7 +164,7 @@ export class IncrementalCache implements CacheHandler {
         this.serverDistDir = context.serverDistDir;
         this.experimental = context.experimental;
 
-        if (!context.dev && !IncrementalCache.cache) {
+        if (!IncrementalCache.cache) {
             IncrementalCache.serverDistDir = this.serverDistDir;
             IncrementalCache.init({ dev: context.dev, serverDistDir: this.serverDistDir });
         }
