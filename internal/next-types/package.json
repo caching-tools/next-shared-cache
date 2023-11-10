@@ -14,7 +14,7 @@
         "lint": "eslint ."
     },
     "dependencies": {
-        "next": "14.0.3-canary.0"
+        "next": "14.0.3-canary.1"
     },
     "devDependencies": {
         "@neshca/tsconfig": "*",
