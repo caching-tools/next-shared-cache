@@ -260,3 +260,17 @@ SERVER_STARTED=1 npm run start
 ```
 
 Note that in the `build` step you don't need to set `SERVER_STARTED` environment variable.
+
+## Development environment
+
+When you run `next dev` command, caching in Next.js works differently. It works only for `fetch` cache for App dir pages.
+
+You can identify the development environment by checking the `process.env.NODE_ENV` variable or `onCreation` parameter.
+
+```js
+IncrementalCache.onCreation(({ dev }) => {
+    if (dev) {
+        // ...
+    }
+});
+```
