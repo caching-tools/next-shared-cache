@@ -34,7 +34,7 @@
         "typescript": "5.2.2"
     },
     "optionalDependencies": {
-        "lru-cache": "^10.0.0"
+        "lru-cache": "^10.0.2"
     },
     "distTags": [
         "next13.5.1",
