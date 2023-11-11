@@ -1,5 +1,11 @@
 # @neshca/cache-handler
 
+## 0.4.4
+
+### Patch Changes
+
+-   bd1d48a: Add link to the official Next.js template in the README.md
+
 ## 0.4.3
 
 ### Patch Changes
