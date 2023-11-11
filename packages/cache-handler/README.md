@@ -31,8 +31,9 @@ Next.js 13.5.0 and above.
 
 ## Examples
 
--   [Redis](../../docs/examples/use-with-redis.md)
--   [HTTP server](../../docs/examples/use-with-http-server.md)
+-   [Official Next.js template ↪](https://github.com/vercel/next.js/tree/canary/examples/cache-handler-redis)
+-   [Detailed Redis example](../../docs/examples/use-with-redis.md)
+-   [Minimal HTTP example](../../docs/examples/use-with-http-server.md)
 
 ## Developing and contributing
 
