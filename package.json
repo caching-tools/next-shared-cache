@@ -36,7 +36,7 @@
         "diffscribe": "*",
         "eslint": "8.53.0",
         "glob": "10.3.10",
-        "prettier": "3.0.3",
+        "prettier": "3.1.0",
         "turbo": "1.10.16"
     },
     "engines": {
