@@ -10,6 +10,7 @@ const withNextra = require('nextra')(nextraConfig);
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     output: 'export',
+    basePath: '/next-shared-cache',
     images: { unoptimized: true },
 };
 
