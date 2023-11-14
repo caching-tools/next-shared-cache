@@ -6,11 +6,13 @@
     "workspaces": [
         "apps/*",
         "packages/*",
+        "docs/cache-handler-docs",
         "internal/*"
     ],
     "scripts": {
-        "build": "FORCE_COLOR=1 turbo run build --log-prefix=none --filter=!@neshca/cache-testing",
+        "build": "FORCE_COLOR=1 turbo run build --log-prefix=none --filter=!./apps/* --filter=!./docs/*",
         "build:app": "FORCE_COLOR=1 turbo run build --log-prefix=none --filter=@neshca/cache-testing",
+        "build:docs": "FORCE_COLOR=1 turbo run build --log-prefix=none --filter=./docs/*",
         "changeset": "changeset",
         "clean": "FORCE_COLOR=1 turbo run clean",
         "dev": "FORCE_COLOR=1 turbo run dev --log-prefix=none --filter=!diffscribe",
@@ -20,7 +22,7 @@
         "format": "prettier --write .",
         "lint": "FORCE_COLOR=1 turbo run lint",
         "release": "npm run build && npm run lint && changeset publish",
-        "start": "FORCE_COLOR=1 turbo run start --log-prefix=none --filter=!@neshca/cache-testing",
+        "start": "FORCE_COLOR=1 turbo run start --log-prefix=none --filter=!./apps/* --filter=!./docs/*",
         "start:app": "FORCE_COLOR=1 turbo run start --log-prefix=none --filter=@neshca/cache-testing",
         "start:backend": "FORCE_COLOR=1 turbo run start --log-prefix=none --filter=@neshca/backend",
         "test": "FORCE_COLOR=1 turbo run test",

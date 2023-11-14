@@ -1,0 +1,33 @@
+{
+    "-- Getting Started": {
+        "type": "separator",
+        "title": "Getting Started"
+    },
+    "index": "Why configure caching?",
+    "installation": "",
+    "-- @neshca/cache-handler API": {
+        "type": "separator",
+        "title": "@neshca/cache-handler API"
+    },
+    "configuration": "Configuration",
+    "-- Examples": {
+        "type": "separator",
+        "title": "Examples"
+    },
+    "redis-stack": "",
+    "redis": "",
+    "-- More": {
+        "type": "separator",
+        "title": "More"
+    },
+    "official-example": {
+        "title": "Official Next.js template ↗",
+        "href": "https://github.com/vercel/next.js/tree/canary/examples/cache-handler-redis",
+        "newWindow": true
+    },
+    "next.js-link": {
+        "title": "Next.js Configuring caching Docs ↗",
+        "href": "https://nextjs.org/docs/app/building-your-application/deploying#configuring-caching",
+        "newWindow": true
+    }
+}

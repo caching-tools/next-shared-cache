@@ -1,3 +1,8 @@
 {
-    "eslint.workingDirectories": [{ "pattern": "apps/*/" }, { "pattern": "packages/*/" }, { "pattern": "internal/*/" }]
+    "eslint.workingDirectories": [
+        { "pattern": "apps/*/" },
+        { "pattern": "packages/*/" },
+        { "pattern": "internal/*/" },
+        { "pattern": "docs/*/" }
+    ]
 }
