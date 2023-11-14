@@ -1,0 +1,28 @@
+{
+    "name": "cache-handler-docs",
+    "version": "0.4.4",
+    "private": true,
+    "scripts": {
+        "build": "next build",
+        "clean": "rimraf ./.next ./.turbo ./node_modules ./out",
+        "dev": "next dev",
+        "lint": "next lint",
+        "start": "next start"
+    },
+    "dependencies": {
+        "next": "14.0.2",
+        "nextra": "2.13.2",
+        "nextra-theme-docs": "2.13.2",
+        "react": "18.2.0",
+        "react-dom": "18.2.0"
+    },
+    "devDependencies": {
+        "@neshca/tsconfig": "*",
+        "@next/eslint-plugin-next": "14.0.2",
+        "@types/node": "20.9.0",
+        "@types/react": "18.2.37",
+        "@types/react-dom": "18.2.15",
+        "eslint-config-neshca": "*",
+        "typescript": "5.2.2"
+    }
+}

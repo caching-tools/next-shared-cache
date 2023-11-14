@@ -1,0 +1,7 @@
+{
+    "on-creation": "onCreation",
+    "cache": "cache",
+    "disk-access-mode": "diskAccessMode",
+    "local-cache": "",
+    "development-environment": ""
+}

@@ -1,0 +1,11 @@
+{
+    "extends": "@neshca/tsconfig/nextjs.json",
+    "compilerOptions": {
+        "paths": {
+            "cache-handler-docs/*": ["./src/*"]
+        },
+        "strictNullChecks": true
+    },
+    "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+    "exclude": ["node_modules"]
+}

@@ -1,0 +1,17 @@
+## Why configure caching?
+
+Let's use part of [the official documentation ↗](https://nextjs.org/docs/app/building-your-application/deploying#configuring-caching) to explain why we need to configure caching:
+
+By default, generated cache assets will be stored in memory (defaults to 50mb) and on disk. If you are hosting Next.js using a container orchestration platform like Kubernetes, each pod will have a copy of the cache. To prevent stale data from being shown since the cache is not shared between pods by default, you can configure the Next.js cache to provide a cache handler and disable in-memory caching.
+
+Using a custom cache handler will allow you to ensure consistency across all pods hosting your Next.js application. For instance, you can save the cached values anywhere, like [Redis ↗](https://github.com/vercel/next.js/tree/canary/examples/cache-handler-redis) or AWS S3.
+
+## Why use `@neshca/cache-handler`?
+
+To summarize, `@neshca/cache-handler` takes on the responsibilities of the original class and provides a user-friendly API.
+
+Since the API involves replacing the original FileSystemCache class with a custom one, simply swapping the Map with the Redis Client from [the example in the documentation ↗](https://nextjs.org/docs/app/api-reference/next-config-js/incrementalCacheHandlerPath) is insufficient. If this is done, reading pre-rendered pages from disk will be lost. The library is designed to work with the file system, which means that even if Redis fails, the applications in Kubernetes pods will continue to function with the file system until Redis is back online.
+
+Furthermore, to ensure on-demand revalidation is performed correctly, a common TagsManifest for all pods must be present. Since the original class checks the TagsManifest, it is necessary to maintain this functionality.
+
+Since this functionality is the same for everyone, it is encapsulated in the library.
