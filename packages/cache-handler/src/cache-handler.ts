@@ -15,6 +15,8 @@ import { LRUCache } from 'lru-cache';
 
 const RSC_PREFETCH_SUFFIX = '.prefetch.rsc';
 const RSC_SUFFIX = '.rsc';
+const NEXT_DATA_SUFFIX = '.json';
+const NEXT_META_SUFFIX = '.meta';
 
 export type TagsManifest = {
     version: 1;
@@ -190,8 +192,10 @@ export class IncrementalCache implements CacheHandler {
                 const bodyFileData = await fsPromises.readFile(bodyFilePath);
                 const { mtime } = await fsPromises.stat(bodyFilePath);
 
-                const metaFilePath = bodyFilePath.replace(/\.body$/, '.meta');
-                const metaFileData = await fsPromises.readFile(metaFilePath, 'utf-8');
+                const metaFileData = await fsPromises.readFile(
+                    bodyFilePath.replace(/\.body$/, NEXT_META_SUFFIX),
+                    'utf-8',
+                );
                 const meta: NonNullableRouteMetadata = JSON.parse(metaFileData) as NonNullableRouteMetadata;
 
                 const cacheEntry: CacheHandlerValue = {
@@ -248,7 +252,7 @@ export class IncrementalCache implements CacheHandler {
                               `${cacheKey}${this.experimental.ppr ? RSC_PREFETCH_SUFFIX : RSC_SUFFIX}`,
                               'app',
                           )
-                        : this.getFilePath(`${cacheKey}.json`, 'pages');
+                        : this.getFilePath(`${cacheKey}${NEXT_DATA_SUFFIX}`, 'pages');
 
                     const pageDataFile = await fsPromises.readFile(pageDataFilePath, 'utf-8');
 
@@ -258,8 +262,10 @@ export class IncrementalCache implements CacheHandler {
 
                     if (isAppPath) {
                         try {
-                            const metaFilePath = pageFilePath.replace(/\.html$/, '.meta');
-                            const metaFileData = await fsPromises.readFile(metaFilePath, 'utf-8');
+                            const metaFileData = await fsPromises.readFile(
+                                pageFilePath.replace(/\.html$/, NEXT_META_SUFFIX),
+                                'utf-8',
+                            );
                             meta = JSON.parse(metaFileData) as RouteMetadata;
                         } catch {
                             // no .meta data for the related key
@@ -378,7 +384,7 @@ export class IncrementalCache implements CacheHandler {
 
             await fsPromises.mkdir(path.dirname(filePath), { recursive: true });
             await fsPromises.writeFile(filePath, data.body);
-            await fsPromises.writeFile(filePath.replace(/\.body$/, '.meta'), JSON.stringify(meta, null, 2));
+            await fsPromises.writeFile(filePath.replace(/\.body$/, NEXT_META_SUFFIX), JSON.stringify(meta, null, 2));
 
             return;
         }
@@ -390,7 +396,10 @@ export class IncrementalCache implements CacheHandler {
             await fsPromises.writeFile(htmlPath, data.html);
 
             await fsPromises.writeFile(
-                this.getFilePath(`${cacheKey}.${isAppPath ? 'rsc' : 'json'}`, isAppPath ? 'app' : 'pages'),
+                this.getFilePath(
+                    `${cacheKey}${isAppPath ? RSC_SUFFIX : NEXT_DATA_SUFFIX}`,
+                    isAppPath ? 'app' : 'pages',
+                ),
                 isAppPath ? JSON.stringify(data.pageData) : JSON.stringify(data.pageData),
             );
 
@@ -401,7 +410,7 @@ export class IncrementalCache implements CacheHandler {
                     postponed: data.postponed,
                 };
 
-                await fsPromises.writeFile(htmlPath.replace(/\.html$/, '.meta'), JSON.stringify(meta));
+                await fsPromises.writeFile(htmlPath.replace(/\.html$/, NEXT_META_SUFFIX), JSON.stringify(meta));
             }
             return;
         }

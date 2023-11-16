@@ -30,3 +30,7 @@ updates:
         patterns:
           - 'pino'
           - 'pino-pretty'
+      nextra:
+        patterns:
+          - 'nextra'
+          - 'nextra-theme-docs'
