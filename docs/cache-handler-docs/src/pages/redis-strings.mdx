@@ -1,17 +1,17 @@
 import { Callout } from 'nextra/components';
 
-## Redis Stack example
+## Redis strigs example
 
 <Callout type="info">
     In this example, we assume that in your deployment, you have `REDIS_URL` environment variable set to the URL of your
     Redis instance. You can use any other way to set the URL.
 </Callout>
 
-Create a file called `cache-handler.js` next to you `next.config.js` with the following contents:
+Create a file called `cache-handler.js` next to your `next.config.js` with the following contents:
 
 ```js filename="cache-handler.js" copy
 const { IncrementalCache } = require('@neshca/cache-handler');
-const { createHandler } = require('@neshca/cache-handler/redis-stack');
+const { createHandler } = require('@neshca/cache-handler/redis-strings');
 const { createClient } = require('redis');
 
 function createRedisClient(url) {

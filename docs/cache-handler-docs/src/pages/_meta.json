@@ -15,7 +15,9 @@
         "title": "Examples"
     },
     "redis-stack": "",
-    "redis": "",
+    "redis-strings": "",
+    "redis-stack-custom": "",
+    "redis-strings-custom": "",
     "-- More": {
         "type": "separator",
         "title": "More"

@@ -13,6 +13,9 @@ function wait(delay: number): Promise<void> {
 
 const args = process.argv.slice(2).reduce<Record<string, string>>((acc, arg) => {
     const [key, value] = arg.split('=');
+
+    if (!key || !value) throw new Error(`Invalid argument: ${arg}`);
+
     acc[key] = value;
     return acc;
 }, {});

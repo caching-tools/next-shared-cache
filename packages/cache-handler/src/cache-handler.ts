@@ -12,6 +12,7 @@ import type {
     NonNullableRouteMetadata,
 } from '@neshca/next-types';
 import { LRUCache } from 'lru-cache';
+import type { CacheHandlerOptions } from './common-types';
 
 const RSC_PREFETCH_SUFFIX = '.prefetch.rsc';
 const RSC_SUFFIX = '.rsc';
@@ -23,9 +24,11 @@ export type TagsManifest = {
     items: Record<string, { revalidatedAt: number }>;
 };
 
-export type Cache<T = CacheHandlerValue> = {
+export type { CacheHandlerValue, CacheHandlerOptions };
+
+export type Cache = {
     get: (key: string) => Promise<CacheHandlerValue | null | undefined>;
-    set: (key: string, value: T, ttl?: number) => Promise<void>;
+    set: (key: string, value: CacheHandlerValue, ttl?: number) => Promise<void>;
     getTagsManifest: () => Promise<TagsManifest>;
     revalidateTag: (tag: string, revalidatedAt: number) => Promise<void>;
 };
@@ -57,6 +60,8 @@ export type CacheCreationContext = {
     serverDistDir?: string;
     dev?: boolean;
 };
+
+export type OnCreationCallback = (cacheCreationContext: CacheCreationContext) => CacheConfig | undefined;
 
 export class IncrementalCache implements CacheHandler {
     private static diskAccessMode: CacheDiskAccessMode = 'read-yes/write-yes';

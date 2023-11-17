@@ -1,12 +1,12 @@
 const { IncrementalCache } = require('@neshca/cache-handler');
-const { createHandler } = require('@neshca/cache-handler/redis-stack');
+const { createHandler } = require('@neshca/cache-handler/redis-strings');
 const { createClient } = require('redis');
 
 if (!process.env.REDIS_URL) {
     console.warn('Make sure that REDIS_URL is added to the .env.local file and loaded properly.');
 }
 
-const PREFIX = 'JSON:';
+const PREFIX = 'string:';
 const CONNECT_TIMEOUT_MS = 5 * 50 * 1000;
 
 function createRedisClient(url) {

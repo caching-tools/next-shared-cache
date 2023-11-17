@@ -14,12 +14,13 @@
         "email": "caching.tools@proton.me"
     },
     "type": "module",
-    "main": "./dist/json-replacer-reviver.cjs",
-    "module": "./dist/json-replacer-reviver.js",
+    "exports": {
+        ".": {
+            "import": "./dist/json-replacer-reviver.js",
+            "require": "./dist/json-replacer-reviver.cjs"
+        }
+    },
     "types": "./dist/json-replacer-reviver.d.ts",
-    "files": [
-        "dist/**"
-    ],
     "scripts": {
         "build": "tsup",
         "clean": "rimraf ./dist ./.turbo ./node_modules",

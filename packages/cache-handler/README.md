@@ -2,6 +2,8 @@
 
 Flexible API to replace the default Next.js cache, accommodating custom cache solutions for multi-instance deployments.
 
+🎉 Version 0.5.0 is out, introducing [Handlers](https://caching-tools.github.io/next-shared-cache/redis-stack) and all-new [Docs](https://caching-tools.github.io/next-shared-cache/).
+
 [![npm package](https://img.shields.io/npm/v/@neshca/cache-handler/latest.svg)](https://www.npmjs.com/package/@neshca/cache-handler)
 [![Dependencies](https://img.shields.io/npm/dm/@neshca/cache-handler)](https://www.npmjs.com/package/@neshca/cache-handler)
 [![License](https://img.shields.io/npm/l/express.svg)](https://github.com/caching-tools/next-shared-cache/blob/canary/packages/cache-handler/LICENSE)
@@ -14,7 +16,7 @@ Next.js, by default, utilizes an [in-memory cache](https://nextjs.org/blog/next-
 
 ## Project Status
 
-This project is currently in the field test phase. Any changes made to the API will result in a minor version increase of the package until it reaches a stable version. You are welcome to try it out and provide feedback.
+This project is currently in Beta. Any changes made to the API will result in a minor version increase of the package until it reaches a stable version. You are welcome to try it out and provide feedback.
 
 ### Roadmap
 
@@ -22,8 +24,8 @@ This project is currently in the field test phase. Any changes made to the API w
 -   [x] Support for Pages routes;
 -   [x] Happy path tests;
 -   [x] Examples;
+-   [ ] Documentation; in progress
 -   [ ] Full test coverage;
--   [ ] Documentation;
 
 ## Supported Next.js versions
 
@@ -31,8 +33,11 @@ Next.js 13.5.0 and above.
 
 ## Examples
 
--   [Official Next.js template ↪](https://github.com/vercel/next.js/tree/canary/examples/cache-handler-redis)
--   [Detailed Redis example](../../docs/examples/use-with-redis.md)
+-   [Official Next.js template ↗](https://github.com/vercel/next.js/tree/canary/examples/cache-handler-redis)
+-   [Redis Stack ↗](https://caching-tools.github.io/next-shared-cache/redis-stack)
+-   [Redis String ↗](https://caching-tools.github.io/next-shared-cache/redis-strings)
+-   [Custom Redis Stack ↗](https://caching-tools.github.io/next-shared-cache/redis-stack-custom)
+-   [Custom Redis String ↗](https://caching-tools.github.io/next-shared-cache/redis-strings-custom)
 -   [Minimal HTTP example](../../docs/examples/use-with-http-server.md)
 
 ## Developing and contributing

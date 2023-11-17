@@ -5,7 +5,7 @@ export const tsup = defineConfig({
     entry: ['src/json-replacer-reviver.ts'],
     splitting: false,
     outDir: 'dist',
-    clean: true,
+    clean: false,
     format: ['cjs', 'esm'],
     dts: true,
     target: 'node18',

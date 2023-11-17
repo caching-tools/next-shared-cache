@@ -2,6 +2,14 @@
     "name": "@neshca/cache-handler",
     "version": "0.4.4",
     "description": "Flexible API to replace the default Next.js cache, accommodating custom cache solutions for multi-instance deployments.    ",
+    "keywords": [
+        "cache",
+        "isr",
+        "ssg",
+        "cache-handler",
+        "next",
+        "redis"
+    ],
     "homepage": "https://github.com/caching-tools/next-shared-cache/tree/canary/packages/cache-handler",
     "bugs": "https://github.com/caching-tools/next-shared-cache/issues",
     "repository": {
@@ -13,16 +21,26 @@
         "name": "Arseny Kruglikov",
         "email": "caching.tools@proton.me"
     },
-    "main": "./dist/cache-handler.js",
-    "types": "./dist/cache-handler.d.ts",
-    "files": [
-        "dist/**"
-    ],
+    "type": "module",
+    "exports": {
+        ".": {
+            "import": "./dist/cache-handler.js",
+            "require": "./dist/cache-handler.cjs"
+        },
+        "./*": {
+            "import": "./dist/handlers/*.js",
+            "require": "./dist/handlers/*.cjs"
+        }
+    },
     "scripts": {
         "build": "tsup",
         "clean": "rimraf ./dist ./.turbo ./node_modules",
         "dev": "tsup --watch",
         "lint": "eslint ."
+    },
+    "dependencies": {
+        "@neshca/json-replacer-reviver": "*",
+        "lru-cache": "10.0.2"
     },
     "devDependencies": {
         "@neshca/next-types": "*",
@@ -33,8 +51,9 @@
         "tsup": "7.2.0",
         "typescript": "5.2.2"
     },
-    "optionalDependencies": {
-        "lru-cache": "^10.0.2"
+    "peerDependencies": {
+        "next": ">=13.5",
+        "redis": ">=4.6"
     },
     "distTags": [
         "next13.5",
