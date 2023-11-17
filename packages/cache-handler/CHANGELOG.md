@@ -1,5 +1,20 @@
 # @neshca/cache-handler
 
+## 0.5.0
+
+### Minor Changes
+
+-   954a21e: Use `exports` instead of `main` and `module` in `package.json`
+
+    New `handlers` API:
+
+    -   Add `redis-stack` and `redis-strings` handlers;
+
+### Patch Changes
+
+-   Updated dependencies [954a21e]
+    -   @neshca/json-replacer-reviver@1.1.0
+
 ## 0.4.4
 
 ### Patch Changes

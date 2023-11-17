@@ -1,5 +1,11 @@
 # @neshca/json-replacer-reviver
 
+## 1.1.0
+
+### Minor Changes
+
+-   954a21e: Use `exports` instead of `main` and `module` in `package.json`
+
 ## 1.0.3
 
 ### Patch Changes
