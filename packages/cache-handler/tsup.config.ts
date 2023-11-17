@@ -2,12 +2,12 @@ import { defineConfig } from 'tsup';
 
 export const tsup = defineConfig({
     name: 'Build cache-handler',
-    entry: ['src/cache-handler.ts'],
+    entry: ['src/cache-handler.ts', 'src/handlers/*.ts'],
     splitting: false,
     outDir: 'dist',
     clean: false,
-    format: 'cjs',
+    format: ['cjs', 'esm'],
     dts: true,
     target: 'node18',
-    external: ['lru-cache'],
+    noExternal: ['@neshca/json-replacer-reviver', 'lru-cache'],
 });

@@ -49,4 +49,10 @@ export default {
             </span>
         ),
     },
+    banner: {
+        key: '0.5-release',
+        text: (
+            <a href={`${process.env.NEXT_PUBLIC_BASE_URL}/redis-stack`}>🎉 Version 0.5.0 is out. Check out Handlers</a>
+        ),
+    },
 };
