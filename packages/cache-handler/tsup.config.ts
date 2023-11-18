@@ -9,5 +9,5 @@ export const tsup = defineConfig({
     format: ['cjs', 'esm'],
     dts: { resolve: true },
     target: 'node18',
-    noExternal: ['@neshca/json-replacer-reviver', 'lru-cache'],
+    noExternal: ['@neshca/json-replacer-reviver', 'lru-cache', '@neshca/next-lru-cache/object'],
 });

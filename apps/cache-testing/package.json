@@ -5,7 +5,7 @@
     "license": "MIT",
     "scripts": {
         "build": "next build && ./create-instances.sh",
-        "clean": "rimraf ./.next ./dist ./.turbo ./node_modules ./playwright-report",
+        "clean": "rimraf ./.next ./dist ./.turbo ./node_modules ./playwright-report ./test-results",
         "cluster:start": "pm2 start cluster.config.js --env production",
         "cluster:stop": "pm2 kill",
         "dev:app": "next dev",

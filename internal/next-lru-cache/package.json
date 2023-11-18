@@ -1,0 +1,25 @@
+{
+    "name": "@neshca/next-lru-cache",
+    "version": "0.0.0",
+    "private": true,
+    "license": "MIT",
+    "type": "module",
+    "exports": {
+        "./*": "./src/cache-types/*.ts"
+    },
+    "scripts": {
+        "clean": "rimraf ./.turbo ./node_modules",
+        "lint": "eslint ."
+    },
+    "dependencies": {
+        "lru-cache": "10.0.2"
+    },
+    "devDependencies": {
+        "@neshca/next-common": "*",
+        "@neshca/tsconfig": "*",
+        "@types/node": "20.9.1",
+        "eslint-config-neshca": "*",
+        "rimraf": "5.0.5",
+        "typescript": "5.2.2"
+    }
+}

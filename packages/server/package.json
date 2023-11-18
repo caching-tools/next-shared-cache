@@ -30,6 +30,7 @@
     },
     "devDependencies": {
         "@neshca/next-common": "*",
+        "@neshca/next-lru-cache": "*",
         "@neshca/tsconfig": "*",
         "@types/node": "20.9.1",
         "eslint-config-neshca": "*",
