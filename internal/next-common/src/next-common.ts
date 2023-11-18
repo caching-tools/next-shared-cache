@@ -1,5 +1,6 @@
-/* eslint-disable @typescript-eslint/method-signature-style -- need to use a method style */
-import type { OutgoingHttpHeaders } from 'node:http';
+/* eslint-disable @typescript-eslint/method-signature-style -- to use a method style */
+// eslint-disable-next-line unicorn/prefer-node-protocol -- to overcome tsup's limitations
+import type { OutgoingHttpHeaders } from 'http';
 import type { CacheHandler } from 'next/dist/server/lib/incremental-cache';
 import type IncrementalCache from 'next/dist/server/lib/incremental-cache/file-system-cache';
 import type { RouteMetadata as NextRouteMetadata } from 'next/dist/export/routes/types';

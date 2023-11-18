@@ -25,7 +25,7 @@ jobs:
         run: npm test
       - name: Build Next.js app and run tests
         run: |
-          npm run start -w @neshca/backend &
+          npm run start -w backend &
           npm run start -w @neshca/server &
           npm run build:app
           npm run e2e

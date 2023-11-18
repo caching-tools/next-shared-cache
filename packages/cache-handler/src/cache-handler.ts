@@ -1,5 +1,7 @@
+/* eslint-disable import/no-relative-packages -- to overcome tsup's limitations */
 import path from 'node:path';
 import fs, { promises as fsPromises } from 'node:fs';
+import { LRUCache } from 'lru-cache';
 import type {
     CacheHandler,
     CacheHandlerValue,
@@ -10,8 +12,7 @@ import type {
     CacheHandlerParametersRevalidateTag,
     RouteMetadata,
     NonNullableRouteMetadata,
-} from '@neshca/next-types';
-import { LRUCache } from 'lru-cache';
+} from '../../../internal/next-common/src/next-common';
 import type { CacheHandlerOptions } from './common-types';
 
 const RSC_PREFETCH_SUFFIX = '.prefetch.rsc';
@@ -23,7 +24,6 @@ export type TagsManifest = {
     version: 1;
     items: Record<string, { revalidatedAt: number }>;
 };
-
 export type { CacheHandlerValue, CacheHandlerOptions };
 
 export type Cache = {

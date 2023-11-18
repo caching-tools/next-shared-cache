@@ -33,7 +33,7 @@
         }
     },
     "scripts": {
-        "build": "tsup",
+        "build": "tsup --dts-resolve",
         "clean": "rimraf ./dist ./.turbo ./node_modules",
         "dev": "tsup --watch",
         "lint": "eslint ."
@@ -43,7 +43,6 @@
         "lru-cache": "10.0.2"
     },
     "devDependencies": {
-        "@neshca/next-types": "*",
         "@neshca/tsconfig": "*",
         "@types/node": "20.9.1",
         "eslint-config-neshca": "*",

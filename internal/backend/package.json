@@ -1,23 +1,14 @@
 {
-    "name": "@neshca/backend",
+    "name": "backend",
     "version": "0.0.0",
     "private": true,
     "license": "MIT",
     "type": "module",
-    "bin": {
-        "backend": "dist/backend.js",
-        "backend/cjs": "dist/backend.cjs",
-        "backend/esm": "dist/backend.js"
-    },
-    "files": [
-        "dist/**"
-    ],
     "scripts": {
-        "build": "tsup",
-        "clean": "rimraf ./dist ./.turbo ./node_modules",
-        "dev": "tsup --watch",
+        "clean": "rimraf ./.turbo ./node_modules",
+        "dev": "node --watch --import tsx/esm ./src/backend.ts",
         "lint": "eslint .",
-        "start": "./dist/backend.js"
+        "start": "node --import tsx/esm ./src/backend.ts"
     },
     "dependencies": {
         "fastify": "4.24.3",
@@ -29,7 +20,7 @@
         "eslint-config-neshca": "*",
         "pino-pretty": "10.2.3",
         "rimraf": "5.0.5",
-        "tsup": "7.3.0",
+        "tsx": "4.1.3",
         "typescript": "5.2.2"
     }
 }

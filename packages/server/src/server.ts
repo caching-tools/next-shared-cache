@@ -2,7 +2,7 @@
 
 import { pino } from 'pino';
 import Fastify from 'fastify';
-import type { TagsManifest } from '@neshca/next-types';
+import type { TagsManifest } from '@neshca/next-common';
 
 const logger = pino({
     transport: {
@@ -71,7 +71,7 @@ server.get('/clear-cache', async (_request, reply): Promise<void> => {
 server
     .listen({ port, host })
     .then((address) => {
-        logger.info(`@neshca/server listening on %s`, address);
+        logger.info(`next-cache-server listening on %s`, address);
     })
     .catch((err) => {
         logger.error(err);

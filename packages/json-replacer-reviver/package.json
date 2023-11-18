@@ -15,12 +15,10 @@
     },
     "type": "module",
     "exports": {
-        ".": {
-            "import": "./dist/json-replacer-reviver.js",
-            "require": "./dist/json-replacer-reviver.cjs"
-        }
+        "import": "./dist/json-replacer-reviver.js",
+        "require": "./dist/json-replacer-reviver.cjs",
+        "types": "./dist/json-replacer-reviver.d.ts"
     },
-    "types": "./dist/json-replacer-reviver.d.ts",
     "scripts": {
         "build": "tsup",
         "clean": "rimraf ./dist ./.turbo ./node_modules",
