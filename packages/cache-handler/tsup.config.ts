@@ -5,9 +5,9 @@ export const tsup = defineConfig({
     entry: ['src/cache-handler.ts', 'src/handlers/*.ts'],
     splitting: false,
     outDir: 'dist',
-    clean: false,
+    clean: true,
     format: ['cjs', 'esm'],
-    dts: true,
+    dts: { resolve: true },
     target: 'node18',
-    noExternal: ['@neshca/json-replacer-reviver', 'lru-cache'],
+    noExternal: ['@neshca/json-replacer-reviver', 'lru-cache', '@neshca/next-lru-cache/object'],
 });

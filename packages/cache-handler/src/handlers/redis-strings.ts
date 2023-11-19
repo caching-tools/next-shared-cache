@@ -3,7 +3,7 @@
 import { reviveFromBase64Representation, replaceJsonWithBase64 } from '@neshca/json-replacer-reviver';
 import type { RedisClientType, RedisClusterType } from 'redis';
 import type { TagsManifest, OnCreationCallback, CacheHandlerValue } from '../cache-handler';
-import type { CacheHandlerOptions } from '../common-types';
+import type { RedisCacheHandlerOptions } from '../common-types';
 
 const localTagsManifest: TagsManifest = {
     version: 1,
@@ -18,7 +18,7 @@ export function createHandler<T extends RedisClientType | RedisClusterType>({
     keyPrefix = '',
     tagsManifestKey = TAGS_MANIFEST_KEY,
     unstable__logErrors,
-}: CacheHandlerOptions<T>): OnCreationCallback {
+}: RedisCacheHandlerOptions<T>): OnCreationCallback {
     return () => {
         return {
             diskAccessMode,

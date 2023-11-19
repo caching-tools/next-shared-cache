@@ -18,8 +18,8 @@ const rl = createInterface({
 });
 
 // Constants for configurations
-const DEFAULT_MODEL = 'gpt-4';
-const SUPPORTED_MODELS = ['gpt-4', 'gpt-3.5-turbo'];
+const DEFAULT_MODEL = 'gpt-4-1106-preview';
+const SUPPORTED_MODELS = ['gpt-4', 'gpt-3.5-turbo', 'gpt-4-1106-preview'];
 const DEFAULT_TEMPERATURE = 0.05;
 const COMMIT_LENGTH_MIN = 50;
 const COMMIT_LENGTH_MAX = 500;

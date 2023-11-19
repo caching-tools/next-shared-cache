@@ -2,7 +2,8 @@
 
 import { pino } from 'pino';
 import Fastify from 'fastify';
-import type { TagsManifest } from '@neshca/next-types';
+import { createCache } from '@neshca/next-lru-cache/cache-string-value';
+import type { TagsManifest } from '@neshca/next-common';
 
 const logger = pino({
     transport: {
@@ -13,9 +14,12 @@ const logger = pino({
 
 const server = Fastify();
 
-const cache = new Map<string, string>();
+const cache = createCache();
 
-const revalidatedTags = new Map<string, number>();
+const tagsManifest: TagsManifest = {
+    items: {},
+    version: 1,
+};
 
 const host = process.env.HOST ?? 'localhost';
 const port = Number.parseInt(process.env.PORT ?? '8080', 10);
@@ -25,10 +29,7 @@ server.get('/get', async (request, reply): Promise<void> => {
 
     const data = cache.get(key);
 
-    await reply
-        .code(data ? 200 : 404)
-        .header('Content-Type', 'application/json; charset=utf-8')
-        .send(data);
+    await reply.code(data ? 200 : 404).send(data);
 });
 
 server.post('/set', async (request, reply): Promise<void> => {
@@ -36,42 +37,31 @@ server.post('/set', async (request, reply): Promise<void> => {
 
     cache.set(key, data);
 
-    await reply.code(200).header('Content-Type', 'application/json; charset=utf-8').send(null);
+    await reply.code(200).send();
 });
 
 server.get('/getTagsManifest', async (_request, reply): Promise<void> => {
-    const tagsManifest: TagsManifest = {
-        items: {},
-        version: 1,
-    };
-
-    for (const [tag, revalidatedAt] of revalidatedTags.entries()) {
-        tagsManifest.items[tag] = {
-            revalidatedAt,
-        };
-    }
-
-    await reply.code(200).header('Content-Type', 'application/json; charset=utf-8').send(tagsManifest);
+    await reply.code(200).send(tagsManifest);
 });
 
 server.post('/revalidateTag', async (request, reply): Promise<void> => {
     const [tag, revalidatedAt] = request.body as [string, number];
 
-    revalidatedTags.set(tag, revalidatedAt);
+    tagsManifest.items[tag] = { revalidatedAt };
 
-    await reply.code(200).header('Content-Type', 'application/json; charset=utf-8').send(null);
+    await reply.code(200).send();
 });
 
 server.get('/clear-cache', async (_request, reply): Promise<void> => {
     cache.clear();
 
-    await reply.code(200).header('Content-Type', 'application/json; charset=utf-8').send({ cache: 'cleared' });
+    await reply.code(200).send(true);
 });
 
 server
     .listen({ port, host })
     .then((address) => {
-        logger.info(`@neshca/server listening on %s`, address);
+        logger.info(`next-cache-server listening on %s`, address);
     })
     .catch((err) => {
         logger.error(err);

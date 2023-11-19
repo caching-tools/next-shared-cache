@@ -1,5 +1,7 @@
+/* eslint-disable import/no-relative-packages -- to overcome tsup's limitations */
 import path from 'node:path';
 import fs, { promises as fsPromises } from 'node:fs';
+import { createCache } from '@neshca/next-lru-cache/next-cache-handler-value';
 import type {
     CacheHandler,
     CacheHandlerValue,
@@ -10,9 +12,8 @@ import type {
     CacheHandlerParametersRevalidateTag,
     RouteMetadata,
     NonNullableRouteMetadata,
-} from '@neshca/next-types';
-import { LRUCache } from 'lru-cache';
-import type { CacheHandlerOptions } from './common-types';
+} from '../../../internal/next-common/src/next-common';
+import type { RedisCacheHandlerOptions } from './common-types';
 
 const RSC_PREFETCH_SUFFIX = '.prefetch.rsc';
 const RSC_SUFFIX = '.rsc';
@@ -23,8 +24,7 @@ export type TagsManifest = {
     version: 1;
     items: Record<string, { revalidatedAt: number }>;
 };
-
-export type { CacheHandlerValue, CacheHandlerOptions };
+export type { CacheHandlerValue, RedisCacheHandlerOptions as CacheHandlerOptions };
 
 export type Cache = {
     get: (key: string) => Promise<CacheHandlerValue | null | undefined>;
@@ -49,8 +49,8 @@ type CacheConfigWithDefaultCache = {
     diskAccessMode?: CacheDiskAccessMode;
     cache?: never;
     defaultLruCacheOptions?: {
-        max?: number;
-        maxSize?: number;
+        maxItemsNumber?: number;
+        maxItemSizeBytes?: number;
     };
 };
 
@@ -103,25 +103,9 @@ export class IncrementalCache implements CacheHandler {
         }
 
         // if no cache is provided, we use a default LRU cache
-        const lruCache = new LRUCache<string, CacheHandlerValue>({
-            max: defaultLruCacheOptions?.max ?? 1000,
-            maxSize: defaultLruCacheOptions?.maxSize ?? 1024 * 1024 * 500, // 500MB
-            // Credits to Next.js for the following code
-            sizeCalculation: ({ value }) => {
-                if (!value) {
-                    return 25;
-                } else if (value.kind === 'REDIRECT') {
-                    return JSON.stringify(value.props).length;
-                } else if (value.kind === 'IMAGE') {
-                    throw new Error('invariant image should not be incremental-cache');
-                } else if (value.kind === 'FETCH') {
-                    return JSON.stringify(value.data || '').length;
-                } else if (value.kind === 'ROUTE') {
-                    return value.body.length;
-                }
-                // rough estimate of size of cache value
-                return value.html.length + (JSON.stringify(value.pageData)?.length || 0);
-            },
+        const lruCache = createCache({
+            maxItemSizeBytes: defaultLruCacheOptions?.maxItemSizeBytes,
+            maxItemsNumber: defaultLruCacheOptions?.maxItemsNumber,
         });
 
         let tagsManifest: TagsManifest = { items: {}, version: 1 };
@@ -242,7 +226,7 @@ export class IncrementalCache implements CacheHandler {
                     };
 
                     if (cachedData.value?.kind === 'FETCH') {
-                        const storedTags = cachedData.value?.data?.tags;
+                        const storedTags = cachedData.value.tags;
 
                         // update stored tags if a new one is being added
                         // TODO: remove this when we can send the tags

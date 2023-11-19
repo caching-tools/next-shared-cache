@@ -14,13 +14,10 @@
         "email": "caching.tools@proton.me"
     },
     "type": "module",
-    "module": "./dist/diffscribe.js",
+    "exports": null,
     "bin": {
         "diffscribe": "./dist/diffscribe.js"
     },
-    "files": [
-        "dist/**"
-    ],
     "scripts": {
         "build": "tsup",
         "clean": "rimraf ./dist ./.turbo ./node_modules",

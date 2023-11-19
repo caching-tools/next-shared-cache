@@ -18,6 +18,7 @@
     "redis-strings": "",
     "redis-stack-custom": "",
     "redis-strings-custom": "",
+    "server": "Remote HTTP server with LRU cache",
     "-- More": {
         "type": "separator",
         "title": "More"

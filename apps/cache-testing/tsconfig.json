@@ -6,6 +6,6 @@
         },
         "strictNullChecks": true
     },
-    "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+    "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "run-app-instances.ts"],
     "exclude": ["node_modules"]
 }

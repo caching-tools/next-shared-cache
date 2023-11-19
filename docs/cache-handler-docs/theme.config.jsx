@@ -50,9 +50,9 @@ export default {
         ),
     },
     banner: {
-        key: '0.5-release',
+        key: '0.5.1-release',
         text: (
-            <a href={`${process.env.NEXT_PUBLIC_BASE_URL}/redis-stack`}>🎉 Version 0.5.0 is out. Check out Handlers</a>
+            <a href={`${process.env.NEXT_PUBLIC_BASE_URL}/server`}>🎉 Version 0.5.1 is out. Check out HTTP Handler</a>
         ),
     },
 };

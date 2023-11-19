@@ -1,27 +1,24 @@
 {
-    "name": "@neshca/next-types",
-    "version": "0.3.2",
+    "name": "@neshca/next-common",
+    "version": "0.0.0",
     "private": true,
     "license": "MIT",
-    "types": "./dist/next-types.d.ts",
-    "files": [
-        "dist/**"
-    ],
+    "type": "module",
+    "exports": {
+        "types": "./src/next-common.ts"
+    },
     "scripts": {
-        "build": "tsup",
-        "clean": "rimraf ./dist ./.turbo ./node_modules",
-        "dev": "tsup --watch",
+        "clean": "rimraf ./.turbo ./node_modules",
         "lint": "eslint ."
     },
     "dependencies": {
-        "next": "14.0.3"
+        "next": "14.0.4-canary.4"
     },
     "devDependencies": {
         "@neshca/tsconfig": "*",
         "@types/node": "20.9.1",
         "eslint-config-neshca": "*",
         "rimraf": "5.0.5",
-        "tsup": "7.3.0",
         "typescript": "5.2.2"
     }
 }

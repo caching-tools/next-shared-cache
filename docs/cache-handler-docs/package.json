@@ -3,11 +3,11 @@
     "version": "0.5.0",
     "private": true,
     "scripts": {
-        "build": "next build",
+        "build:docs": "next build",
         "clean": "rimraf ./.next ./.turbo ./node_modules ./out",
-        "dev": "next dev",
+        "dev:docs": "next dev",
         "lint": "next lint",
-        "start": "next start"
+        "start:docs": "next start"
     },
     "dependencies": {
         "next": "14.0.3",

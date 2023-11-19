@@ -1,7 +1,8 @@
 {
     "name": "@neshca/server",
     "version": "0.4.1",
-    "homepage": "https://github.com/caching-tools/next-shared-cache",
+    "description": "Efficient and simple HTTP caching server with LRU eviction, tailored for seamless integration with `@neshca/cache-handler/server` Handler",
+    "homepage": "https://github.com/caching-tools/next-shared-cache/tree/canary/packages/server",
     "bugs": "https://github.com/caching-tools/next-shared-cache/issues",
     "repository": {
         "type": "git",
@@ -12,33 +13,31 @@
         "name": "Arseny Kruglikov",
         "email": "caching.tools@proton.me"
     },
-    "module": "./dist/server.mjs",
-    "types": "./dist/types.d.mts",
+    "type": "module",
+    "exports": null,
     "bin": {
-        "server": "dist/server.mjs"
+        "next-cache-server": "./dist/server.js"
     },
-    "files": [
-        "dist/**"
-    ],
     "scripts": {
         "build": "tsup",
         "clean": "rimraf ./dist ./.turbo ./node_modules",
-        "dev": "tsup --watch",
+        "dev": "node --watch --import tsx/esm ./src/server.ts",
         "lint": "eslint .",
-        "ncc": "ncc run src/server.ts",
-        "start": "./dist/server.mjs"
+        "start": "node --import tsx/esm ./src/server.ts"
     },
     "dependencies": {
         "fastify": "4.24.3",
         "pino": "8.16.2"
     },
     "devDependencies": {
-        "@neshca/next-types": "*",
+        "@neshca/next-common": "*",
+        "@neshca/next-lru-cache": "*",
         "@neshca/tsconfig": "*",
         "@types/node": "20.9.1",
         "eslint-config-neshca": "*",
         "rimraf": "5.0.5",
         "tsup": "7.3.0",
+        "tsx": "4.1.3",
         "typescript": "5.2.2"
     },
     "distTags": [

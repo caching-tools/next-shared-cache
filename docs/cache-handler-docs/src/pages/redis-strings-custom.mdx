@@ -113,6 +113,8 @@ IncrementalCache.onCreation(() => {
 module.exports = IncrementalCache;
 ```
 
+<Callout type="info">Ensure that the Redis instance is running when you build your Next.js app.</Callout>
+
 Then, use the following configuration in your `next.config.js` file:
 
 ```js filename="next.config.js" copy

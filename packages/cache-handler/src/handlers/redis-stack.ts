@@ -2,7 +2,7 @@
 /* eslint-disable no-console -- log errors */
 import type { RedisClientType, RedisClusterType } from 'redis';
 import type { TagsManifest, OnCreationCallback, CacheHandlerValue } from '../cache-handler';
-import type { CacheHandlerOptions, RedisJSON } from '../common-types';
+import type { RedisCacheHandlerOptions, RedisJSON } from '../common-types';
 
 let localTagsManifest: TagsManifest = {
     version: 1,
@@ -17,7 +17,7 @@ export function createHandler<T extends RedisClientType | RedisClusterType>({
     keyPrefix = '',
     tagsManifestKey = TAGS_MANIFEST_KEY,
     unstable__logErrors,
-}: CacheHandlerOptions<T>): OnCreationCallback {
+}: RedisCacheHandlerOptions<T>): OnCreationCallback {
     return () => {
         void client.json.set(keyPrefix + tagsManifestKey, '.', localTagsManifest, {
             NX: true,
