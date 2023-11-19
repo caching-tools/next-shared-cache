@@ -12,7 +12,7 @@
     "scripts": {
         "build": "FORCE_COLOR=1 turbo run build --log-prefix=none --filter=!./apps/* --filter=!./docs/*",
         "build:app": "FORCE_COLOR=1 turbo run build --log-prefix=none --filter=cache-testing",
-        "build:docs": "FORCE_COLOR=1 turbo run build --log-prefix=none --filter=cache-handler-docs",
+        "build:docs": "FORCE_COLOR=1 turbo run build:docs --log-prefix=none --filter=cache-handler-docs",
         "changeset": "changeset",
         "clean": "FORCE_COLOR=1 turbo run clean",
         "dev": "FORCE_COLOR=1 turbo run dev --log-prefix=none --filter=!diffscribe",
