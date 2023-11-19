@@ -1,6 +1,6 @@
 {
     "name": "@neshca/server",
-    "version": "0.4.1",
+    "version": "0.5.0",
     "description": "Efficient and simple HTTP caching server with LRU eviction, tailored for seamless integration with `@neshca/cache-handler/server` Handler",
     "homepage": "https://github.com/caching-tools/next-shared-cache/tree/canary/packages/server",
     "bugs": "https://github.com/caching-tools/next-shared-cache/issues",

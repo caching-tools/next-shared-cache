@@ -1,5 +1,11 @@
 # @neshca/server
 
+## 0.5.0
+
+### Minor Changes
+
+-   9a970af: Add LRU key eviction
+
 ## 0.4.1
 
 ### Patch Changes
