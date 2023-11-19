@@ -1,7 +1,11 @@
-# @neshca/server
+## `@neshca/server`
 
-This package provides a simple HTTP server that can be used as remote cache for Next.js applications.
+Efficient and simple HTTP caching server with LRU eviction, tailored for seamless integration with `@neshca/cache-handler/server` Handler.
 
-## Usage
+### Overview
 
-You can see examples of how to use `@neshca/server` [here](../../docs/examples/use-with-http-server.md)
+This project provides a simple HTTP server that works seamlessly with @neshca/cache-handler/server. It implements an efficient LRU (Least Recently Used) key eviction policy, ensuring optimal use of cache resources by automatically removing the least recently accessed items when the cache reaches its capacity.
+
+### Usage
+
+You can see examples of how to use `@neshca/server` in [Remote HTTP server with LRU cache ↗](https://caching-tools.github.io/next-shared-cache/server) section of the `@neshca/cache-handler` documentation.

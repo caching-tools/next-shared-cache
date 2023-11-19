@@ -2,7 +2,7 @@
 
 Flexible API to replace the default Next.js cache, accommodating custom cache solutions for multi-instance deployments.
 
-🎉 Version 0.5.0 is out, introducing [Handlers](https://caching-tools.github.io/next-shared-cache/redis-stack) and all-new [Docs](https://caching-tools.github.io/next-shared-cache/).
+🎉 Version 0.5.1 is out, introducing [HTTP Handler](https://caching-tools.github.io/next-shared-cache/server).
 
 [![npm package](https://img.shields.io/npm/v/@neshca/cache-handler/latest.svg)](https://www.npmjs.com/package/@neshca/cache-handler)
 [![Dependencies](https://img.shields.io/npm/dm/@neshca/cache-handler)](https://www.npmjs.com/package/@neshca/cache-handler)
@@ -36,9 +36,9 @@ Next.js 13.5.0 and above.
 -   [Official Next.js template ↗](https://github.com/vercel/next.js/tree/canary/examples/cache-handler-redis)
 -   [Redis Stack ↗](https://caching-tools.github.io/next-shared-cache/redis-stack)
 -   [Redis String ↗](https://caching-tools.github.io/next-shared-cache/redis-strings)
+-   [HTTP server](https://caching-tools.github.io/next-shared-cache/server)
 -   [Custom Redis Stack ↗](https://caching-tools.github.io/next-shared-cache/redis-stack-custom)
 -   [Custom Redis String ↗](https://caching-tools.github.io/next-shared-cache/redis-strings-custom)
--   [Minimal HTTP example](../../docs/examples/use-with-http-server.md)
 
 ## Developing and contributing
 

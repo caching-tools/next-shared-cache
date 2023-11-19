@@ -13,7 +13,7 @@ import type {
     RouteMetadata,
     NonNullableRouteMetadata,
 } from '../../../internal/next-common/src/next-common';
-import type { CacheHandlerOptions } from './common-types';
+import type { RedisCacheHandlerOptions } from './common-types';
 
 const RSC_PREFETCH_SUFFIX = '.prefetch.rsc';
 const RSC_SUFFIX = '.rsc';
@@ -24,7 +24,7 @@ export type TagsManifest = {
     version: 1;
     items: Record<string, { revalidatedAt: number }>;
 };
-export type { CacheHandlerValue, CacheHandlerOptions };
+export type { CacheHandlerValue, RedisCacheHandlerOptions as CacheHandlerOptions };
 
 export type Cache = {
     get: (key: string) => Promise<CacheHandlerValue | null | undefined>;
@@ -226,7 +226,7 @@ export class IncrementalCache implements CacheHandler {
                     };
 
                     if (cachedData.value?.kind === 'FETCH') {
-                        const storedTags = cachedData.value.data.tags;
+                        const storedTags = cachedData.value.tags;
 
                         // update stored tags if a new one is being added
                         // TODO: remove this when we can send the tags

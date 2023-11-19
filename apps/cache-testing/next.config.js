@@ -1,7 +1,7 @@
 const path = require('node:path');
 
 const incrementalCacheHandlerPath = require.resolve(
-    process.env.CI ? './cache-handler-http' : './cache-handler-redis-stack',
+    process.env.CI ? './cache-handler-server' : './cache-handler-redis-stack',
 );
 
 /** @type {import('next').NextConfig} */

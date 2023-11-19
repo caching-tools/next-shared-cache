@@ -1,0 +1,56 @@
+import { Callout } from 'nextra/components';
+
+## `@neshca/server` example
+
+### Setup and run `@neshca/server`
+
+To install the `@neshca/server` package and its peer dependencies, run the following command:
+
+```sh npm2yarn copy
+npm i -D @neshca/server pino fastify pino-pretty
+```
+
+Run the server with the following command:
+
+```sh copy
+PORT=8080 HOST=localhost npx next-cache-server
+```
+
+<Callout type="info">Ensure that the `@neshca/server` is running when you build your Next.js app.</Callout>
+
+### Configure Next.js to use the server:
+
+<Callout type="info">
+    In this example, we assume that in your deployment, you have `REMOTE_CACHE_SERVER_BASE_URL` environment variable set
+    to the URL of your `@neshca/server`. You can use any other way to set the URL.
+</Callout>
+
+Create a file called `cache-handler.js` next to you `next.config.js` with the following contents:
+
+```js filename="cache-handler.js" copy
+const { IncrementalCache } = require('@neshca/cache-handler');
+const { createHandler } = require('@neshca/cache-handler/server');
+
+const baseUrl = process.env.REMOTE_CACHE_SERVER_BASE_URL ?? 'http://localhost:8080';
+
+IncrementalCache.onCreation(
+    createHandler({
+        baseUrl,
+    }),
+);
+
+module.exports = IncrementalCache;
+```
+
+Then, use the following configuration in your `next.config.js` file:
+
+```js filename="next.config.js" copy
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+    experimental: {
+        incrementalCacheHandlerPath: require.resolve('./cache-handler'), // path to the cache handler file you created
+    },
+};
+
+module.exports = nextConfig;
+```

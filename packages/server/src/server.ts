@@ -29,10 +29,7 @@ server.get('/get', async (request, reply): Promise<void> => {
 
     const data = cache.get(key);
 
-    await reply
-        .code(data ? 200 : 404)
-        .header('Content-Type', 'application/json; charset=utf-8')
-        .send(data);
+    await reply.code(data ? 200 : 404).send(data);
 });
 
 server.post('/set', async (request, reply): Promise<void> => {
@@ -40,11 +37,11 @@ server.post('/set', async (request, reply): Promise<void> => {
 
     cache.set(key, data);
 
-    await reply.code(200).header('Content-Type', 'application/json; charset=utf-8').send(null);
+    await reply.code(200).send();
 });
 
 server.get('/getTagsManifest', async (_request, reply): Promise<void> => {
-    await reply.code(200).header('Content-Type', 'application/json; charset=utf-8').send(tagsManifest);
+    await reply.code(200).send(tagsManifest);
 });
 
 server.post('/revalidateTag', async (request, reply): Promise<void> => {
@@ -52,13 +49,13 @@ server.post('/revalidateTag', async (request, reply): Promise<void> => {
 
     tagsManifest.items[tag] = { revalidatedAt };
 
-    await reply.code(200).header('Content-Type', 'application/json; charset=utf-8').send(null);
+    await reply.code(200).send();
 });
 
 server.get('/clear-cache', async (_request, reply): Promise<void> => {
     cache.clear();
 
-    await reply.code(200).header('Content-Type', 'application/json; charset=utf-8').send({ cache: 'cleared' });
+    await reply.code(200).send(true);
 });
 
 server
