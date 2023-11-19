@@ -8,9 +8,8 @@
             "env": ["REDIS_URL", "REMOTE_CACHE_SERVER_BASE_URL", "SERVER_STARTED", "PORT", "PPR_ENABLED"],
             "outputs": [".next/**", "!.next/cache/**", "dist/**", "out/**"]
         },
-        "cache-handler-docs#build": {
-            "dependsOn": ["^build"],
-            "env": [],
+        "build:docs": {
+            "dependsOn": ["^build:docs"],
             "outputs": [".next/**", "!.next/cache/**", "out/**"]
         },
         "lint": {},
