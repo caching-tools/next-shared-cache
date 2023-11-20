@@ -27,7 +27,7 @@
         "@neshca/tsconfig": "*",
         "@next/eslint-plugin-next": "14.0.4-canary.4",
         "@playwright/test": "1.40.0",
-        "@types/node": "20.9.1",
+        "@types/node": "20.9.2",
         "@types/react": "18.2.37",
         "@types/react-dom": "18.2.15",
         "dotenv-cli": "7.3.0",
