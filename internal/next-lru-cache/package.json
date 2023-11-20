@@ -12,7 +12,7 @@
         "lint": "eslint ."
     },
     "dependencies": {
-        "lru-cache": "10.0.2"
+        "lru-cache": "10.0.3"
     },
     "devDependencies": {
         "@neshca/next-common": "*",
