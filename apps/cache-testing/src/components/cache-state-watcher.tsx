@@ -9,6 +9,13 @@ export function CacheStateWatcher({ time, revalidateAfter }: CacheStateWatcherPr
     const [countDown, setCountDown] = useState('');
 
     useEffect(() => {
+        if (!Number.isFinite(revalidateAfter)) {
+            setCacheState('fresh');
+            setCountDown((0).toFixed(3));
+
+            return;
+        }
+
         let id = -1;
 
         function check(): void {

@@ -318,3 +318,27 @@ test.describe('Data consistency after server restart', () => {
         });
     }
 });
+
+test.describe('SSR', () => {
+    test('verify initial cache state is fresh on SSR page load', async ({ page, baseURL }) => {
+        const url = new URL('/app/no-params/ssr/200', `${baseURL}:3000`);
+
+        await page.goto(url.href);
+
+        await expect(page.getByTestId('cache-state')).toContainText('fresh');
+    });
+
+    test('ensure data value increments by 1 on SSR page reload', async ({ page, baseURL }) => {
+        const url = new URL('/app/no-params/ssr/200', `${baseURL}:3000`);
+
+        await page.goto(url.href);
+
+        const valueFromPage = Number.parseInt((await page.getByTestId('data').innerText()).valueOf(), 10);
+
+        await page.reload();
+
+        const valueFromPageAfterReload = Number.parseInt((await page.getByTestId('data').innerText()).valueOf(), 10);
+
+        expect(valueFromPageAfterReload - valueFromPage === 1).toBe(true);
+    });
+});

@@ -1,13 +1,14 @@
 import { normalizeSlug } from './normalize-slug';
 import type { CountBackendApiResponseJson, PageProps } from './types';
 
-export function createGetData(path: string, revalidate?: number) {
+export function createGetData(path: string, revalidate?: number, cache?: RequestCache) {
     return async function getData(slug: string): Promise<Omit<PageProps, 'revalidateAfter'> | null> {
         const pathAndTag = `/${path}/${normalizeSlug(slug)}`;
 
         const url = new URL(`/count${pathAndTag}`, 'http://localhost:8081');
 
         const result = await fetch(url, {
+            cache,
             next: { revalidate, tags: [pathAndTag, 'whole-app-route'] },
         });
 
