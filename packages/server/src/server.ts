@@ -16,10 +16,7 @@ const server = Fastify();
 
 const cache = createCache();
 
-const tagsManifest: TagsManifest = {
-    items: {},
-    version: 1,
-};
+const revalidatedItems = new Map<string, { revalidatedAt: number }>();
 
 const host = process.env.HOST ?? 'localhost';
 const port = Number.parseInt(process.env.PORT ?? '8080', 10);
@@ -41,13 +38,18 @@ server.post('/set', async (request, reply): Promise<void> => {
 });
 
 server.get('/getTagsManifest', async (_request, reply): Promise<void> => {
+    const tagsManifest: TagsManifest = {
+        items: Object.fromEntries(revalidatedItems),
+        version: 1,
+    };
+
     await reply.code(200).send(tagsManifest);
 });
 
 server.post('/revalidateTag', async (request, reply): Promise<void> => {
     const [tag, revalidatedAt] = request.body as [string, number];
 
-    tagsManifest.items[tag] = { revalidatedAt };
+    revalidatedItems.set(tag, { revalidatedAt });
 
     await reply.code(200).send();
 });
