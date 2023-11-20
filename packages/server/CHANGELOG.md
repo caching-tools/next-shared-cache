@@ -1,5 +1,11 @@
 # @neshca/server
 
+## 0.5.1
+
+### Patch Changes
+
+-   274e2e4: Fix remote property injection vulnerability
+
 ## 0.5.0
 
 ### Minor Changes
