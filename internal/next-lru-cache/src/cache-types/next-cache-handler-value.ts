@@ -1,6 +1,5 @@
-/* eslint-disable import/no-relative-packages -- to overcome tsup's limitations */
 import type { LRUCache } from 'lru-cache';
-import type { CacheHandlerValue } from '../../../next-common/src/next-common';
+import type { CacheHandlerValue } from '@neshca/next-common';
 import type { LruCacheOptions } from '../create-configured-cache';
 import { createConfiguredCache } from '../create-configured-cache';
 
