@@ -1,4 +1,3 @@
-/* eslint-disable import/no-relative-packages -- to overcome tsup's limitations */
 import path from 'node:path';
 import fs, { promises as fsPromises } from 'node:fs';
 import { createCache } from '@neshca/next-lru-cache/next-cache-handler-value';
@@ -12,7 +11,7 @@ import type {
     CacheHandlerParametersRevalidateTag,
     RouteMetadata,
     NonNullableRouteMetadata,
-} from '../../../internal/next-common/src/next-common';
+} from '@neshca/next-common';
 import type { RedisCacheHandlerOptions } from './common-types';
 
 const RSC_PREFETCH_SUFFIX = '.prefetch.rsc';
