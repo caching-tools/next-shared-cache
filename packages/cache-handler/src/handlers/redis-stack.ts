@@ -18,8 +18,8 @@ export function createHandler<T extends RedisClientType | RedisClusterType>({
     tagsManifestKey = TAGS_MANIFEST_KEY,
     unstable__logErrors,
 }: RedisCacheHandlerOptions<T>): OnCreationCallback {
-    return () => {
-        void client.json.set(keyPrefix + tagsManifestKey, '.', localTagsManifest, {
+    return async () => {
+        await client.json.set(keyPrefix + tagsManifestKey, '.', localTagsManifest, {
             NX: true,
         });
 

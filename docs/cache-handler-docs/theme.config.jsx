@@ -52,7 +52,9 @@ export default {
     banner: {
         key: '0.5.1-release',
         text: (
-            <a href={`${process.env.NEXT_PUBLIC_BASE_URL}/server`}>🎉 Version 0.5.1 is out. Check out HTTP Handler</a>
+            <a href={`${process.env.NEXT_PUBLIC_BASE_URL}/redis-stack`}>
+                🎉 Version 0.5.2 is out. onCreation now accepts async functions!
+            </a>
         ),
     },
 };

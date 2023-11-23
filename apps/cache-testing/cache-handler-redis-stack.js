@@ -9,43 +9,27 @@ if (!process.env.REDIS_URL) {
 const PREFIX = 'JSON:';
 const CONNECT_TIMEOUT_MS = 5 * 50 * 1000;
 
-function createRedisClient(url) {
-    const client = createClient({
-        url,
-        name: `cache-handler:${PREFIX}${process.env.PORT ?? process.pid}`,
-        socket: {
-            connectTimeout: CONNECT_TIMEOUT_MS,
-        },
+const client = createClient({
+    url: process.env.REDIS_URL,
+    name: `cache-handler:${PREFIX}${process.env.PORT ?? process.pid}`,
+    socket: {
+        connectTimeout: CONNECT_TIMEOUT_MS,
+    },
+});
+
+client.on('error', (error) => {
+    console.error('Redis error:', error.message);
+});
+
+IncrementalCache.onCreation(async (options) => {
+    await client.connect();
+
+    const handler = createHandler({
+        client,
+        keyPrefix: PREFIX,
     });
 
-    client.on('error', (error) => {
-        console.error('Redis error:', error.message);
-    });
-
-    return client;
-}
-
-async function connect(client) {
-    try {
-        await client.connect();
-    } catch (error) {
-        console.error('Redis connection error:', error.message);
-    }
-}
-
-if (process.env.SERVER_STARTED) {
-    const client = createRedisClient(process.env.REDIS_URL);
-
-    connect(client).then(() => {
-        console.log('Redis connected');
-    });
-
-    IncrementalCache.onCreation(
-        createHandler({
-            client,
-            keyPrefix: PREFIX,
-        }),
-    );
-}
+    return handler(options);
+});
 
 module.exports = IncrementalCache;
