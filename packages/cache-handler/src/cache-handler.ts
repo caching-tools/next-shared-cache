@@ -60,9 +60,13 @@ export type CacheCreationContext = {
     dev?: boolean;
 };
 
-export type OnCreationCallback = (cacheCreationContext: CacheCreationContext) => CacheConfig | undefined;
+export type OnCreationCallback = (
+    cacheCreationContext: CacheCreationContext,
+) => Promise<CacheConfig | undefined> | CacheConfig | undefined;
 
 export class IncrementalCache implements CacheHandler {
+    private static initPromise: Promise<void>;
+
     private static diskAccessMode: CacheDiskAccessMode = 'read-yes/write-yes';
 
     private static cache: Cache;
@@ -71,17 +75,33 @@ export class IncrementalCache implements CacheHandler {
 
     private static serverDistDir?: string;
 
-    private static configDefiner: (cacheCreationContext: CacheCreationContext) => CacheConfig | undefined = () =>
-        undefined;
+    private static getConfig: OnCreationCallback = () => undefined;
 
-    public static onCreation(
-        onCreationCallback: (cacheCreationContext: CacheCreationContext) => CacheConfig | undefined,
-    ): void {
-        this.configDefiner = onCreationCallback;
+    public static onCreation(onCreationHook: OnCreationCallback): void {
+        this.getConfig = onCreationHook;
+    }
+
+    private static async handleAsyncConfig(configPromise: Promise<CacheConfig | undefined>): Promise<void> {
+        try {
+            const config = await configPromise;
+            this.configure(config);
+        } catch (error) {
+            throw new Error(`The config promise failed to resolve. ${String(error)}`);
+        }
     }
 
     private static init(cacheCreationContext: CacheCreationContext): void {
-        this.configure(this.configDefiner(cacheCreationContext));
+        const configOrPromise = this.getConfig(cacheCreationContext);
+
+        if (configOrPromise instanceof Promise) {
+            this.initPromise = this.handleAsyncConfig(configOrPromise);
+
+            return;
+        }
+
+        this.configure(configOrPromise);
+
+        this.initPromise = Promise.resolve();
     }
 
     private static configure({
@@ -165,13 +185,9 @@ export class IncrementalCache implements CacheHandler {
 
         const { tags = [], softTags = [], kindHint } = ctx;
 
-        let cachedData: CacheHandlerValue | null = null;
+        await IncrementalCache.initPromise;
 
-        try {
-            cachedData = (await IncrementalCache.cache.get(cacheKey)) ?? null;
-        } catch (error) {
-            return null;
-        }
+        let cachedData: CacheHandlerValue | null = (await IncrementalCache.cache.get(cacheKey)) ?? null;
 
         if (!cachedData && IncrementalCache.diskAccessMode.includes('read-yes')) {
             try {
@@ -347,6 +363,8 @@ export class IncrementalCache implements CacheHandler {
             ttl = revalidate;
         }
 
+        await IncrementalCache.initPromise;
+
         await IncrementalCache.cache.set(
             cacheKey,
             {
@@ -420,6 +438,8 @@ export class IncrementalCache implements CacheHandler {
     public async revalidateTag(...args: CacheHandlerParametersRevalidateTag): Promise<void> {
         const [tag] = args;
 
+        await IncrementalCache.initPromise;
+
         await IncrementalCache.cache.revalidateTag(tag, Date.now());
 
         if (!IncrementalCache.tagsManifestPath || IncrementalCache.diskAccessMode.includes('write-no')) {
@@ -432,7 +452,7 @@ export class IncrementalCache implements CacheHandler {
             await fsPromises.mkdir(path.dirname(IncrementalCache.tagsManifestPath), { recursive: true });
             await fsPromises.writeFile(IncrementalCache.tagsManifestPath, JSON.stringify(tagsManifest || {}));
         } catch (err) {
-            // eslint-disable-next-line no-console -- Next.js logs it so we do too
+            // eslint-disable-next-line no-console -- we want to log this
             console.warn('Failed to update tags manifest.', err);
         }
     }

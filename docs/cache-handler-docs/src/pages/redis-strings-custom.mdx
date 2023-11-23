@@ -28,32 +28,16 @@ const localTagsManifest = {
 
 const TAGS_MANIFEST_KEY = 'sharedTagsManifest';
 
-function createRedisClient(url) {
-    const client = createClient({
-        url,
-    });
+const client = createClient({
+    url: process.env.REDIS_URL ?? 'redis://localhost:6379',
+});
 
-    client.on('error', (error) => {
-        console.error('Redis error:', error.message);
-    });
+client.on('error', (error) => {
+    console.error('Redis error:', error.message);
+});
 
-    return client;
-}
-
-async function connect(client) {
-    try {
-        await client.connect();
-    } catch (error) {
-        console.error('Redis connection error:', error.message);
-    }
-}
-
-IncrementalCache.onCreation(() => {
-    const client = createRedisClient(process.env.REDIS_URL ?? 'redis://localhost:6379');
-
-    connect(client).then(() => {
-        console.log('Redis connected');
-    });
+IncrementalCache.onCreation(async () => {
+    await client.connect();
 
     return {
         cache: {
