@@ -1,5 +1,11 @@
 # @neshca/cache-handler
 
+## 0.5.2
+
+### Patch Changes
+
+-   a18f2bb: Add async onCreation hook and async Handlers
+
 ## 0.5.1
 
 ### Patch Changes
