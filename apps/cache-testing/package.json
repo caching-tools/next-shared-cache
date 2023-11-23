@@ -25,7 +25,7 @@
         "@neshca/cache-handler": "*",
         "@neshca/json-replacer-reviver": "*",
         "@neshca/tsconfig": "*",
-        "@next/eslint-plugin-next": "14.0.4-canary.9",
+        "@next/eslint-plugin-next": "14.0.4-canary.12",
         "@playwright/test": "1.40.0",
         "@types/node": "20.9.4",
         "@types/react": "18.2.38",
