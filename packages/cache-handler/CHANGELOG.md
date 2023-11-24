@@ -1,5 +1,11 @@
 # @neshca/cache-handler
 
+## 0.5.3
+
+### Patch Changes
+
+-   571435b: Fix types and improve naming
+
 ## 0.5.2
 
 ### Patch Changes
