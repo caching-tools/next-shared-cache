@@ -35,18 +35,17 @@ IncrementalCache.onCreation(async () => {
     await client.json.set(TAGS_MANIFEST_KEY, '.', localTagsManifest, {
         NX: true,
     });
-
     return {
         cache: {
             async get(key) {
                 try {
-                    const value = (await client.json.get(key)) ?? null;
+                    const cacheValue = (await client.json.get(key)) ?? null;
 
                     if (cacheValue && cacheValue.value?.kind === 'ROUTE' && cacheValue.value.body.type === 'Buffer') {
                         cacheValue.value.body = Buffer.from(cacheValue.value.body);
                     }
 
-                    return value;
+                    return cacheValue;
                 } catch (error) {
                     return null;
                 }
@@ -66,7 +65,7 @@ IncrementalCache.onCreation(async () => {
                         localTagsManifest = sharedTagsManifest;
                     }
 
-                    return sharedTagsManifest;
+                    return localTagsManifest;
                 } catch (error) {
                     return localTagsManifest;
                 }
