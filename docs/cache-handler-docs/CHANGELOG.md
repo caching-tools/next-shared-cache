@@ -1,5 +1,11 @@
 # cache-handler-docs
 
+## 0.5.4
+
+### Patch Changes
+
+-   cdcf136: Fix redis-stack-custom example
+
 ## 0.5.3
 
 ### Patch Changes
