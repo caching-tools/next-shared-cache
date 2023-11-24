@@ -10,13 +10,14 @@ async function wait(ms) {
 }
 
 IncrementalCache.onCreation(async (options) => {
+    // For testing purposes
     await wait(100);
 
-    const handler = createHandler({
+    const getConfig = createHandler({
         baseUrl,
     });
 
-    return handler(options);
+    return getConfig(options);
 });
 
 module.exports = IncrementalCache;

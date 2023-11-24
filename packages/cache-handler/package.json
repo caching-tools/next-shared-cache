@@ -23,13 +23,23 @@
     },
     "type": "module",
     "exports": {
-        ".": {
-            "default": "./dist/cache-handler.cjs",
-            "types": "./dist/cache-handler.d.cts"
-        },
-        "./*": {
-            "default": "./dist/handlers/*.cjs",
-            "types": "./dist/handlers/*.d.cts"
+        ".": "./dist/cache-handler.cjs",
+        "./*": "./dist/handlers/*.cjs"
+    },
+    "typesVersions": {
+        "*": {
+            "*": [
+                "dist/cache-handler.d.cts"
+            ],
+            "redis-stack": [
+                "dist/handlers/redis-stack.d.cjs"
+            ],
+            "redis-strings": [
+                "dist/handlers/redis-strings.d.cjs"
+            ],
+            "server": [
+                "dist/handlers/server.d.cjs"
+            ]
         }
     },
     "scripts": {

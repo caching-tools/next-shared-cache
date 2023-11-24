@@ -2,7 +2,7 @@
 
 Flexible API to replace the default Next.js cache, accommodating custom cache solutions for multi-instance deployments.
 
-🎉 Version 0.5.2 is out, introducing [async onCreation hook and async Handlers](https://caching-tools.github.io/next-shared-cache/redis-stack). This patch significantly enhances the library while ensuring compatibility with older synchronous Handlers.
+🎉 Version 0.5.3 is out, introducing [async onCreation hook, async Handlers](https://caching-tools.github.io/next-shared-cache/redis-stack) and fixed types. This patch significantly enhances the library while ensuring compatibility with older synchronous Handlers.
 
 [![npm package](https://img.shields.io/npm/v/@neshca/cache-handler/latest.svg)](https://www.npmjs.com/package/@neshca/cache-handler)
 [![Dependencies](https://img.shields.io/npm/dm/@neshca/cache-handler)](https://www.npmjs.com/package/@neshca/cache-handler)

@@ -2,7 +2,7 @@
 /* eslint-disable no-console -- log errors */
 import { reviveFromBase64Representation, replaceJsonWithBase64 } from '@neshca/json-replacer-reviver';
 import type { RedisClientType, RedisClusterType } from 'redis';
-import type { TagsManifest, OnCreationCallback, CacheHandlerValue } from '../cache-handler';
+import type { TagsManifest, OnCreationHook, CacheHandlerValue } from '../cache-handler';
 import type { RedisCacheHandlerOptions } from '../common-types';
 
 const localTagsManifest: TagsManifest = {
@@ -18,8 +18,8 @@ export function createHandler<T extends RedisClientType | RedisClusterType>({
     keyPrefix = '',
     tagsManifestKey = TAGS_MANIFEST_KEY,
     unstable__logErrors,
-}: RedisCacheHandlerOptions<T>): OnCreationCallback {
-    return () => {
+}: RedisCacheHandlerOptions<T>): OnCreationHook {
+    return function getConfig() {
         return {
             diskAccessMode,
             cache: {

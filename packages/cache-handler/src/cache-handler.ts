@@ -60,7 +60,7 @@ export type CacheCreationContext = {
     dev?: boolean;
 };
 
-export type OnCreationCallback = (
+export type OnCreationHook = (
     cacheCreationContext: CacheCreationContext,
 ) => Promise<CacheConfig | undefined> | CacheConfig | undefined;
 
@@ -75,9 +75,9 @@ export class IncrementalCache implements CacheHandler {
 
     private static serverDistDir?: string;
 
-    private static getConfig: OnCreationCallback = () => undefined;
+    private static getConfig: OnCreationHook = () => undefined;
 
-    public static onCreation(onCreationHook: OnCreationCallback): void {
+    public static onCreation(onCreationHook: OnCreationHook): void {
         this.getConfig = onCreationHook;
     }
 
