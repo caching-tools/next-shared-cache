@@ -1,7 +1,7 @@
 /* eslint-disable camelcase -- unstable__* */
 /* eslint-disable no-console -- log errors */
 import { reviveFromBase64Representation, replaceJsonWithBase64 } from '@neshca/json-replacer-reviver';
-import type { TagsManifest, OnCreationCallback, CacheHandlerValue } from '../cache-handler';
+import type { TagsManifest, OnCreationHook, CacheHandlerValue } from '../cache-handler';
 import type { ServerCacheHandlerOptions } from '../common-types';
 
 const localTagsManifest: TagsManifest = {
@@ -13,8 +13,8 @@ export function createHandler({
     baseUrl,
     diskAccessMode = 'read-yes/write-yes',
     unstable__logErrors,
-}: ServerCacheHandlerOptions): OnCreationCallback {
-    return () => {
+}: ServerCacheHandlerOptions): OnCreationHook {
+    return function getConfig() {
         return {
             diskAccessMode,
             cache: {

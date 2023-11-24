@@ -25,12 +25,12 @@ client.on('error', (error) => {
 IncrementalCache.onCreation(async (options) => {
     await client.connect();
 
-    const handler = createHandler({
+    const getConfig = createHandler({
         client,
         keyPrefix: PREFIX,
     });
 
-    return handler(options);
+    return getConfig(options);
 });
 
 module.exports = IncrementalCache;
