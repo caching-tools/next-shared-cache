@@ -1,6 +1,6 @@
 {
     "name": "cache-handler-docs",
-    "version": "0.5.2",
+    "version": "0.5.3",
     "private": true,
     "scripts": {
         "build:docs": "next build",
