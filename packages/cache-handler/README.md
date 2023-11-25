@@ -29,7 +29,7 @@ This project is on its way to a stable release but will remain in beta until Nex
 
 ## Supported Next.js versions
 
-Next.js 13.5.0 and above.
+Please use 14.0.2 or newer Next.js version until I resolve [this issue](https://github.com/caching-tools/next-shared-cache/issues/177).
 
 ## Examples
 
