@@ -1,5 +1,4 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { fetch } from 'undici';
 
 export default async function handler(_request: NextApiRequest, result: NextApiResponse): Promise<void> {
     const port = Number.parseInt(process.env.PORT ?? '3000', 10);
@@ -11,9 +10,14 @@ export default async function handler(_request: NextApiRequest, result: NextApiR
         return;
     }
 
-    const restartResult = await fetch(`http://localhost:9000/restart/${port}`);
+    const restartResult = await fetch(`http://localhost:9000/restart/${port}`, {
+        next: {
+            // @ts-expect-error -- act as an internal fetch call
+            internal: true,
+        },
+    });
 
-    const json = await restartResult.json();
+    const json = (await restartResult.json()) as unknown;
 
     result.json(json);
 }

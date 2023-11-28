@@ -1,5 +1,4 @@
 import { test, expect } from '@playwright/test';
-import { fetch } from 'undici';
 
 const paths = [
     '/pages/with-paths/fallback-blocking/200',
@@ -237,7 +236,12 @@ test.describe('Data consistency after server restart', () => {
 
             expect(valueFromPageA === valueFromPageB).toBe(true);
 
-            const restartResult = await fetch(`${baseURL}:9000/restart/${appBUrl.port}`);
+            const restartResult = await fetch(`${baseURL}:9000/restart/${appBUrl.port}`, {
+                next: {
+                    // @ts-expect-error -- act as an internal fetch call
+                    internal: true,
+                },
+            });
 
             expect(restartResult.status).toBe(200);
 
