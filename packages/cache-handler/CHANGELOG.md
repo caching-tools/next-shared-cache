@@ -1,5 +1,11 @@
 # @neshca/cache-handler
 
+## 0.5.4
+
+### Patch Changes
+
+-   915ecef: Fix Pages router for older Next.js versions
+
 ## 0.5.3
 
 ### Patch Changes
