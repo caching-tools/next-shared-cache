@@ -2,4 +2,52 @@ import { Callout } from 'nextra/components';
 
 ## Configuring disk access
 
-<Callout type="warning">This section of the documentation is still under development. Please check back later.</Callout>
+ The library provides functionality to configure a [custom cache](/configuration/cache) in `next.config.js`, defaulting to `lru-cache`. On the first request the cache would be empty, and the response from the backend gets cached. Further, the response can be written to and read from the disk which is based on values in `diskAccessMode` flag.
+
+<Callout type="info">Now on, `main-cache` indicates `lru-cache` or user provide custom cache.</Callout>
+
+### Usage
+
+```js copy
+IncrementalCache.onCreation(() => {
+  return {
+    diskAccessMode: 'read-yes/write-yes'
+    cache: customCache,
+  };
+});
+```
+
+The flag defaults to `read-yes/write-yes` which loads tags manifest file (`.next/cache/fetch-cache/tags-manifest.json`) into memory. The possible values are the permutation of `ReadCacheFromDisk` and `WriteCacheFromDisk` type, which is as follows:
+
+|   | allow write | deny write |
+|---|---|---|
+| __allow read__ | read-yes/write-yes | read-yes/write-no |
+| __deny read__ | read-no/write-yes | read-no/write-no |
+
+### Cache files
+
+The `tags-manifest.json` stores a `revalidatedAt` timestamp for all the tags used for caching, written to tags manifest path. The `revalidateTag` API updates the cache, but writes to file only when the flag does not contain `write-no` value.
+
+Mapping of cache files on disk:
+|cache kind hint| directory | files |
+|---|---|---|
+|fetch| .next/cache/fetch-cache | `<cache_key>` |
+|pages| .next/server/pages | `<cache_key>.html` - response<br /> `<cache_key>.json` - metadata like headers, status code |
+|app| .next/server/app | <ins>`ROUTE` type:</ins><br />`<cache_key>.body` - body data<br />`<cache_key>.meta` - meta info like headers, status code etc<br /><br />|
+|||<ins>`PAGE` type:</ins><br />`<cache_key>.html` - response<br />  `<cache_key>.prefetch.rsc`, `<cache_key>.rsc` - page data<br />`<cache_key>.json` - metadata`|
+
+### Detailed working
+
+#### getter
+
+On first hit after app boot, both the cache and disk-cache would be empty. The result is stored in the main cache, and disk-cache based on the `diskAccessMode` value. On subsequent access, the following points describe the flow of cache access if disk read is enabled:
+- Data is accessed from the main cache, and staleness validation is done on `PAGE` and `FETCH` type.
+- On `MISS`, `<cache_key>.body` and `<cache_key>.meta` files are read to conclude the request to be of `ROUTE` type and data is returned, if present.
+- Else attempt to read `<cache_key>` file for `FETCH` is done, with a reset of `lastModified` timestamp on both main and disk cache (based on flag value).
+- `<cache_key>.json` and `<cache_key>.rsc` is read for non-`FETCH` requests for `pages` and `app` type respectively. If the cache for any tag is expired, the new value is set on the main-cache.
+- `PAGE` data stale validation is based on `x-next-cache-tags` and `FETCH` validation is based on the `tags` + `softTags` field passed as context.
+
+#### setter
+
+- the cache is set with a TTL equal to `revalidatedAt` seconds, when both read/write disabled
+- if write enabled, the cache is written to the files listed above.
