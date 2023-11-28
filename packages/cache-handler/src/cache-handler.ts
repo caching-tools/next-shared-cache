@@ -67,6 +67,8 @@ export type OnCreationHook = (
 export class IncrementalCache implements CacheHandler {
     private static initPromise: Promise<void>;
 
+    private static hasPagesDir = false;
+
     private static diskAccessMode: CacheDiskAccessMode = 'read-yes/write-yes';
 
     private static cache: Cache;
@@ -110,6 +112,10 @@ export class IncrementalCache implements CacheHandler {
         defaultLruCacheOptions,
     }: CacheConfig = {}): void {
         this.diskAccessMode = diskAccessMode;
+
+        if (this.serverDistDir) {
+            this.hasPagesDir = fs.existsSync(path.join(this.serverDistDir, 'pages'));
+        }
 
         if (this.serverDistDir && diskAccessMode === 'read-yes/write-yes') {
             this.tagsManifestPath = path.join(this.serverDistDir, '..', 'cache', 'fetch-cache', 'tags-manifest.json');
@@ -163,14 +169,14 @@ export class IncrementalCache implements CacheHandler {
 
     private revalidatedTags: FileSystemCacheContext['revalidatedTags'];
     private appDir: FileSystemCacheContext['_appDir'];
+    private pagesDir: FileSystemCacheContext['_pagesDir'] | undefined;
     private serverDistDir: FileSystemCacheContext['serverDistDir'];
-    private pagesDir: FileSystemCacheContext['_pagesDir'];
     private readonly experimental: FileSystemCacheContext['experimental'];
 
     public constructor(context: FileSystemCacheContext) {
         this.revalidatedTags = context.revalidatedTags;
         this.appDir = Boolean(context._appDir);
-        this.pagesDir = Boolean(context._pagesDir);
+        this.pagesDir = context._pagesDir;
         this.serverDistDir = context.serverDistDir;
         this.experimental = context.experimental;
 
@@ -459,17 +465,19 @@ export class IncrementalCache implements CacheHandler {
 
     // credits to Next.js for the following code
     private detectFileKind(pathname: string): 'app' | 'pages' {
-        if (!this.appDir && !this.pagesDir) {
+        const pagesDir = this.pagesDir ?? IncrementalCache.hasPagesDir;
+
+        if (!this.appDir && !pagesDir) {
             throw new Error("Invariant: Can't determine file path kind, no page directory enabled");
         }
 
         // If app directory isn't enabled, then assume it's pages and avoid the fs
         // hit.
-        if (!this.appDir && this.pagesDir) {
+        if (!this.appDir && pagesDir) {
             return 'pages';
         }
         // Otherwise assume it's a pages file if the pages directory isn't enabled.
-        else if (this.appDir && !this.pagesDir) {
+        else if (this.appDir && !pagesDir) {
             return 'app';
         }
 
