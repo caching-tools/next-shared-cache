@@ -36,7 +36,7 @@
         "@neshca/prettier-config": "*",
         "@neshca/tsconfig": "*",
         "diffscribe": "*",
-        "eslint": "8.54.0",
+        "eslint": "8.55.0",
         "glob": "10.3.10",
         "prettier": "3.1.0",
         "turbo": "1.10.16"
