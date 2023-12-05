@@ -1,7 +1,7 @@
 {
     "name": "@neshca/cache-handler",
     "version": "0.5.4",
-    "description": "Flexible API to replace the default Next.js cache, accommodating custom cache solutions for multi-instance deployments.    ",
+    "description": "Flexible API to replace the default Next.js cache, accommodating custom cache solutions for multi-instance deployments.",
     "keywords": [
         "cache",
         "isr",
@@ -32,13 +32,16 @@
                 "dist/cache-handler.d.cts"
             ],
             "redis-stack": [
-                "dist/handlers/redis-stack.d.cjs"
+                "dist/handlers/redis-stack.d.cts"
             ],
             "redis-strings": [
-                "dist/handlers/redis-strings.d.cjs"
+                "dist/handlers/redis-strings.d.cts"
             ],
             "server": [
-                "dist/handlers/server.d.cjs"
+                "dist/handlers/server.d.cts"
+            ],
+            "local-lru": [
+                "dist/handlers/local-lru.d.cts"
             ]
         }
     },
@@ -63,7 +66,7 @@
         "typescript": "5.3.3"
     },
     "peerDependencies": {
-        "next": ">=13.5",
+        "next": ">=13.5.1",
         "redis": ">=4.6"
     },
     "distTags": [

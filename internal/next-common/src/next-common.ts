@@ -13,6 +13,7 @@ export type {
     CachedFetchValue,
     IncrementalCacheValue,
     IncrementalCacheEntry,
+    IncrementalCacheKindHint,
 } from 'next/dist/server/response-cache/types';
 
 export type RouteMetadata = NextRouteMetadata;

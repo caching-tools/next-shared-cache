@@ -3,7 +3,6 @@
 import { pino } from 'pino';
 import Fastify from 'fastify';
 import { createCache } from '@neshca/next-lru-cache/cache-string-value';
-import type { TagsManifest } from '@neshca/next-common';
 
 const logger = pino({
     transport: {
@@ -16,7 +15,7 @@ const server = Fastify();
 
 const cache = createCache();
 
-const revalidatedItems = new Map<string, { revalidatedAt: number }>();
+const revalidatedItems = new Map<string, number>();
 
 const host = process.env.HOST ?? 'localhost';
 const port = Number.parseInt(process.env.PORT ?? '8080', 10);
@@ -37,19 +36,14 @@ server.post('/set', async (request, reply): Promise<void> => {
     await reply.code(200).send();
 });
 
-server.get('/getTagsManifest', async (_request, reply): Promise<void> => {
-    const tagsManifest: TagsManifest = {
-        items: Object.fromEntries(revalidatedItems),
-        version: 1,
-    };
-
-    await reply.code(200).send(tagsManifest);
+server.get('/getRevalidatedTags', async (_request, reply): Promise<void> => {
+    await reply.code(200).send(Object.fromEntries(revalidatedItems));
 });
 
 server.post('/revalidateTag', async (request, reply): Promise<void> => {
     const [tag, revalidatedAt] = request.body as [string, number];
 
-    revalidatedItems.set(tag, { revalidatedAt });
+    revalidatedItems.set(tag, revalidatedAt);
 
     await reply.code(200).send();
 });

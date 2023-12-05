@@ -5,7 +5,7 @@ export const tsup = defineConfig({
     entry: ['src/cache-handler.ts', 'src/handlers/*.ts'],
     splitting: false,
     outDir: 'dist',
-    clean: true,
+    clean: false,
     format: ['cjs'],
     dts: { resolve: true },
     target: 'node18',

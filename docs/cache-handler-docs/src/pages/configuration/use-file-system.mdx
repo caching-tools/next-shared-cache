@@ -1,0 +1,89 @@
+import { Callout } from 'nextra/components';
+
+## Configuring access to the file system
+
+You can use your file system to store the cache data alongside with you shared cache. It may be useful if your shared cache store may be unavailable for some reason.
+
+File system cache is enabled by default. You can disable it by setting `useFileSystem` to false in your `onCreation` hook:
+
+```js filename="cache-handler.js" copy
+const { IncrementalCache } = require('@neshca/cache-handler');
+
+IncrementalCache.onCreation(async () => {
+    const cacheStore = new Map();
+
+    const cache = {
+        async get(key) {
+            return cacheStore.get(key);
+        },
+        async set(key, value) {
+            cacheStore.set(key, value);
+        },
+    };
+
+    return {
+        cache,
+        // Disable it only if you are using only the App router.
+        // In this case you will gain some performance boost.
+        // Check out the warning below.
+        useFileSystem: false,
+    };
+});
+
+module.exports = IncrementalCache;
+```
+
+<Callout type="warning">
+    There is a [bug ↗](https://github.com/vercel/next.js/issues/58094) in the Next.js' Pages router when disabling the
+    file system cache. Do not disable it if you are using Pages.
+</Callout>
+
+## The usage of `local-lru` Handler instad of file system cache
+
+The `local-lru` Handler utilizes a Least Recently Used (LRU) caching strategy, which can manage cache operations more efficiently by setting a maximum number of items and their size in bytes. It's designed to serve as a fallback for the Redis Handler, offering better performance in specific scenarios.
+
+### Implementation
+
+The `createLruCache` function initializes the LRU cache handler. It includes methods for getting and setting cache values, and revalidation is managed by the `IncrementalCache` class.
+
+#### Example Usage
+
+```js filename="cache-handler.js" copy
+const { IncrementalCache } = require('@neshca/cache-handler');
+const createRedisCache = require('@neshca/cache-handler/redis-stack').default;
+const createLruCache = require('@neshca/cache-handler/local-lru').default;
+
+IncrementalCache.onCreation(async (context) => {
+    const createRedisCache = await createRedisCache({
+        /* ... */
+    });
+
+    const lruCache = createLruCache({
+        maxItemsNumber: 10000, // Limit to 10000 items
+        maxItemSizeBytes: 1024 * 1024 * 500, // Limit to 500 MB
+        unstable__logErrors: true,
+    });
+
+    return {
+        cache: [createRedisCache, lruCache], // Array of cache instances
+        useFileSystem: false, // Disable file system cache
+    };
+});
+```
+
+#### Options
+
+1. **`maxItemsNumber` (number, optional):**
+
+    - Description: Specifies the maximum number of items to be stored in the cache.
+    - Usage: This can be set to any positive integer. If not provided, the default value is 1000.
+
+2. **`maxItemSizeBytes` (number, optional):**
+
+    - Description: Defines the maximum size of an item in bytes.
+    - Usage: This can be set to any positive integer representing the maximum size in bytes. If not provided, the default value is 100 MB.
+
+### Considerations
+
+-   It's recommended to use this Handler as a fallback for Redis Handler, particularly when using only the App router.
+-   Be cautious of a known bug in Next.js' Pages router when disabling the file system cache. Do not disable it if you are using Pages, as mentioned in the preceding section.

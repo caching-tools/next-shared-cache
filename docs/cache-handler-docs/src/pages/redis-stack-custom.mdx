@@ -13,13 +13,7 @@ Create a file called `cache-handler.js` next to you `next.config.js` with the fo
 const { IncrementalCache } = require('@neshca/cache-handler');
 const { createClient } = require('redis');
 
-/** @type {import('@neshca/cache-handler').TagsManifest} */
-let localTagsManifest = {
-    version: 1,
-    items: {},
-};
-
-const TAGS_MANIFEST_KEY = 'sharedTagsManifest';
+const REVALIDATED_TAGS_KEY = 'sharedRevalidatedTags';
 
 const client = createClient({
     url: process.env.REDIS_URL ?? 'redis://localhost:6379',
@@ -30,12 +24,23 @@ client.on('error', (error) => {
 });
 
 IncrementalCache.onCreation(async () => {
+    // read more about TTL limitations https://caching-tools.github.io/next-shared-cache/configuration/ttl
+    const useTtl = false;
+
     await client.connect();
 
-    await client.json.set(TAGS_MANIFEST_KEY, '.', localTagsManifest, {
-        NX: true,
-    });
+    // Create the shared RevalidatedTags if it doesn't exist
+    await client.json.set(
+        REVALIDATED_TAGS_KEY,
+        '.',
+        {},
+        {
+            NX: true,
+        },
+    );
+
     return {
+        useFileSystem: !useTtl,
         cache: {
             async get(key) {
                 try {
@@ -47,36 +52,36 @@ IncrementalCache.onCreation(async () => {
 
                     return cacheValue;
                 } catch (error) {
+                    console.error('cache.get', error);
+
                     return null;
                 }
             },
-            async set(key, value) {
+            async set(key, value, ttl) {
                 try {
                     await client.json.set(key, '.', value);
+
+                    if (useTtl && typeof ttl === 'number') {
+                        await client.expire(key, ttl);
+                    }
                 } catch (error) {
-                    // ignore because value will be written to disk
+                    console.error('cache.set', error);
                 }
             },
-            async getTagsManifest() {
+            async getRevalidatedTags() {
                 try {
-                    const sharedTagsManifest = (await client.json.get(TAGS_MANIFEST_KEY)) ?? null;
+                    const sharedRevalidatedTags = (await client.json.get(REVALIDATED_TAGS_KEY)) ?? undefined;
 
-                    if (sharedTagsManifest) {
-                        localTagsManifest = sharedTagsManifest;
-                    }
-
-                    return localTagsManifest;
+                    return sharedRevalidatedTags;
                 } catch (error) {
-                    return localTagsManifest;
+                    console.error('cache.getRevalidatedTags', error);
                 }
             },
             async revalidateTag(tag, revalidatedAt) {
                 try {
-                    await client.json.set(TAGS_MANIFEST_KEY, `.items.${tag}`, {
-                        revalidatedAt,
-                    });
+                    await client.json.set(REVALIDATED_TAGS_KEY, `.${tag}`, revalidatedAt);
                 } catch (error) {
-                    localTagsManifest.items[tag] = { revalidatedAt };
+                    console.error('cache.revalidateTag', error);
                 }
             },
         },
@@ -87,16 +92,3 @@ module.exports = IncrementalCache;
 ```
 
 <Callout type="info">Ensure that the Redis instance is running when you build your Next.js app.</Callout>
-
-Then, use the following configuration in your `next.config.js` file:
-
-```js filename="next.config.js" copy
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-    experimental: {
-        incrementalCacheHandlerPath: require.resolve('./cache-handler'), // path to the cache handler file you created
-    },
-};
-
-module.exports = nextConfig;
-```

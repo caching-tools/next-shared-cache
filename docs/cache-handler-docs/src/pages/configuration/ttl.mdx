@@ -1,0 +1,104 @@
+## Using TTL in Cache Configuration
+
+### Overview
+
+Time to Live (TTL) is a crucial feature in cache management. It automatically expires cache entries after a predefined duration, ensuring your cache remains up-to-date and efficient.
+
+### Prerequisites
+
+To effectively implement TTL, consider the following:
+
+-   **File System Cache Limitation**: Set `useFileSystem: false` in your cache configuration. This step is essential for TTL to function correctly. If the file system cache is enabled, it may cause cache entries to be retrieved from the file system cache even after they've expired in Redis of LRU.
+-   **Next.js Pages Directory Issue**: There is a known limitation with Next.js regarding the file system cache within the Pages directory. It's recommended to apply TTL only for the App directory pages. For more information, refer to the [file system cache configuration documentation](/configuration/use-file-system#configuring-access-to-the-file-system).
+
+### TTL and Incremental Static Regeneration (ISR)
+
+In Next.js, ISR allows routes to be incrementally updated through the [`revalidate` ↗](https://nextjs.org/docs/app/building-your-application/data-fetching/fetching-caching-and-revalidating#time-based-revalidation) property in `fetch` or inside the `page` or `route` file.
+
+### Implementing TTL in Preconfigured Handlers
+
+Here's how to implement TTL in preconfigured Handlers:
+
+```js filename="cache-handler.js" copy
+IncrementalCache.onCreation(async () => {
+    const useTtl = true;
+
+    await client.connect();
+
+    const redisCache = await createRedisCache({
+        client,
+        useTtl, // Enable TTL for Redis cache
+    });
+
+    const localCache = createLruCache({
+        useTtl, // Enable TTL for local cache
+    });
+
+    return {
+        cache: [redisCache, localCache],
+        useFileSystem: !useTtl, // Disable file system cache to ensure TTL effectiveness
+    };
+});
+```
+
+### Implementing TTL in Custom Cache Handlers
+
+For custom cache handlers, here are examples for Redis:
+
+**Redis Strings Example:**
+
+```js
+// Filename: cache-handler.js
+IncrementalCache.onCreation(async () => {
+    const cache = {
+        // ... other cache methods ...
+
+        async set(key, value, ttl) {
+            try {
+                // Serialize value and set TTL using Redis 'EX' option
+                await client.set(key, JSON.stringify(value), typeof ttl === 'number' ? { EX: ttl } : undefined);
+            } catch (error) {
+                console.error('cache.set', error);
+            }
+        },
+
+        // ... other cache methods ...
+    };
+
+    return {
+        useFileSystem: false, // Disable file system cache for TTL efficiency
+        cache,
+    };
+});
+```
+
+**Redis Stack Example:**
+
+```js
+// Filename: cache-handler.js
+IncrementalCache.onCreation(async () => {
+    const cache = {
+        // ... other cache methods ...
+
+        async set(key, value, ttl) {
+            try {
+                await client.json.set(key, '.', value);
+
+                if (typeof ttl === 'number') {
+                    // Set TTL using Redis 'EXPIRE' command
+                    await client.expire(key, ttl);
+                }
+            } catch (error) {
+                console.error('cache.set', error);
+            }
+        },
+
+        // ... other cache methods ...
+    };
+
+    return {
+        useFileSystem: false, // Disable file system cache for TTL efficiency
+        cache,
+    };
+});
+```
