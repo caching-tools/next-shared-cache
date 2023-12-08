@@ -19,7 +19,7 @@
     "devDependencies": {
         "@neshca/tsconfig": "*",
         "@next/eslint-plugin-next": "14.0.3",
-        "@types/node": "20.10.3",
+        "@types/node": "20.10.4",
         "@types/react": "18.2.42",
         "@types/react-dom": "18.2.17",
         "eslint-config-neshca": "*",
