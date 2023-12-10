@@ -1,5 +1,6 @@
 const { IncrementalCache } = require('@neshca/cache-handler');
-const { createHandler } = require('@neshca/cache-handler/redis-strings');
+const createRedisCache = require('@neshca/cache-handler/redis-strings').default;
+const createLruCache = require('@neshca/cache-handler/local-lru').default;
 const { createClient } = require('redis');
 
 if (!process.env.REDIS_URL) {
@@ -21,15 +22,20 @@ client.on('error', (error) => {
     console.error('Redis error:', error.message);
 });
 
-IncrementalCache.onCreation(async (options) => {
+IncrementalCache.onCreation(async () => {
     await client.connect();
 
-    const getConfig = createHandler({
+    const redisCache = await createRedisCache({
         client,
         keyPrefix: PREFIX,
     });
 
-    return getConfig(options);
+    const localCache = createLruCache();
+
+    return {
+        cache: [redisCache, localCache],
+        useFileSystem: true,
+    };
 });
 
 module.exports = IncrementalCache;

@@ -1,93 +1,109 @@
+/* eslint-disable import/no-default-export -- use default here */
 /* eslint-disable camelcase -- unstable__* */
 /* eslint-disable no-console -- log errors */
 import { reviveFromBase64Representation, replaceJsonWithBase64 } from '@neshca/json-replacer-reviver';
 import type { RedisClientType, RedisClusterType } from 'redis';
-import type { TagsManifest, OnCreationHook, CacheHandlerValue } from '../cache-handler';
-import type { RedisCacheHandlerOptions } from '../common-types';
+import type { RevalidatedTags, CacheHandlerValue, Cache } from '../cache-handler';
+import type { RedisCacheHandlerOptions } from './redis-stack';
 
-const localTagsManifest: TagsManifest = {
-    version: 1,
-    items: {},
-};
-
-const TAGS_MANIFEST_KEY = '__sharedTagsManifest__';
-
-export function createHandler<T extends RedisClientType | RedisClusterType>({
+/**
+ * Creates a Handler using Redis client.
+ *
+ * This function initializes a Handler for managing cache operations using Redis.
+ * It supports both Redis Client and Redis Cluster types. The handler includes
+ * methods to get, set, and manage cache values and revalidated tags.
+ *
+ * @param options - The configuration options for the Redis Handler. See {@link RedisCacheHandlerOptions}.
+ *
+ * @returns An object representing the cache, with methods for cache operations.
+ *
+ * @example
+ * ```js
+ * const redisClient = createRedisClient(...);
+ * const cache = await createCache({
+ *   client: redisClient,
+ *   keyPrefix: 'myApp:',
+ *   revalidatedTagsKey: 'myRevalidatedTags',
+ *   unstable__logErrors: true
+ * });
+ * ```
+ *
+ * @remarks
+ * The `get` method retrieves a value from the cache, automatically converting `Buffer` types when necessary.
+ *
+ * The `set` method allows setting a value in the cache.
+ *
+ * The `getRevalidatedTags` and `revalidateTag` methods are used for handling tag-based cache revalidation.
+ */
+export default function createCache<T extends RedisClientType | RedisClusterType>({
     client,
-    diskAccessMode = 'read-yes/write-yes',
     keyPrefix = '',
-    tagsManifestKey = TAGS_MANIFEST_KEY,
+    revalidatedTagsKey = '__sharedRevalidatedTags__',
+    useTtl = false,
     unstable__logErrors,
-}: RedisCacheHandlerOptions<T>): OnCreationHook {
-    return function getConfig() {
-        return {
-            diskAccessMode,
-            cache: {
-                async get(key) {
-                    try {
-                        const result = (await client.get(keyPrefix + key)) ?? null;
+}: RedisCacheHandlerOptions<T>): Cache {
+    return {
+        async get(key) {
+            try {
+                const result = (await client.get(keyPrefix + key)) ?? null;
 
-                        if (!result) {
-                            return null;
-                        }
+                if (!result) {
+                    return null;
+                }
 
-                        // use reviveFromBase64Representation to restore binary data from Base64
-                        return JSON.parse(result, reviveFromBase64Representation) as CacheHandlerValue | null;
-                    } catch (error) {
-                        if (unstable__logErrors) {
-                            console.error('cache.get', error);
-                        }
+                // use reviveFromBase64Representation to restore binary data from Base64
+                return JSON.parse(result, reviveFromBase64Representation) as CacheHandlerValue | null;
+            } catch (error) {
+                if (unstable__logErrors) {
+                    console.error('cache.get', error);
+                }
 
-                        return null;
-                    }
-                },
-                async set(key, value) {
-                    try {
-                        // use replaceJsonWithBase64 to store binary data in Base64 and save space
-                        await client.set(keyPrefix + key, JSON.stringify(value, replaceJsonWithBase64));
-                    } catch (error) {
-                        if (unstable__logErrors) {
-                            console.error('cache.set', error);
-                        }
-                        // ignore because value will be written to disk
-                    }
-                },
-                async getTagsManifest() {
-                    try {
-                        const remoteTagsManifest = await client.hGetAll(keyPrefix + tagsManifestKey);
+                return null;
+            }
+        },
+        async set(key, value, ttl) {
+            try {
+                // use replaceJsonWithBase64 to store binary data in Base64 and save space
+                await client.set(
+                    keyPrefix + key,
+                    JSON.stringify(value, replaceJsonWithBase64),
+                    useTtl && typeof ttl === 'number' ? { EX: ttl } : undefined,
+                );
+            } catch (error) {
+                if (unstable__logErrors) {
+                    console.error('cache.set', error);
+                }
+            }
+        },
+        async getRevalidatedTags() {
+            try {
+                const sharedRevalidatedTags = await client.hGetAll(keyPrefix + revalidatedTagsKey);
 
-                        if (!remoteTagsManifest) {
-                            return localTagsManifest;
-                        }
+                const entries = Object.entries(sharedRevalidatedTags);
 
-                        Object.entries(remoteTagsManifest).reduce((acc, [tag, revalidatedAt]) => {
-                            acc[tag] = { revalidatedAt: parseInt(revalidatedAt ?? '0', 10) };
-                            return acc;
-                        }, localTagsManifest.items);
+                const revalidatedTags = entries.reduce<RevalidatedTags>((acc, [tag, revalidatedAt]) => {
+                    acc[tag] = Number(revalidatedAt);
 
-                        return localTagsManifest;
-                    } catch (error) {
-                        if (unstable__logErrors) {
-                            console.error('cache.getTagsManifest', error);
-                        }
+                    return acc;
+                }, {});
 
-                        return localTagsManifest;
-                    }
-                },
-                async revalidateTag(tag, revalidatedAt) {
-                    try {
-                        await client.hSet(keyPrefix + tagsManifestKey, {
-                            [tag]: revalidatedAt,
-                        });
-                    } catch (error) {
-                        if (unstable__logErrors) {
-                            console.error('cache.revalidateTag', error);
-                        }
-
-                        localTagsManifest.items[tag] = { revalidatedAt };
-                    }
-                },
-            },
-        };
+                return revalidatedTags;
+            } catch (error) {
+                if (unstable__logErrors) {
+                    console.error('cache.getRevalidatedTags', error);
+                }
+            }
+        },
+        async revalidateTag(tag, revalidatedAt) {
+            try {
+                await client.hSet(keyPrefix + revalidatedTagsKey, {
+                    [tag]: revalidatedAt,
+                });
+            } catch (error) {
+                if (unstable__logErrors) {
+                    console.error('cache.revalidateTag', error);
+                }
+            }
+        },
     };
 }

@@ -50,10 +50,11 @@ export default {
         ),
     },
     banner: {
-        key: '0.5.1-release',
+        key: '0.6.0-release',
         text: (
-            <a href={`${process.env.NEXT_PUBLIC_BASE_URL}/redis-stack`}>
-                🎉 Version 0.5.4 is out, introducing async onCreation hook, async Handlers, and fixed types!
+            <a href={`${process.env.NEXT_PUBLIC_BASE_URL}/configuration/on-creation`}>
+                🎉 Version 0.6.0 is out, featuring significant refactoring and an API breaking change. However, the new
+                docs provide guidance on the new multi-layered cache configuration!
             </a>
         ),
     },

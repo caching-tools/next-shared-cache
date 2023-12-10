@@ -1,6 +1,5 @@
 import path from 'node:path';
 import fs, { promises as fsPromises } from 'node:fs';
-import { createCache } from '@neshca/next-lru-cache/next-cache-handler-value';
 import type {
     CacheHandler,
     CacheHandlerValue,
@@ -11,302 +10,437 @@ import type {
     CacheHandlerParametersRevalidateTag,
     RouteMetadata,
     NonNullableRouteMetadata,
+    IncrementalCacheKindHint,
+    IncrementalCacheValue,
+    TagsManifest,
 } from '@neshca/next-common';
-import type { RedisCacheHandlerOptions } from './common-types';
+import { isTagsManifest } from './is-tags-manifest';
 
 const RSC_PREFETCH_SUFFIX = '.prefetch.rsc';
 const RSC_SUFFIX = '.rsc';
 const NEXT_DATA_SUFFIX = '.json';
 const NEXT_META_SUFFIX = '.meta';
 
-export type TagsManifest = {
-    version: 1;
-    items: Record<string, { revalidatedAt: number }>;
-};
-export type { CacheHandlerValue, RedisCacheHandlerOptions as CacheHandlerOptions };
+export type { CacheHandlerValue };
 
+export type RevalidatedTags = Record<string, number>;
+
+/**
+ * Represents a custom cache implementation. This interface defines essential methods for cache operations.
+ */
 export type Cache = {
+    /**
+     * Retrieves the value associated with the given key from the cache.
+     *
+     * @param key - The unique string identifier for the cache entry.
+     *
+     * @returns A Promise that resolves to the cached value (if found), `null` or `undefined` if the entry is not found.
+     */
     get: (key: string) => Promise<CacheHandlerValue | null | undefined>;
+    /**
+     * Adds or updates a value in the cache. Use `ttl` only if you don't use Pages directory.
+     *
+     * @param key - The unique string identifier for the cache entry.
+     *
+     * @param value - The value to be stored in the cache.
+     *
+     * @param ttl - Optional. The time-to-live in seconds.
+     * If not provided, the cache entry persists based on default cache behavior or until manually removed.
+     *
+     * @returns A Promise with no value.
+     */
     set: (key: string, value: CacheHandlerValue, ttl?: number) => Promise<void>;
-    getTagsManifest: () => Promise<TagsManifest>;
-    revalidateTag: (tag: string, revalidatedAt: number) => Promise<void>;
+    /**
+     * Retrieves the {@link RevalidatedTags} object.
+     *
+     * @returns A Promise that resolves to a {@link RevalidatedTags} object or `undefined` for using a locally maintained {@link RevalidatedTags}.
+     */
+    getRevalidatedTags?: () => Promise<RevalidatedTags | undefined>;
+    /**
+     * Marks a specific cache tag as revalidated. Useful for cache invalidation strategies.
+     *
+     * @param tag - The tag to be marked as revalidated.
+     *
+     * @param revalidatedAt - The timestamp (in milliseconds) of when the tag was revalidated.
+     */
+    revalidateTag?: (tag: string, revalidatedAt: number) => Promise<void>;
 };
 
-type ReadCacheFromDisk = 'yes' | 'no';
-
-type WriteCacheFromDisk = 'yes' | 'no';
-
-type CacheDiskAccessMode = `read-${ReadCacheFromDisk}/write-${WriteCacheFromDisk}`;
-
-type CacheConfigDefaultCache = {
-    diskAccessMode?: CacheDiskAccessMode;
-    cache?: Cache;
-    defaultLruCacheOptions?: never;
+/**
+ * Configuration options for cache behavior.
+ */
+export type CacheConfig = {
+    /**
+     * Determines whether to use the file system caching in addition to the provided cache.
+     */
+    useFileSystem?: boolean;
+    /**
+     * A custom cache instance or an array of cache instances that conform to the Cache interface.
+     * Multiple caches can be used to implement various caching strategies or layers.
+     */
+    cache: Cache | (Cache | undefined | null)[];
 };
 
-type CacheConfigWithDefaultCache = {
-    diskAccessMode?: CacheDiskAccessMode;
-    cache?: never;
-    defaultLruCacheOptions?: {
-        maxItemsNumber?: number;
-        maxItemSizeBytes?: number;
-    };
-};
-
-export type CacheConfig = CacheConfigDefaultCache | CacheConfigWithDefaultCache;
-
+/**
+ * Contextual information provided during cache creation, including server directory paths and environment mode.
+ */
 export type CacheCreationContext = {
-    serverDistDir?: string;
+    /**
+     * The absolute path to the Next.js server directory.
+     */
+    serverDistDir: string;
+    /**
+     * Indicates if the Next.js application is running in development mode.
+     * When in development mode, caching behavior might differ.
+     */
     dev?: boolean;
+    /**
+     * The unique identifier for the current build of the Next.js application.
+     * This build ID is generated during the `next build` process and is used
+     * to ensure consistency across multiple instances of the application,
+     * especially when running in containerized environments. It helps in
+     * identifying which version of the application is being served.
+     *
+     * https://nextjs.org/docs/pages/building-your-application/deploying#build-cache
+     *
+     * @remarks
+     * Some cache values may be lost during the build process
+     * because the `buildId` is defined after some cache values have already been set.
+     * However, `buildId` will be defined from the beginning when you start your app.
+     *
+     * @example
+     * ```js
+     * // cache-handler.js
+     * IncrementalCache.onCreation(async ({ buildId }) => {
+     *   let redisCache;
+     *
+     *   if (buildId) {
+     *     await client.connect();
+     *
+     *     redisCache = await createRedisCache({
+     *       client,
+     *       keyPrefix: `${buildId}:`,
+     *     });
+     *   }
+     *
+     *   const localCache = createLruCache();
+     *
+     *   return {
+     *     cache: [redisCache, localCache],
+     *     useFileSystem: true,
+     *   };
+     * });
+     * ```
+     */
+    buildId?: string;
 };
 
-export type OnCreationHook = (
-    cacheCreationContext: CacheCreationContext,
-) => Promise<CacheConfig | undefined> | CacheConfig | undefined;
+/**
+ * Represents a function that retrieves a {@link CacheConfig} based on provided options and your custom logic.
+ *
+ * @typeParam T - The type of the options object that the function accepts.
+ *
+ * @param options - An options object of type T, containing parameters that influence the cache configuration.
+ *
+ * @returns Either a CacheConfig object or a Promise that resolves to a {@link CacheConfig} object,
+ * which specifies the cache behavior and settings.
+ */
+export type CreateCache<T> = (options: T) => Promise<CacheConfig> | CacheConfig;
+
+/**
+ * Represents a hook function that is called during the creation of the cache. This function allows for custom logic
+ * to be executed at the time of cache instantiation, enabling dynamic configuration or initialization tasks.
+ *
+ * The function can either return a {@link CacheConfig} object directly or a Promise that resolves to a {@link CacheConfig},
+ * allowing for asynchronous operations if needed.
+ *
+ * @param cacheCreationContext - The {@link CacheCreationContext} object, providing contextual information about the cache creation environment,
+ * such as server directory paths and whether the application is running in development mode.
+ *
+ * @returns Either a CacheConfig object or a Promise that resolves to a {@link CacheConfig}, specifying how the cache should be configured.
+ */
+export type OnCreationHook = (cacheCreationContext: CacheCreationContext) => Promise<CacheConfig> | CacheConfig;
 
 export class IncrementalCache implements CacheHandler {
-    private static initPromise: Promise<void>;
+    static #resolveCreationPromise: () => void;
 
-    private static hasPagesDir = false;
+    static #rejectCreationPromise: (error: unknown) => void;
 
-    private static diskAccessMode: CacheDiskAccessMode = 'read-yes/write-yes';
+    /**
+     * A Promise that resolves when the `IncrementalCache.configureIncrementalCache` function has been called and the cache has been configured.
+     * It prevents the cache from being used before it's ready.
+     */
+    static readonly #creationPromise: Promise<void> = new Promise<void>((resolve, reject) => {
+        this.#resolveCreationPromise = resolve;
+        this.#rejectCreationPromise = reject;
+    });
 
-    private static cache: Cache;
+    /**
+     * Indicates whether the pages directory exists in the cache handler.
+     * This is a fallback for when the `context._pagesDir` is not provided by Next.js.
+     */
+    static #hasPagesDir = false;
 
-    private static tagsManifestPath?: string;
+    /**
+     * Determines whether to use the file system caching in addition to the provided cache.
+     */
+    static #useFileSystem = true;
 
-    private static serverDistDir?: string;
+    static #cache: Cache;
 
-    private static getConfig: OnCreationHook = () => undefined;
+    static #tagsManifestPath: string;
 
+    static #revalidatedTags: RevalidatedTags = {};
+
+    static onCreationHook: OnCreationHook;
+
+    /**
+     * Registers a hook to be called during the creation of an IncrementalCache instance.
+     * This method allows for custom cache configurations to be applied at the time of cache instantiation.
+     *
+     * The provided {@link OnCreationHook} function can perform initialization tasks, modify cache settings,
+     * or integrate additional logic into the cache creation process. This function can either return a {@link CacheConfig}
+     * object directly for synchronous operations, or a `Promise` that resolves to a {@link CacheConfig} for asynchronous operations.
+     *
+     * Usage of this method is typically for advanced scenarios where default caching behavior needs to be altered
+     * or extended based on specific application requirements or environmental conditions.
+     *
+     * @param onCreationHook - The {@link OnCreationHook} function to be called during cache creation.
+     */
     public static onCreation(onCreationHook: OnCreationHook): void {
-        this.getConfig = onCreationHook;
+        this.onCreationHook = onCreationHook;
     }
 
-    private static async handleAsyncConfig(configPromise: Promise<CacheConfig | undefined>): Promise<void> {
+    static async configureIncrementalCache(cacheCreationContext: CacheCreationContext): Promise<void> {
+        // Retrieve cache configuration by invoking the onCreation hook with the provided context
+        const config = this.onCreationHook(cacheCreationContext);
+
+        // Destructure the cache and useFileSystem settings from the configuration
+        // Await the configuration if it's a promise
+        const { cache, useFileSystem = true } = config instanceof Promise ? await config : config;
+
+        // Extract the server distribution directory from the cache creation context
+        const { serverDistDir } = cacheCreationContext;
+
+        // Set the class-level flag to determine if the file system caching should be used
+        this.#useFileSystem = useFileSystem;
+
+        // Check if the pages directory exists and set the flag accordingly
+        this.#hasPagesDir = fs.existsSync(path.join(serverDistDir, 'pages'));
+
+        // Define the path for the tags manifest file
+        this.#tagsManifestPath = path.join(serverDistDir, '..', 'cache', 'fetch-cache', 'tags-manifest.json');
+
         try {
-            const config = await configPromise;
-            this.configure(config);
-        } catch (error) {
-            throw new Error(`The config promise failed to resolve. ${String(error)}`);
-        }
-    }
+            // Ensure the directory for the tags manifest exists
+            await fsPromises.mkdir(path.dirname(IncrementalCache.#tagsManifestPath), { recursive: true });
 
-    private static init(cacheCreationContext: CacheCreationContext): void {
-        const configOrPromise = this.getConfig(cacheCreationContext);
+            // Read the tags manifest from the file system
+            const tagsManifestData = await fsPromises.readFile(this.#tagsManifestPath, 'utf-8');
 
-        if (configOrPromise instanceof Promise) {
-            this.initPromise = this.handleAsyncConfig(configOrPromise);
+            // Parse the tags manifest data
+            const tagsManifestFromFileSystem = JSON.parse(tagsManifestData) as unknown;
 
-            return;
-        }
+            // Update the local RevalidatedTags if the parsed data is a valid tags manifest
+            if (isTagsManifest(tagsManifestFromFileSystem)) {
+                this.#revalidatedTags = Object.entries(tagsManifestFromFileSystem.items).reduce<RevalidatedTags>(
+                    (revalidatedTags, [tag, { revalidatedAt }]) => {
+                        revalidatedTags[tag] = revalidatedAt;
 
-        this.configure(configOrPromise);
-
-        this.initPromise = Promise.resolve();
-    }
-
-    private static configure({
-        diskAccessMode = 'read-yes/write-yes',
-        cache,
-        defaultLruCacheOptions,
-    }: CacheConfig = {}): void {
-        this.diskAccessMode = diskAccessMode;
-
-        if (this.serverDistDir) {
-            this.hasPagesDir = fs.existsSync(path.join(this.serverDistDir, 'pages'));
-        }
-
-        if (this.serverDistDir && diskAccessMode === 'read-yes/write-yes') {
-            this.tagsManifestPath = path.join(this.serverDistDir, '..', 'cache', 'fetch-cache', 'tags-manifest.json');
-        }
-
-        if (cache) {
-            this.cache = cache;
-
-            return;
-        }
-
-        // if no cache is provided, we use a default LRU cache
-        const lruCache = createCache({
-            maxItemSizeBytes: defaultLruCacheOptions?.maxItemSizeBytes,
-            maxItemsNumber: defaultLruCacheOptions?.maxItemsNumber,
-        });
-
-        let tagsManifest: TagsManifest = { items: {}, version: 1 };
-
-        if (this.tagsManifestPath) {
-            try {
-                const tagsManifestData = fs.readFileSync(this.tagsManifestPath, 'utf-8');
-
-                if (tagsManifestData) {
-                    tagsManifest = JSON.parse(tagsManifestData) as TagsManifest;
-                }
-            } catch (err) {
-                // file doesn't exist. Use default tagsManifest
+                        return revalidatedTags;
+                    },
+                    {},
+                );
             }
+        } catch (err) {
+            // If the file doesn't exist, use the default tagsManifest
         }
 
-        const defaultCache: Cache = {
-            get(key) {
-                return Promise.resolve(lruCache.get(key));
+        if (!Array.isArray(cache)) {
+            this.#cache = cache;
+
+            return;
+        }
+
+        const cacheList = cache.filter((cacheItem): cacheItem is Cache => Boolean(cacheItem));
+
+        // if no cache is provided and we don't use the file system
+        if (cacheList.length === 0 && !this.#useFileSystem) {
+            throw new Error(
+                'No cache provided and file system caching is disabled. Please provide a cache or enable file system caching.',
+            );
+        }
+
+        this.#cache = {
+            async get(key) {
+                for await (const cacheItem of cacheList) {
+                    const value = await cacheItem.get(key);
+
+                    if (value) {
+                        return value;
+                    }
+                }
             },
-            set(key, value) {
-                lruCache.set(key, value);
-                return Promise.resolve();
+            async set(key, value, ttl) {
+                await Promise.allSettled(cacheList.map((cacheItem) => cacheItem.set(key, value, ttl)));
             },
-            getTagsManifest() {
-                return Promise.resolve(tagsManifest);
+            async getRevalidatedTags() {
+                for await (const cacheItem of cacheList) {
+                    const remoteRevalidatedTags = await cacheItem.getRevalidatedTags?.();
+
+                    if (remoteRevalidatedTags) {
+                        return remoteRevalidatedTags;
+                    }
+                }
             },
-            revalidateTag(tag, revalidatedAt) {
-                tagsManifest.items[tag] = { revalidatedAt };
-                return Promise.resolve();
+            async revalidateTag(tag, revalidatedAt) {
+                await Promise.allSettled(cacheList.map((cacheItem) => cacheItem.revalidateTag?.(tag, revalidatedAt)));
             },
         };
-
-        this.cache = defaultCache;
     }
 
-    private revalidatedTags: FileSystemCacheContext['revalidatedTags'];
-    private appDir: FileSystemCacheContext['_appDir'];
-    private pagesDir: FileSystemCacheContext['_pagesDir'] | undefined;
-    private serverDistDir: FileSystemCacheContext['serverDistDir'];
-    private readonly experimental: FileSystemCacheContext['experimental'];
+    readonly #revalidatedTagsArray: FileSystemCacheContext['revalidatedTags'];
+    readonly #appDir: FileSystemCacheContext['_appDir'];
+    readonly #pagesDir: FileSystemCacheContext['_pagesDir'] | undefined;
+    readonly #serverDistDir: FileSystemCacheContext['serverDistDir'];
+    readonly #experimental: FileSystemCacheContext['experimental'];
 
     public constructor(context: FileSystemCacheContext) {
-        this.revalidatedTags = context.revalidatedTags;
-        this.appDir = Boolean(context._appDir);
-        this.pagesDir = context._pagesDir;
-        this.serverDistDir = context.serverDistDir;
-        this.experimental = context.experimental;
+        this.#revalidatedTagsArray = context.revalidatedTags ?? [];
+        this.#appDir = Boolean(context._appDir);
+        this.#pagesDir = context._pagesDir;
+        this.#serverDistDir = context.serverDistDir;
+        this.#experimental = { ppr: context?.experimental?.ppr ?? false };
 
-        if (!IncrementalCache.cache) {
-            IncrementalCache.serverDistDir = this.serverDistDir;
-            IncrementalCache.init({ dev: context.dev, serverDistDir: this.serverDistDir });
+        if (!IncrementalCache.#cache) {
+            let buildId: string | undefined;
+
+            try {
+                buildId = fs.readFileSync(path.join(this.#serverDistDir, '..', 'BUILD_ID'), 'utf-8');
+            } catch (error) {
+                buildId = undefined;
+            }
+
+            IncrementalCache.configureIncrementalCache({
+                dev: context.dev,
+                serverDistDir: this.#serverDistDir,
+                buildId,
+            })
+                .then(IncrementalCache.#resolveCreationPromise)
+                .catch(IncrementalCache.#rejectCreationPromise);
         }
     }
 
-    public async get(...args: CacheHandlerParametersGet): Promise<CacheHandlerValue | null> {
-        const [cacheKey, ctx = {}] = args;
+    async readCacheFromFileSystem(
+        cacheKey: string,
+        kindHint?: IncrementalCacheKindHint,
+        tags?: string[],
+    ): Promise<CacheHandlerValue | null> {
+        let cachedData: CacheHandlerValue | null = null;
 
-        const { tags = [], softTags = [], kindHint } = ctx;
+        try {
+            const bodyFilePath = this.#getFilePath(`${cacheKey}.body`, 'app');
 
-        await IncrementalCache.initPromise;
+            const bodyFileData = await fsPromises.readFile(bodyFilePath);
+            const { mtime } = await fsPromises.stat(bodyFilePath);
 
-        let cachedData: CacheHandlerValue | null = (await IncrementalCache.cache.get(cacheKey)) ?? null;
+            const metaFileData = await fsPromises.readFile(bodyFilePath.replace(/\.body$/, NEXT_META_SUFFIX), 'utf-8');
+            const meta: NonNullableRouteMetadata = JSON.parse(metaFileData) as NonNullableRouteMetadata;
 
-        if (!cachedData && IncrementalCache.diskAccessMode.includes('read-yes')) {
-            try {
-                const bodyFilePath = this.getFilePath(`${cacheKey}.body`, 'app');
+            const cacheEntry: CacheHandlerValue = {
+                lastModified: mtime.getTime(),
+                value: {
+                    kind: 'ROUTE',
+                    body: bodyFileData,
+                    headers: meta.headers,
+                    status: meta.status,
+                },
+            };
 
-                const bodyFileData = await fsPromises.readFile(bodyFilePath);
-                const { mtime } = await fsPromises.stat(bodyFilePath);
+            return cacheEntry;
+        } catch (_) {
+            // no .meta data for the related key
+        }
 
-                const metaFileData = await fsPromises.readFile(
-                    bodyFilePath.replace(/\.body$/, NEXT_META_SUFFIX),
-                    'utf-8',
-                );
-                const meta: NonNullableRouteMetadata = JSON.parse(metaFileData) as NonNullableRouteMetadata;
+        try {
+            // Determine the file kind if we didn't know it already.
+            let kind = kindHint;
 
-                const cacheEntry: CacheHandlerValue = {
-                    lastModified: mtime.getTime(),
-                    value: {
-                        kind: 'ROUTE',
-                        body: bodyFileData,
-                        headers: meta.headers,
-                        status: meta.status,
-                    },
+            if (!kind) {
+                kind = this.#detectFileKind(`${cacheKey}.html`);
+            }
+
+            const isAppPath = kind === 'app';
+            const pageFilePath = this.#getFilePath(kind === 'fetch' ? cacheKey : `${cacheKey}.html`, kind);
+
+            const pageFile = await fsPromises.readFile(pageFilePath, 'utf-8');
+            const { mtime } = await fsPromises.stat(pageFilePath);
+
+            if (kind === 'fetch') {
+                const lastModified = mtime.getTime();
+                const parsedData = JSON.parse(pageFile) as CachedFetchValue;
+
+                cachedData = {
+                    lastModified,
+                    value: parsedData,
                 };
 
-                return cacheEntry;
-            } catch (_) {
-                // no .meta data for the related key
-            }
+                if (cachedData.value?.kind === 'FETCH') {
+                    const storedTags = cachedData.value.tags;
 
-            try {
-                // Determine the file kind if we didn't know it already.
-                let kind = kindHint;
-
-                if (!kind) {
-                    kind = this.detectFileKind(`${cacheKey}.html`);
-                }
-
-                const isAppPath = kind === 'app';
-                const pageFilePath = this.getFilePath(kind === 'fetch' ? cacheKey : `${cacheKey}.html`, kind);
-
-                const pageFile = await fsPromises.readFile(pageFilePath, 'utf-8');
-                const { mtime } = await fsPromises.stat(pageFilePath);
-
-                if (kind === 'fetch') {
-                    const lastModified = mtime.getTime();
-                    const parsedData = JSON.parse(pageFile) as CachedFetchValue;
-
-                    cachedData = {
-                        lastModified,
-                        value: parsedData,
-                    };
-
-                    if (cachedData.value?.kind === 'FETCH') {
-                        const storedTags = cachedData.value.tags;
-
-                        // update stored tags if a new one is being added
-                        // TODO: remove this when we can send the tags
-                        // via header on GET same as SET
-                        if (!tags?.every((tag) => storedTags?.includes(tag))) {
-                            await this.set(cacheKey, cachedData.value, { tags });
-                        }
+                    // update stored tags if a new one is being added
+                    // TODO: remove this when we can send the tags
+                    // via header on GET same as SET
+                    if (!tags?.every((tag) => storedTags?.includes(tag))) {
+                        await this.set(cacheKey, cachedData.value, { tags });
                     }
-                } else {
-                    const pageDataFilePath = isAppPath
-                        ? this.getFilePath(
-                              `${cacheKey}${this.experimental.ppr ? RSC_PREFETCH_SUFFIX : RSC_SUFFIX}`,
-                              'app',
-                          )
-                        : this.getFilePath(`${cacheKey}${NEXT_DATA_SUFFIX}`, 'pages');
+                }
+            } else {
+                const pageDataFilePath = isAppPath
+                    ? this.#getFilePath(
+                          `${cacheKey}${this.#experimental.ppr ? RSC_PREFETCH_SUFFIX : RSC_SUFFIX}`,
+                          'app',
+                      )
+                    : this.#getFilePath(`${cacheKey}${NEXT_DATA_SUFFIX}`, 'pages');
 
-                    const pageDataFile = await fsPromises.readFile(pageDataFilePath, 'utf-8');
+                const pageDataFile = await fsPromises.readFile(pageDataFilePath, 'utf-8');
 
-                    const pageData = isAppPath ? pageDataFile : (JSON.parse(pageDataFile) as object);
+                const pageData = isAppPath ? pageDataFile : (JSON.parse(pageDataFile) as object);
 
-                    let meta: RouteMetadata | undefined;
+                let meta: RouteMetadata | undefined;
 
-                    if (isAppPath) {
-                        try {
-                            const metaFileData = await fsPromises.readFile(
-                                pageFilePath.replace(/\.html$/, NEXT_META_SUFFIX),
-                                'utf-8',
-                            );
-                            meta = JSON.parse(metaFileData) as RouteMetadata;
-                        } catch {
-                            // no .meta data for the related key
-                        }
+                if (isAppPath) {
+                    try {
+                        const metaFileData = await fsPromises.readFile(
+                            pageFilePath.replace(/\.html$/, NEXT_META_SUFFIX),
+                            'utf-8',
+                        );
+                        meta = JSON.parse(metaFileData) as RouteMetadata;
+                    } catch {
+                        // no .meta data for the related key
                     }
-
-                    cachedData = {
-                        lastModified: mtime.getTime(),
-                        value: {
-                            kind: 'PAGE',
-                            html: pageFile,
-                            pageData,
-                            postponed: meta?.postponed,
-                            headers: meta?.headers,
-                            status: meta?.status,
-                        },
-                    };
                 }
 
-                if (cachedData) {
-                    await IncrementalCache.cache.set(cacheKey, cachedData);
-                }
-            } catch (_) {
-                // unable to get data from disk
+                cachedData = {
+                    lastModified: mtime.getTime(),
+                    value: {
+                        kind: 'PAGE',
+                        html: pageFile,
+                        pageData,
+                        postponed: meta?.postponed,
+                        headers: meta?.headers,
+                        status: meta?.status,
+                    },
+                };
             }
+        } catch (_) {
+            // unable to get data from the file system
         }
 
-        if (!cachedData) {
-            return null;
-        }
+        return cachedData;
+    }
 
+    async #revalidateCachedData(cachedData: CacheHandlerValue, tags: string[], softTags: string[]): Promise<boolean> {
         // credits to Next.js for the following code
         if (cachedData.value?.kind === 'PAGE') {
             let cacheTags: undefined | string[];
@@ -316,77 +450,83 @@ export class IncrementalCache implements CacheHandler {
                 cacheTags = tagsHeader.split(',');
             }
 
-            const tagsManifest = await IncrementalCache.cache.getTagsManifest();
+            const revalidatedTags =
+                (await IncrementalCache.#cache.getRevalidatedTags?.()) ?? IncrementalCache.#revalidatedTags;
 
             if (cacheTags?.length) {
                 const isStale = cacheTags.some((tag) => {
-                    const revalidatedAt = tagsManifest.items[tag]?.revalidatedAt;
+                    const revalidatedAt = revalidatedTags[tag];
 
-                    return revalidatedAt && revalidatedAt >= (cachedData?.lastModified || Date.now());
+                    return (
+                        typeof revalidatedAt === 'number' && revalidatedAt >= (cachedData?.lastModified || Date.now())
+                    );
                 });
 
                 // we trigger a blocking validation if an ISR page
                 // had a tag revalidated, if we want to be a background
                 // revalidation instead we return cachedData.lastModified = -1
-                if (isStale) {
-                    return null;
-                }
+                return isStale;
             }
         }
 
         if (cachedData.value?.kind === 'FETCH') {
             const combinedTags = [...tags, ...softTags];
 
-            const tagsManifest = await IncrementalCache.cache.getTagsManifest();
+            const revalidatedTags =
+                (await IncrementalCache.#cache.getRevalidatedTags?.()) ?? IncrementalCache.#revalidatedTags;
 
             const wasRevalidated = combinedTags.some((tag: string) => {
-                if (this.revalidatedTags.includes(tag)) {
+                if (this.#revalidatedTagsArray.includes(tag)) {
                     return true;
                 }
 
-                const revalidatedAt = tagsManifest.items[tag]?.revalidatedAt;
+                const revalidatedAt = revalidatedTags[tag];
 
-                return revalidatedAt && revalidatedAt >= (cachedData?.lastModified || Date.now());
+                return typeof revalidatedAt === 'number' && revalidatedAt >= (cachedData?.lastModified || Date.now());
             });
+
             // When revalidate tag is called we don't return
             // stale cachedData so it's updated right away
-            if (wasRevalidated) {
-                return null;
+            return wasRevalidated;
+        }
+
+        return false;
+    }
+
+    public async get(...args: CacheHandlerParametersGet): Promise<CacheHandlerValue | null> {
+        const [cacheKey, ctx = {}] = args;
+
+        const { tags = [], softTags = [], kindHint } = ctx;
+
+        await IncrementalCache.#creationPromise;
+
+        let cachedData: CacheHandlerValue | null = (await IncrementalCache.#cache.get(cacheKey)) ?? null;
+
+        if (!cachedData && IncrementalCache.#useFileSystem) {
+            cachedData = await this.readCacheFromFileSystem(cacheKey, kindHint, tags);
+
+            if (cachedData) {
+                await IncrementalCache.#cache.set(cacheKey, cachedData);
             }
+        }
+
+        if (!cachedData) {
+            return null;
+        }
+
+        const revalidated = await this.#revalidateCachedData(cachedData, tags, softTags);
+
+        if (revalidated) {
+            return null;
         }
 
         return cachedData;
     }
 
-    public async set(...args: CacheHandlerParametersSet): Promise<void> {
-        const [cacheKey, data, ctx] = args;
-
-        let ttl: number | undefined;
-
-        const { revalidate } = ctx;
-
-        if (IncrementalCache.diskAccessMode === 'read-no/write-no' && typeof revalidate === 'number') {
-            ttl = revalidate;
-        }
-
-        await IncrementalCache.initPromise;
-
-        await IncrementalCache.cache.set(
-            cacheKey,
-            {
-                value: data,
-                lastModified: Date.now(),
-            },
-            ttl,
-        );
-
-        if (!data || IncrementalCache.diskAccessMode.includes('write-no')) {
-            return;
-        }
-
+    async writeCacheToFileSystem(data: IncrementalCacheValue, cacheKey: string, tags: string[] = []): Promise<void> {
         // credits to Next.js for the following code
         if (data.kind === 'ROUTE') {
-            const filePath = this.getFilePath(`${cacheKey}.body`, 'app');
+            const filePath = this.#getFilePath(`${cacheKey}.body`, 'app');
 
             const meta: RouteMetadata = {
                 headers: data.headers,
@@ -403,12 +543,12 @@ export class IncrementalCache implements CacheHandler {
 
         if (data.kind === 'PAGE') {
             const isAppPath = typeof data.pageData === 'string';
-            const htmlPath = this.getFilePath(`${cacheKey}.html`, isAppPath ? 'app' : 'pages');
+            const htmlPath = this.#getFilePath(`${cacheKey}.html`, isAppPath ? 'app' : 'pages');
             await fsPromises.mkdir(path.dirname(htmlPath), { recursive: true });
             await fsPromises.writeFile(htmlPath, data.html);
 
             await fsPromises.writeFile(
-                this.getFilePath(
+                this.#getFilePath(
                     `${cacheKey}${isAppPath ? RSC_SUFFIX : NEXT_DATA_SUFFIX}`,
                     isAppPath ? 'app' : 'pages',
                 ),
@@ -428,35 +568,65 @@ export class IncrementalCache implements CacheHandler {
         }
 
         if (data.kind === 'FETCH') {
-            const filePath = this.getFilePath(cacheKey, 'fetch');
+            const filePath = this.#getFilePath(cacheKey, 'fetch');
 
             await fsPromises.mkdir(path.dirname(filePath), { recursive: true });
             await fsPromises.writeFile(
                 filePath,
                 JSON.stringify({
                     ...data,
-                    tags: ctx.tags,
+                    tags,
                 }),
             );
+        }
+    }
+
+    public async set(...args: CacheHandlerParametersSet): Promise<void> {
+        const [cacheKey, data, ctx] = args;
+
+        const { revalidate, tags } = ctx;
+
+        await IncrementalCache.#creationPromise;
+
+        await IncrementalCache.#cache.set(
+            cacheKey,
+            {
+                value: data,
+                lastModified: Date.now(),
+            },
+            typeof revalidate === 'number' ? revalidate : undefined,
+        );
+
+        if (data && IncrementalCache.#useFileSystem) {
+            await this.writeCacheToFileSystem(data, cacheKey, tags);
         }
     }
 
     public async revalidateTag(...args: CacheHandlerParametersRevalidateTag): Promise<void> {
         const [tag] = args;
 
-        await IncrementalCache.initPromise;
+        await IncrementalCache.#creationPromise;
 
-        await IncrementalCache.cache.revalidateTag(tag, Date.now());
+        await IncrementalCache.#cache.revalidateTag?.(tag, Date.now());
 
-        if (!IncrementalCache.tagsManifestPath || IncrementalCache.diskAccessMode.includes('write-no')) {
-            return;
-        }
-
-        const tagsManifest = await IncrementalCache.cache.getTagsManifest();
+        IncrementalCache.#revalidatedTags[tag] = Date.now();
 
         try {
-            await fsPromises.mkdir(path.dirname(IncrementalCache.tagsManifestPath), { recursive: true });
-            await fsPromises.writeFile(IncrementalCache.tagsManifestPath, JSON.stringify(tagsManifest || {}));
+            const tagsManifest = Object.entries(IncrementalCache.#revalidatedTags).reduce<TagsManifest>(
+                (acc, [revalidatedTag, revalidatedAt]) => {
+                    acc.items[revalidatedTag] = {
+                        revalidatedAt,
+                    };
+
+                    return acc;
+                },
+                {
+                    version: 1,
+                    items: {},
+                },
+            );
+
+            await fsPromises.writeFile(IncrementalCache.#tagsManifestPath, JSON.stringify(tagsManifest));
         } catch (err) {
             // eslint-disable-next-line no-console -- we want to log this
             console.warn('Failed to update tags manifest.', err);
@@ -464,31 +634,31 @@ export class IncrementalCache implements CacheHandler {
     }
 
     // credits to Next.js for the following code
-    private detectFileKind(pathname: string): 'app' | 'pages' {
-        const pagesDir = this.pagesDir ?? IncrementalCache.hasPagesDir;
+    #detectFileKind(pathname: string): 'app' | 'pages' {
+        const pagesDir = this.#pagesDir ?? IncrementalCache.#hasPagesDir;
 
-        if (!this.appDir && !pagesDir) {
+        if (!this.#appDir && !pagesDir) {
             throw new Error("Invariant: Can't determine file path kind, no page directory enabled");
         }
 
         // If app directory isn't enabled, then assume it's pages and avoid the fs
         // hit.
-        if (!this.appDir && pagesDir) {
+        if (!this.#appDir && pagesDir) {
             return 'pages';
         }
         // Otherwise assume it's a pages file if the pages directory isn't enabled.
-        else if (this.appDir && !pagesDir) {
+        else if (this.#appDir && !pagesDir) {
             return 'app';
         }
 
         // If both are enabled, we need to test each in order, starting with
         // `pages`.
-        let filePath = this.getFilePath(pathname, 'pages');
+        let filePath = this.#getFilePath(pathname, 'pages');
         if (fs.existsSync(filePath)) {
             return 'pages';
         }
 
-        filePath = this.getFilePath(pathname, 'app');
+        filePath = this.#getFilePath(pathname, 'app');
         if (fs.existsSync(filePath)) {
             return 'app';
         }
@@ -497,16 +667,16 @@ export class IncrementalCache implements CacheHandler {
     }
 
     // credits to Next.js for the following code
-    private getFilePath(pathname: string, kind: 'app' | 'fetch' | 'pages'): string {
+    #getFilePath(pathname: string, kind: 'app' | 'fetch' | 'pages'): string {
         switch (kind) {
             case 'fetch':
                 // we store in .next/cache/fetch-cache so it can be persisted
                 // across deploys
-                return path.join(this.serverDistDir, '..', 'cache', 'fetch-cache', pathname);
+                return path.join(this.#serverDistDir, '..', 'cache', 'fetch-cache', pathname);
             case 'pages':
-                return path.join(this.serverDistDir, 'pages', pathname);
+                return path.join(this.#serverDistDir, 'pages', pathname);
             case 'app':
-                return path.join(this.serverDistDir, 'app', pathname);
+                return path.join(this.#serverDistDir, 'app', pathname);
             default:
                 throw new Error("Invariant: Can't determine file path kind");
         }

@@ -1,15 +1,115 @@
-## Installation
+## Getting Started with `@neshca/cache-handler`
 
-To install the `@neshca/cache-handler` package, run the following command:
+This section guides you through the initial setup and basic usage of `@neshca/cache-handler`, helping you integrate advanced caching solutions into your Next.js applications seamlessly.
 
-```sh npm2yarn copy
-npm i -D @neshca/cache-handler
+### Prerequisites
+
+-   **Node.js:** Version 18.17 or newer.
+-   **Next.js:** Version 13.5.1 or newer.
+-   **Redis (optional):** Version 4.6.0 or newer.
+
+### Quick Start Installation
+
+```sh copy
+npx create-next-app --example cache-handler-redis cache-handler-redis-app
 ```
 
-## Usage with Redis
-
-Redis is a peer dependency of this package, so you need to install it separately:
-
-```sh npm2yarn copy
-npm i -D redis
+```sh copy
+yarn create next-app --example cache-handler-redis cache-handler-redis-app
 ```
+
+```sh copy
+pnpm create next-app --example cache-handler-redis cache-handler-redis-app
+```
+
+### Manual installation
+
+1. **Install `@neshca/cache-handler`**:  
+   Execute this command in your Next.js project root directory:
+
+    ```sh npm2yarn copy
+    npm install -D @neshca/cache-handler
+    ```
+
+2. **Optional Redis Installation**:  
+   Install Redis if you plan to use distributed caching across multiple server instances:
+
+    ```sh npm2yarn copy
+    npm install -D redis
+    ```
+
+### Basic Configuration
+
+1. **Create a Cache Handler File**:  
+   In your project root, create a file named `cache-handler.js` for your cache configuration.
+
+2. **Configure the Cache Handler**:  
+   Below is a basic setup example. The `console.log` statements help track cache operations:
+
+    ```js filename="cache-handler.js" copy
+    const { IncrementalCache } = require("@neshca/cache-handler");
+
+    IncrementalCache.onCreation(async () => {
+      const cacheStore = a new Map();
+
+      const cache = {
+        async get(key) {
+          console.log("cache.get", key); // For demonstration: logs when retrieving from cache
+          return cacheStore.get(key);
+        },
+        async set(key, value) {
+          console.log("cache.set", key); // For demonstration: logs when adding to cache
+          cacheStore.set(key, value);
+        },
+      };
+
+      return {
+        cache,
+        useFileSystem: true,
+      };
+    });
+
+    module.exports = IncrementalCache;
+    ```
+
+3. **Integrate with Next.js**:  
+   Update your `next.config.js` to utilize the cache handler, ensuring it's only active in production:
+
+    ```js filename="next.config.js" copy
+    const nextConfig = {
+        experimental: {
+            incrementalCacheHandlerPath:
+                process.env.NODE_ENV === 'development' ? undefined : require.resolve('./cache-handler'),
+        },
+    };
+
+    module.exports = nextConfig;
+    ```
+
+### Running Your Application
+
+1. **Start Your Next.js Application**:  
+   Run your app as usual. `@neshca/cache-handler` will now manage your application's caching:
+
+    ```sh npm2yarn copy
+    npm run build
+    npm run start
+    ```
+
+2. **Verification**:  
+   In your terminal, you should observe logs like:
+
+    ```sh
+    cache.get ...
+    cache.set ...
+    ```
+
+    This indicates that the cache handler is actively managing your cache operations.
+
+### Next Steps
+
+With the setup complete, explore `@neshca/cache-handler`'s advanced features:
+
+-   Check out the [Redis Integration Example](/redis-stack);
+-   Learn [how to use the API](/configuration/on-creation) and craft your own cache handler configuration;
+-   Learn [how to use TTL](/configuration/ttl) for cache eviction.
