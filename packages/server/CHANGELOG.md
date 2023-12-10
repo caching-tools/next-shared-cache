@@ -1,5 +1,16 @@
 # @neshca/server
 
+## 0.6.0
+
+### Minor Changes
+
+-   60dab2a: Updated the package to ensure compatibility with the new API for `@neshca/cache-handler`.
+
+    #### Breaking Changes
+
+    -   Renamed `getTagsManifest` route to `getRevalidatedTags`;
+        Changed the return type of `getRevalidatedTags` route.
+
 ## 0.5.1
 
 ### Patch Changes

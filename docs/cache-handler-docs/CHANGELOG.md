@@ -1,5 +1,11 @@
 # cache-handler-docs
 
+## 0.6.0
+
+### Minor Changes
+
+-   60dab2a: Made the documentation complete.
+
 ## 0.5.4
 
 ### Patch Changes
