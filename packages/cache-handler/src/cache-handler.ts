@@ -162,6 +162,48 @@ export type CreateCache<T> = (options: T) => Promise<CacheConfig> | CacheConfig;
 export type OnCreationHook = (cacheCreationContext: CacheCreationContext) => Promise<CacheConfig> | CacheConfig;
 
 export class IncrementalCache implements CacheHandler {
+    /**
+     * Provides a descriptive name for the IncrementalCache class.
+     *
+     * The name includes the number of handlers and whether file system caching is used.
+     * If the cache handler is not configured yet, it will return a string indicating so.
+     *
+     * This property is primarily intended for debugging purposes
+     * and its visibility is controlled by the `NEXT_PRIVATE_DEBUG_CACHE` environment variable.
+     *
+     * @returns A string describing the cache handler configuration.
+     *
+     * @example
+     * ```js
+     * // cache-handler.js
+     * IncrementalCache.onCreation(async () => {
+     *  const = redisCache = await createRedisCache({
+     *    client,
+     *  });
+     *
+     *   const localCache = createLruCache();
+     *
+     *   return {
+     *     cache: [redisCache, localCache],
+     *     useFileSystem: true,
+     *   };
+     * });
+     *
+     * // after the Next.js called the onCreation hook
+     * console.log(IncrementalCache.name);
+     * // Output: "@neshca/cache-handler with 2 Handlers and file system caching"
+     * ```
+     */
+    public static get name(): string {
+        if (this.#cacheListLength === undefined) {
+            return '@neshca/cache-handler is not configured yet';
+        }
+
+        return `@neshca/cache-handler with ${this.#cacheListLength} Handler${
+            this.#cacheListLength > 1 ? 's' : ''
+        } and ${this.#useFileSystem ? 'file system' : 'no file system'} caching`;
+    }
+
     static #resolveCreationPromise: () => void;
 
     static #rejectCreationPromise: (error: unknown) => void;
@@ -187,6 +229,8 @@ export class IncrementalCache implements CacheHandler {
     static #useFileSystem = true;
 
     static #cache: Cache;
+
+    static #cacheListLength: number;
 
     static #tagsManifestPath: string;
 
@@ -259,10 +303,14 @@ export class IncrementalCache implements CacheHandler {
         if (!Array.isArray(cache)) {
             this.#cache = cache;
 
+            this.#cacheListLength = 1;
+
             return;
         }
 
         const cacheList = cache.filter((cacheItem): cacheItem is Cache => Boolean(cacheItem));
+
+        this.#cacheListLength = cacheList.length;
 
         // if no cache is provided and we don't use the file system
         if (cacheList.length === 0 && !this.#useFileSystem) {

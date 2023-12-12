@@ -1,3 +1,5 @@
+import { Callout } from 'nextra/components';
+
 ## Getting Started with `@neshca/cache-handler`
 
 This section guides you through the initial setup and basic usage of `@neshca/cache-handler`, helping you integrate advanced caching solutions into your Next.js applications seamlessly.
@@ -38,35 +40,34 @@ pnpm create next-app --example cache-handler-redis cache-handler-redis-app
     npm install -D redis
     ```
 
-### Basic Configuration
+### Basic Custom Configuration
 
 1. **Create a Cache Handler File**:  
    In your project root, create a file named `cache-handler.js` for your cache configuration.
 
 2. **Configure the Cache Handler**:  
-   Below is a basic setup example. The `console.log` statements help track cache operations:
+   Below is a basic setup example:
 
     ```js filename="cache-handler.js" copy
-    const { IncrementalCache } = require("@neshca/cache-handler");
+    const { IncrementalCache } = require('@neshca/cache-handler');
 
     IncrementalCache.onCreation(async () => {
-      const cacheStore = a new Map();
+        // Don't do this in production. This is just an example.
+        const cacheStore = new Map();
 
-      const cache = {
-        async get(key) {
-          console.log("cache.get", key); // For demonstration: logs when retrieving from cache
-          return cacheStore.get(key);
-        },
-        async set(key, value) {
-          console.log("cache.set", key); // For demonstration: logs when adding to cache
-          cacheStore.set(key, value);
-        },
-      };
+        const cache = {
+            async get(key) {
+                return cacheStore.get(key);
+            },
+            async set(key, value) {
+                cacheStore.set(key, value);
+            },
+        };
 
-      return {
-        cache,
-        useFileSystem: true,
-      };
+        return {
+            cache,
+            useFileSystem: true,
+        };
     });
 
     module.exports = IncrementalCache;
@@ -79,32 +80,27 @@ pnpm create next-app --example cache-handler-redis cache-handler-redis-app
     const nextConfig = {
         experimental: {
             incrementalCacheHandlerPath:
-                process.env.NODE_ENV === 'development' ? undefined : require.resolve('./cache-handler'),
+                process.env.NODE_ENV === 'production' ? require.resolve('./cache-handler') : undefined,
         },
     };
 
     module.exports = nextConfig;
     ```
 
+<Callout type="info">
+    Do not import <code>@neshca/cache-handler</code> to your components or pages. It is only meant to be used in{' '}
+    <code>cache-handler.js</code> files.
+</Callout>
+
 ### Running Your Application
 
-1. **Start Your Next.js Application**:  
-   Run your app as usual. `@neshca/cache-handler` will now manage your application's caching:
+**Start Your Next.js Application**:  
+ Run your app as usual. `@neshca/cache-handler` will now manage your application's caching:
 
     ```sh npm2yarn copy
     npm run build
     npm run start
     ```
-
-2. **Verification**:  
-   In your terminal, you should observe logs like:
-
-    ```sh
-    cache.get ...
-    cache.set ...
-    ```
-
-    This indicates that the cache handler is actively managing your cache operations.
 
 ### Next Steps
 
@@ -113,3 +109,4 @@ With the setup complete, explore `@neshca/cache-handler`'s advanced features:
 -   Check out the [Redis Integration Example](/redis-stack);
 -   Learn [how to use the API](/configuration/on-creation) and craft your own cache handler configuration;
 -   Learn [how to use TTL](/configuration/ttl) for cache eviction.
+-   See how to [debug and troubleshoot](/troubleshooting) your cache handler configuration.

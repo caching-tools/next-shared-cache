@@ -1,0 +1,75 @@
+### Verifying that the Cache Handler works
+
+You can verify if the cache handler is active by using either of the following methods:
+
+#### Method 1: Console Logging
+
+Add `console.log` statements to your cache handler:
+
+```js filename="cache-handler.js"
+/* ... */
+const cache = {
+    async get(key) {
+        console.log('cache.get', key);
+        return cacheStore.get(key);
+    },
+    async set(key, value) {
+        console.log('cache.set', key, value);
+        cacheStore.set(key, value);
+    },
+};
+/* ... */
+```
+
+Execute your application as usual:
+
+```sh npm2yarn copy
+npm run build
+npm run start
+```
+
+The console should display output the application starts and any page is opened in your browser:
+
+```
+cache.get ...
+cache.set ...
+```
+
+#### Method 2: Debug Mode
+
+Activate debug mode by setting the `NEXT_PRIVATE_DEBUG_CACHE` environment variable:
+
+Locate or create a `.env.local` file in your project's root directory and add the following:
+
+```plaintext filename=".env.local" copy
+NEXT_PRIVATE_DEBUG_CACHE=1
+```
+
+Build and execute your application:
+
+```sh npm2yarn copy
+npm run build
+npm run start
+```
+
+Verbose output should appear in your console when the application starts and any page is opened in your browser:
+
+```
+using custom cache handler @neshca/cache-handler with 1 Handlers and file system caching
+using custom cache handler @neshca/cache-handler with 1 Handlers and file system caching
+```
+
+Note: During the build stage, it's normal to see `@neshca/cache-handler is not configured yet` several times.
+
+#### Troubleshooting
+
+If the cache handler is not active:
+
+1. Verify that the cache handler has been correctly installed, imported, and configured. Refer to the [Installation and the First Steps](/installation) section for guidance.
+2. Ensure that the `NEXT_PRIVATE_DEBUG_CACHE` environment variable is set. To verify, add the following to your `next.config.js` file:
+
+    ```js filename="next.config.js" copy
+    console.log('NEXT_PRIVATE_DEBUG_CACHE', process.env.NEXT_PRIVATE_DEBUG_CACHE);
+    ```
+
+    When you build or run your application, `NEXT_PRIVATE_DEBUG_CACHE 1` should appear in your console.
