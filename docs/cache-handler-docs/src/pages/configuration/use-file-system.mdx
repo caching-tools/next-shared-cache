@@ -2,9 +2,9 @@ import { Callout } from 'nextra/components';
 
 ## Configuring access to the file system
 
-You can use your file system to store the cache data alongside with you shared cache. It may be useful if your shared cache store may be unavailable for some reason.
+You can use your file system to store the cache data alongside your shared cache. It may be useful if your shared cache store may be unavailable for some reason.
 
-File system cache is enabled by default. You can disable it by setting `useFileSystem` to false in your `onCreation` hook:
+The file system cache is enabled by default. You can disable it by setting `useFileSystem` to false in your `onCreation` hook:
 
 ```js filename="cache-handler.js" copy
 const { IncrementalCache } = require('@neshca/cache-handler');
@@ -38,13 +38,25 @@ module.exports = IncrementalCache;
     file system cache. Do not disable it if you are using Pages.
 </Callout>
 
-## The usage of `local-lru` Handler instad of file system cache
+## The usage of `local-lru` Handler instead of file system cache
 
-The `local-lru` Handler utilizes a Least Recently Used (LRU) caching strategy, which can manage cache operations more efficiently by setting a maximum number of items and their size in bytes. It's designed to serve as a fallback for the Redis Handler, offering better performance in specific scenarios.
+The `local-lru` Handler utilizes a Least Recently Used (LRU) caching strategy, which can manage cache operations more efficiently by setting a maximum number of items and their size in bytes. It's designed to serve as a fallback for the Redis Handler, offering better performance than the file system.
+
+### When not to use `local-lru` Handler
+
+It is worth mentioning that when all application replicas share a file system, enabling a local LRU cache is not viable.
+
+In the configuration without the `@neshca/cache-handler`, you are turning off the local in-memory cache with this option:
+
+```js
+isrMemoryCacheSize: 0, // disable default in-memory caching
+```
+
+`@neshca/cache-handler` doesn't use this option; instead, it makes the usage of the local cache more explicit. To disable the LRU cache, simply remove it from the cache array.
 
 ### Implementation
 
-The `createLruCache` function initializes the LRU cache handler. It includes methods for getting and setting cache values, and revalidation is managed by the `IncrementalCache` class.
+The `createLruCache` function initializes the LRU cache handler. It includes methods for getting and setting cache values, and the `IncrementalCache` class manages revalidation.
 
 #### Example Usage
 
@@ -86,4 +98,5 @@ IncrementalCache.onCreation(async (context) => {
 ### Considerations
 
 -   It's recommended to use this Handler as a fallback for Redis Handler, particularly when using only the App router.
+-   Don't use this Handler if you are using shared file systems between application replicas.
 -   Be cautious of a known bug in Next.js' Pages router when disabling the file system cache. Do not disable it if you are using Pages, as mentioned in the preceding section.
