@@ -1,5 +1,11 @@
 # cache-handler-docs
 
+## 0.6.1
+
+### Patch Changes
+
+-   d9c5d09: Added the `name` static field to the `IncrementalCache` class and updated the documentation to reflect this in troubleshooting section.
+
 ## 0.6.0
 
 ### Minor Changes
