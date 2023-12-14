@@ -12,13 +12,13 @@
     },
     "dependencies": {
         "fastify": "4.25.0",
-        "pino": "8.17.0"
+        "pino": "8.17.1"
     },
     "devDependencies": {
         "@neshca/tsconfig": "*",
         "@types/node": "20.10.4",
         "eslint-config-neshca": "*",
-        "pino-pretty": "10.2.3",
+        "pino-pretty": "10.3.0",
         "rimraf": "5.0.5",
         "tsx": "4.6.2",
         "typescript": "5.3.3"
