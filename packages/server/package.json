@@ -27,7 +27,7 @@
     },
     "dependencies": {
         "fastify": "4.25.0",
-        "pino": "8.17.0"
+        "pino": "8.17.1"
     },
     "devDependencies": {
         "@neshca/next-common": "*",
