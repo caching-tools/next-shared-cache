@@ -73,3 +73,5 @@ If the cache handler is not active:
     ```
 
     When you build or run your application, `NEXT_PRIVATE_DEBUG_CACHE 1` should appear in your console.
+
+3. If you're using a third-party library to retrieve data or database records (e.g., `axios`, `node-fetch`, `pg`) within the App directory, ensure you're using the [`unstable_cache`](https://nextjs.org/docs/app/api-reference/functions/unstable_cache). By default, Next.js will cache only native fetch calls.
