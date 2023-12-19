@@ -8,6 +8,16 @@ jobs:
   test:
     name: 'Test all'
     runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis/redis-stack-server:latest
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
     container:
       image: mcr.microsoft.com/playwright:v1.40.1-jammy
     steps:
@@ -26,6 +36,7 @@ jobs:
       - name: Build Next.js app and run tests
         run: |
           npm run start -w backend &
-          npm run start -w @neshca/server &
           npm run build:app
           npm run e2e
+        env:
+          REDIS_URL: redis://localhost:6379

@@ -23,7 +23,11 @@ client.on('error', (error) => {
 });
 
 IncrementalCache.onCreation(async () => {
-    await client.connect();
+    try {
+        await client.connect();
+    } catch (error) {
+        console.error('Redis error:', error);
+    }
 
     const redisCache = await createRedisCache({
         client,
