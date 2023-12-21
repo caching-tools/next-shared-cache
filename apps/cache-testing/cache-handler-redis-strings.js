@@ -8,7 +8,7 @@ if (!process.env.REDIS_URL) {
 }
 
 const PREFIX = 'string:';
-const CONNECT_TIMEOUT_MS = 5 * 50 * 1000;
+const CONNECT_TIMEOUT_MS = 5 * 60 * 1000;
 
 const client = createClient({
     url: process.env.REDIS_URL,

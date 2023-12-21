@@ -1,10 +1,10 @@
 import type { TagsManifest } from '@neshca/next-common';
 
-function hasItems(object: object): object is { items: object } {
+function hasItems(object: object): object is { items: unknown } {
     return Object.hasOwn(object, 'items');
 }
 
-function hasVersion(object: object): object is { version: number } {
+function hasVersion(object: object): object is { version: unknown } {
     return Object.hasOwn(object, 'version');
 }
 
@@ -13,9 +13,8 @@ export function isTagsManifest(object: unknown): object is TagsManifest {
         typeof object === 'object' &&
         object !== null &&
         hasItems(object) &&
-        typeof object.items === 'object' &&
-        object.items !== null &&
         hasVersion(object) &&
+        typeof object.version === 'number' &&
         object.version === 1
     );
 }

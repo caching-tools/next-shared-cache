@@ -73,7 +73,6 @@ IncrementalCache.onCreation(async (context) => {
     const lruCache = createLruCache({
         maxItemsNumber: 10000, // Limit to 10000 items
         maxItemSizeBytes: 1024 * 1024 * 500, // Limit to 500 MB
-        unstable__logErrors: true,
     });
 
     return {

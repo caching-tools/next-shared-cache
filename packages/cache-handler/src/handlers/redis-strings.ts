@@ -1,8 +1,7 @@
 /* eslint-disable import/no-default-export -- use default here */
-/* eslint-disable camelcase -- unstable__* */
-/* eslint-disable no-console -- log errors */
 import { reviveFromBase64Representation, replaceJsonWithBase64 } from '@neshca/json-replacer-reviver';
-import type { RedisClientType, RedisClusterType } from 'redis';
+import type { RedisClientType } from 'redis';
+import { withTimeout } from '../with-timeout';
 import type { RevalidatedTags, CacheHandlerValue, Cache } from '../cache-handler';
 import type { RedisCacheHandlerOptions } from './redis-stack';
 
@@ -23,8 +22,7 @@ import type { RedisCacheHandlerOptions } from './redis-stack';
  * const cache = await createCache({
  *   client: redisClient,
  *   keyPrefix: 'myApp:',
- *   revalidatedTagsKey: 'myRevalidatedTags',
- *   unstable__logErrors: true
+ *   revalidatedTagsKey: 'myRevalidatedTags'
  * });
  * ```
  *
@@ -35,75 +33,72 @@ import type { RedisCacheHandlerOptions } from './redis-stack';
  *
  * The `getRevalidatedTags` and `revalidateTag` methods are used for handling tag-based cache revalidation.
  */
-export default function createCache<T extends RedisClientType | RedisClusterType>({
+export default function createCache<T extends RedisClientType>({
     client,
     keyPrefix = '',
     revalidatedTagsKey = '__sharedRevalidatedTags__',
     useTtl = false,
-    unstable__logErrors,
+    timeoutMs,
 }: RedisCacheHandlerOptions<T>): Cache {
+    function assertClientIsReady(): void {
+        if (!client.isReady) {
+            throw new Error('Redis client is not ready');
+        }
+    }
+
     return {
+        name: 'redis-strings',
         async get(key) {
-            try {
-                const result = (await client.get(keyPrefix + key)) ?? null;
+            assertClientIsReady();
 
-                if (!result) {
-                    return null;
-                }
+            const getOperation = client.get(keyPrefix + key);
 
-                // use reviveFromBase64Representation to restore binary data from Base64
-                return JSON.parse(result, reviveFromBase64Representation) as CacheHandlerValue | null;
-            } catch (error) {
-                if (unstable__logErrors) {
-                    console.error('cache.get', error);
-                }
+            const result = await withTimeout(getOperation, timeoutMs);
 
+            if (!result) {
                 return null;
             }
+
+            // use reviveFromBase64Representation to restore binary data from Base64
+            return JSON.parse(result, reviveFromBase64Representation) as CacheHandlerValue | null;
         },
         async set(key, value, ttl) {
-            try {
-                // use replaceJsonWithBase64 to store binary data in Base64 and save space
-                await client.set(
-                    keyPrefix + key,
-                    JSON.stringify(value, replaceJsonWithBase64),
-                    useTtl && typeof ttl === 'number' ? { EX: ttl } : undefined,
-                );
-            } catch (error) {
-                if (unstable__logErrors) {
-                    console.error('cache.set', error);
-                }
-            }
+            assertClientIsReady();
+
+            // use replaceJsonWithBase64 to store binary data in Base64 and save space
+            const setOperation = client.set(
+                keyPrefix + key,
+                JSON.stringify(value, replaceJsonWithBase64),
+                useTtl && typeof ttl === 'number' ? { EX: ttl } : undefined,
+            );
+
+            await withTimeout(setOperation, timeoutMs);
         },
         async getRevalidatedTags() {
-            try {
-                const sharedRevalidatedTags = await client.hGetAll(keyPrefix + revalidatedTagsKey);
+            assertClientIsReady();
 
-                const entries = Object.entries(sharedRevalidatedTags);
+            const getOperation = client.hGetAll(keyPrefix + revalidatedTagsKey);
 
-                const revalidatedTags = entries.reduce<RevalidatedTags>((acc, [tag, revalidatedAt]) => {
-                    acc[tag] = Number(revalidatedAt);
+            const sharedRevalidatedTags = await withTimeout(getOperation, timeoutMs);
 
-                    return acc;
-                }, {});
+            const entries = Object.entries(sharedRevalidatedTags);
 
-                return revalidatedTags;
-            } catch (error) {
-                if (unstable__logErrors) {
-                    console.error('cache.getRevalidatedTags', error);
-                }
-            }
+            const revalidatedTags = entries.reduce<RevalidatedTags>((acc, [tag, revalidatedAt]) => {
+                acc[tag] = Number(revalidatedAt);
+
+                return acc;
+            }, {});
+
+            return revalidatedTags;
         },
         async revalidateTag(tag, revalidatedAt) {
-            try {
-                await client.hSet(keyPrefix + revalidatedTagsKey, {
-                    [tag]: revalidatedAt,
-                });
-            } catch (error) {
-                if (unstable__logErrors) {
-                    console.error('cache.revalidateTag', error);
-                }
-            }
+            assertClientIsReady();
+
+            const setOperation = client.hSet(keyPrefix + revalidatedTagsKey, {
+                [tag]: revalidatedAt,
+            });
+
+            await withTimeout(setOperation, timeoutMs);
         },
     };
 }

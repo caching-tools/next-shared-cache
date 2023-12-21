@@ -1,18 +1,14 @@
 /* eslint-disable import/no-default-export -- use default here */
-/* eslint-disable camelcase -- unstable__* */
-/* eslint-disable no-console -- log errors */
 import type { LruCacheOptions } from '@neshca/next-lru-cache/next-cache-handler-value';
 import { createCache } from '@neshca/next-lru-cache/next-cache-handler-value';
 import type { Cache } from '../cache-handler';
-import type { CacheHandlerOptions } from '../common-types';
 
-export type LruCacheHandlerOptions = CacheHandlerOptions &
-    LruCacheOptions & {
-        /**
-         * Optional. Enables ttl support. Defaults to `false`.
-         */
-        useTtl?: boolean;
-    };
+export type LruCacheHandlerOptions = LruCacheOptions & {
+    /**
+     * Optional. Enables ttl support. Defaults to `false`.
+     */
+    useTtl?: boolean;
+};
 
 /**
  * Creates an LRU (Least Recently Used) cache handler.
@@ -31,40 +27,22 @@ export type LruCacheHandlerOptions = CacheHandlerOptions &
  * const lruCache = createLruCache({
  *   maxItemsNumber: 10000, // 10000 items
  *   maxItemSizeBytes: 1024 * 1024 * 500, // 500 MB
- *   unstable__logErrors: true
  * });
  * ```
  *
  * @remarks
  * Use this Handler as a fallback for Redis Handler instead of the filesystem when you use only the App router.
  */
-export default function createLruCache({
-    unstable__logErrors,
-    useTtl,
-    ...lruOptions
-}: LruCacheHandlerOptions = {}): Cache {
+export default function createLruCache({ useTtl, ...lruOptions }: LruCacheHandlerOptions = {}): Cache {
     const lruCache = createCache(lruOptions);
 
     return {
+        name: 'local-lru',
         get(key) {
-            try {
-                return Promise.resolve(lruCache.get(key));
-            } catch (error) {
-                if (unstable__logErrors) {
-                    console.error('cache.get', error);
-                }
-
-                return Promise.resolve(null);
-            }
+            return Promise.resolve(lruCache.get(key));
         },
         set(key, value, ttl = 0) {
-            try {
-                lruCache.set(key, value, useTtl ? { ttl: ttl * 1000 } : undefined);
-            } catch (error) {
-                if (unstable__logErrors) {
-                    console.error('cache.set', error);
-                }
-            }
+            lruCache.set(key, value, useTtl ? { ttl: ttl * 1000 } : undefined);
 
             return Promise.resolve();
         },
