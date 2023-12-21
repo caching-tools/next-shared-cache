@@ -32,6 +32,9 @@ IncrementalCache.onCreation(async () => {
     const redisCache = await createRedisCache({
         client,
         useTtl,
+        // timeout for the Redis client operations like `get` and `set`
+        // afeter this timeout, the operation will be considered failed and the `localCache` will be used
+        timeoutMs: 5000,
     });
 
     const localCache = createLruCache({

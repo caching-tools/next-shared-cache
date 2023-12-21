@@ -30,6 +30,10 @@ export type RevalidatedTags = Record<string, number>;
  */
 export type Cache = {
     /**
+     * A descriptive name for the cache handler instance.
+     */
+    name?: string;
+    /**
      * Retrieves the value associated with the given key from the cache.
      *
      * @param key - The unique string identifier for the cache entry.
@@ -53,9 +57,11 @@ export type Cache = {
     /**
      * Retrieves the {@link RevalidatedTags} object.
      *
-     * @returns A Promise that resolves to a {@link RevalidatedTags} object or `undefined` for using a locally maintained {@link RevalidatedTags}.
+     * @returns A Promise that resolves to a {@link RevalidatedTags} object
+     * or either `null` or `undefined` for using tags from the next cache layer
+     * or a locally maintained {@link RevalidatedTags}.
      */
-    getRevalidatedTags?: () => Promise<RevalidatedTags | undefined>;
+    getRevalidatedTags?: () => Promise<RevalidatedTags | null | undefined>;
     /**
      * Marks a specific cache tag as revalidated. Useful for cache invalidation strategies.
      *
@@ -64,6 +70,13 @@ export type Cache = {
      * @param revalidatedAt - The timestamp (in milliseconds) of when the tag was revalidated.
      */
     revalidateTag?: (tag: string, revalidatedAt: number) => Promise<void>;
+};
+
+type NamedCache = Cache & {
+    /**
+     * A descriptive name or an index for the cache instance.
+     */
+    name: string;
 };
 
 /**
@@ -236,6 +249,8 @@ export class IncrementalCache implements CacheHandler {
 
     static #revalidatedTags: RevalidatedTags = {};
 
+    static #debug = Boolean(process.env.NEXT_PRIVATE_DEBUG_CACHE);
+
     static onCreationHook: OnCreationHook;
 
     /**
@@ -300,15 +315,18 @@ export class IncrementalCache implements CacheHandler {
             // If the file doesn't exist, use the default tagsManifest
         }
 
-        if (!Array.isArray(cache)) {
-            this.#cache = cache;
+        const cacheList: NamedCache[] = Array.isArray(cache)
+            ? cache.reduce<NamedCache[]>((items, cacheItem, index) => {
+                  if (cacheItem) {
+                      items.push({
+                          ...cacheItem,
+                          name: cacheItem.name || index.toString(),
+                      });
+                  }
 
-            this.#cacheListLength = 1;
-
-            return;
-        }
-
-        const cacheList = cache.filter((cacheItem): cacheItem is Cache => Boolean(cacheItem));
+                  return items;
+              }, [])
+            : [{ name: '0', ...cache }];
 
         this.#cacheListLength = cacheList.length;
 
@@ -322,27 +340,82 @@ export class IncrementalCache implements CacheHandler {
         this.#cache = {
             async get(key) {
                 for await (const cacheItem of cacheList) {
-                    const value = await cacheItem.get(key);
+                    try {
+                        const cacheValue = await cacheItem.get(key);
 
-                    if (value) {
-                        return value;
+                        if (IncrementalCache.#debug) {
+                            // eslint-disable-next-line no-console -- we want to log this
+                            console.log(`get from "${cacheItem.name}"`, key, Boolean(cacheValue));
+                        }
+
+                        return cacheValue;
+                    } catch (error) {
+                        if (IncrementalCache.#debug) {
+                            // eslint-disable-next-line no-console -- we want to log this
+                            console.warn(
+                                `Cache handler "${cacheItem.name}" failed to get value for key "${key}".`,
+                                error,
+                            );
+                        }
+
+                        continue;
                     }
                 }
+
+                return null;
             },
             async set(key, value, ttl) {
-                await Promise.allSettled(cacheList.map((cacheItem) => cacheItem.set(key, value, ttl)));
+                await Promise.allSettled(
+                    cacheList.map((cacheItem) => {
+                        try {
+                            return cacheItem.set(key, value, ttl);
+                        } catch (error) {
+                            if (IncrementalCache.#debug) {
+                                // eslint-disable-next-line no-console -- we want to log this
+                                console.warn(
+                                    `Cache handler "${cacheItem.name}" failed to set value for key "${key}".`,
+                                    error,
+                                );
+                            }
+                        }
+
+                        return Promise.resolve();
+                    }),
+                );
             },
             async getRevalidatedTags() {
                 for await (const cacheItem of cacheList) {
-                    const remoteRevalidatedTags = await cacheItem.getRevalidatedTags?.();
+                    try {
+                        const revalidatedTags = await cacheItem.getRevalidatedTags?.();
 
-                    if (remoteRevalidatedTags) {
-                        return remoteRevalidatedTags;
+                        return revalidatedTags;
+                    } catch (error) {
+                        if (IncrementalCache.#debug) {
+                            // eslint-disable-next-line no-console -- we want to log this
+                            console.warn(`Cache handler "${cacheItem.name}" failed to get revalidated tags.`, error);
+                        }
+                        continue;
                     }
                 }
             },
             async revalidateTag(tag, revalidatedAt) {
-                await Promise.allSettled(cacheList.map((cacheItem) => cacheItem.revalidateTag?.(tag, revalidatedAt)));
+                await Promise.allSettled(
+                    cacheList.map((cacheItem) => {
+                        try {
+                            return cacheItem.revalidateTag?.(tag, revalidatedAt);
+                        } catch (error) {
+                            if (IncrementalCache.#debug) {
+                                // eslint-disable-next-line no-console -- we want to log this
+                                console.warn(
+                                    `Cache handler "${cacheItem.name}" failed to revalidate tag "${tag}".`,
+                                    error,
+                                );
+                            }
+                        }
+
+                        return Promise.resolve();
+                    }),
+                );
             },
         };
     }
@@ -434,12 +507,16 @@ export class IncrementalCache implements CacheHandler {
                 };
 
                 if (cachedData.value?.kind === 'FETCH') {
-                    const storedTags = cachedData.value.tags;
+                    const cachedTags = cachedData.value.tags;
 
                     // update stored tags if a new one is being added
                     // TODO: remove this when we can send the tags
                     // via header on GET same as SET
-                    if (!tags?.every((tag) => storedTags?.includes(tag))) {
+                    if (!tags?.every((tag) => cachedTags?.includes(tag))) {
+                        if (IncrementalCache.#debug) {
+                            // eslint-disable-next-line no-console -- we want to log this
+                            console.log('tags vs cachedTags mismatch', tags, cachedTags);
+                        }
                         await this.set(cacheKey, cachedData.value, { tags });
                     }
                 }
@@ -553,6 +630,11 @@ export class IncrementalCache implements CacheHandler {
         if (!cachedData && IncrementalCache.#useFileSystem) {
             cachedData = await this.readCacheFromFileSystem(cacheKey, kindHint, tags);
 
+            if (IncrementalCache.#debug) {
+                // eslint-disable-next-line no-console -- we want to log this
+                console.log('get from file system', cacheKey, tags, kindHint, Boolean(cachedData));
+            }
+
             if (cachedData) {
                 await IncrementalCache.#cache.set(cacheKey, cachedData);
             }
@@ -645,19 +727,44 @@ export class IncrementalCache implements CacheHandler {
             typeof revalidate === 'number' ? revalidate : undefined,
         );
 
+        if (IncrementalCache.#debug) {
+            // eslint-disable-next-line no-console -- we want to log this
+            console.log('set to external cache store', cacheKey);
+        }
+
         if (data && IncrementalCache.#useFileSystem) {
             await this.writeCacheToFileSystem(data, cacheKey, tags);
+
+            if (IncrementalCache.#debug) {
+                // eslint-disable-next-line no-console -- we want to log this
+                console.log('set to file system', cacheKey);
+            }
         }
     }
 
     public async revalidateTag(...args: CacheHandlerParametersRevalidateTag): Promise<void> {
         const [tag] = args;
 
+        if (IncrementalCache.#debug) {
+            // eslint-disable-next-line no-console -- we want to log this
+            console.log('revalidateTag', tag);
+        }
+
         await IncrementalCache.#creationPromise;
 
         await IncrementalCache.#cache.revalidateTag?.(tag, Date.now());
 
+        if (IncrementalCache.#debug) {
+            // eslint-disable-next-line no-console -- we want to log this
+            console.log('updated external revalidated tags');
+        }
+
         IncrementalCache.#revalidatedTags[tag] = Date.now();
+
+        if (IncrementalCache.#debug) {
+            // eslint-disable-next-line no-console -- we want to log this
+            console.log('updated local revalidated tags');
+        }
 
         try {
             const tagsManifest = Object.entries(IncrementalCache.#revalidatedTags).reduce<TagsManifest>(
@@ -675,9 +782,13 @@ export class IncrementalCache implements CacheHandler {
             );
 
             await fsPromises.writeFile(IncrementalCache.#tagsManifestPath, JSON.stringify(tagsManifest));
-        } catch (err) {
+            if (IncrementalCache.#debug) {
+                // eslint-disable-next-line no-console -- we want to log this
+                console.log('updated tags manifest file');
+            }
+        } catch (error) {
             // eslint-disable-next-line no-console -- we want to log this
-            console.warn('Failed to update tags manifest.', err);
+            console.warn('failed to update tags manifest.', error);
         }
     }
 

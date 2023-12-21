@@ -49,7 +49,9 @@
         "build": "tsup --dts-resolve",
         "clean": "rimraf ./dist ./.turbo ./node_modules",
         "dev": "tsup --watch",
-        "lint": "eslint ."
+        "lint": "eslint .",
+        "test": "node --test --import tsx/esm **/*.test.ts",
+        "test:watch": "node --watch --test --import tsx/esm **/*.test.ts"
     },
     "dependencies": {
         "@neshca/json-replacer-reviver": "*",
@@ -63,6 +65,7 @@
         "eslint-config-neshca": "*",
         "rimraf": "5.0.5",
         "tsup": "8.0.1",
+        "tsx": "4.7.0",
         "typescript": "5.3.3"
     },
     "peerDependencies": {

@@ -1,11 +1,8 @@
 /* eslint-disable import/no-default-export -- use default here */
-/* eslint-disable camelcase -- unstable__* */
-/* eslint-disable no-console -- log errors */
 import { reviveFromBase64Representation, replaceJsonWithBase64 } from '@neshca/json-replacer-reviver';
 import type { CacheHandlerValue, Cache, RevalidatedTags } from '../cache-handler';
-import type { CacheHandlerOptions } from '../common-types';
 
-export type ServerCacheHandlerOptions = CacheHandlerOptions & {
+export type ServerCacheHandlerOptions = {
     /**
      * The base URL of the cache store server.
      */
@@ -27,127 +24,97 @@ export type ServerCacheHandlerOptions = CacheHandlerOptions & {
  * ```js
  * const serverCache = createCache({
  *   baseUrl: 'http://localhost:8080/',
- *   unstable__logErrors: true
  * });
  * ```
  *
  * @remarks
- * The `get` method retrieves a value from the server cache. If the server response is not OK, it returns `null`.
- *
- * The `set` method allows setting a value in the server cache.
- *
- * The `getRevalidatedTags` method retrieves revalidated tags from the server.
- *
- * The `revalidateTag` method updates the revalidation time for a specific tag in the server cache.
- *
- * Error handling: If `unstable__logErrors` is true, errors during cache operations are logged to the console.
+ * - the `get` method retrieves a value from the server cache. If the server response is not OK, it returns `null`.
+ * - the `set` method allows setting a value in the server cache.
+ * - the `getRevalidatedTags` method retrieves revalidated tags from the server.
+ * - the `revalidateTag` method updates the revalidation time for a specific tag in the server cache.
  */
-export default function createCache({ baseUrl, unstable__logErrors }: ServerCacheHandlerOptions): Cache {
+export default function createCache({ baseUrl }: ServerCacheHandlerOptions): Cache {
     return {
+        name: 'server',
         async get(key) {
-            try {
-                const url = new URL('/get', baseUrl);
+            const url = new URL('/get', baseUrl);
 
-                url.searchParams.set('key', key);
+            url.searchParams.set('key', key);
 
-                const response = await fetch(url, {
-                    // @ts-expect-error -- act as an internal fetch call
-                    next: {
-                        internal: true,
-                    },
-                });
+            const response = await fetch(url, {
+                // @ts-expect-error -- act as an internal fetch call
+                next: {
+                    internal: true,
+                },
+            });
 
-                if (!response.ok) {
-                    return null;
-                }
-
-                if (response.status > 500 && response.status < 600) {
-                    throw new Error(`Server error: ${response.status}`);
-                }
-
-                const string = await response.text();
-
-                return JSON.parse(string, reviveFromBase64Representation) as CacheHandlerValue;
-            } catch (error) {
-                if (unstable__logErrors) {
-                    console.error('cache.get', error);
-                }
-
+            if (response.status === 404) {
                 return null;
             }
+
+            if (!response.ok) {
+                throw new Error(`Server error: ${response.status}`);
+            }
+
+            const string = await response.text();
+
+            return JSON.parse(string, reviveFromBase64Representation) as CacheHandlerValue;
         },
         async set(key, value, ttl) {
-            try {
-                const url = new URL('/set', baseUrl);
-                const response = await fetch(url, {
-                    method: 'POST',
-                    body: JSON.stringify([key, JSON.stringify(value, replaceJsonWithBase64), ttl]),
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    // @ts-expect-error -- act as an internal fetch call
-                    next: {
-                        internal: true,
-                    },
-                });
+            const url = new URL('/set', baseUrl);
 
-                if (response.status > 500 && response.status < 600) {
-                    throw new Error(`Server error: ${response.status}`);
-                }
-            } catch (error) {
-                if (unstable__logErrors) {
-                    console.error('cache.set', error);
-                }
+            const response = await fetch(url, {
+                method: 'POST',
+                body: JSON.stringify([key, JSON.stringify(value, replaceJsonWithBase64), ttl]),
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                // @ts-expect-error -- act as an internal fetch call
+                next: {
+                    internal: true,
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error(`Server error: ${response.status}`);
             }
         },
 
         async getRevalidatedTags() {
-            try {
-                const url = new URL('/getRevalidatedTags', baseUrl);
+            const url = new URL('/getRevalidatedTags', baseUrl);
 
-                const response = await fetch(url, {
-                    // @ts-expect-error -- act as an internal fetch call
-                    next: {
-                        internal: true,
-                    },
-                });
+            const response = await fetch(url, {
+                // @ts-expect-error -- act as an internal fetch call
+                next: {
+                    internal: true,
+                },
+            });
 
-                if (!response.ok) {
-                    throw new Error(`Server error.`, { cause: response });
-                }
-
-                const json = (await response.json()) as RevalidatedTags;
-
-                return json;
-            } catch (error) {
-                if (unstable__logErrors) {
-                    console.error('cache.getRevalidatedTags', error);
-                }
+            if (!response.ok) {
+                throw new Error(`Server error.`, { cause: response });
             }
+
+            const json = (await response.json()) as RevalidatedTags;
+
+            return json;
         },
         async revalidateTag(tag, revalidatedAt) {
-            try {
-                const url = new URL('/revalidateTag', baseUrl);
+            const url = new URL('/revalidateTag', baseUrl);
 
-                const response = await fetch(url, {
-                    method: 'POST',
-                    body: JSON.stringify([tag, revalidatedAt]),
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    // @ts-expect-error -- act as an internal fetch call
-                    next: {
-                        internal: true,
-                    },
-                });
+            const response = await fetch(url, {
+                method: 'POST',
+                body: JSON.stringify([tag, revalidatedAt]),
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                // @ts-expect-error -- act as an internal fetch call
+                next: {
+                    internal: true,
+                },
+            });
 
-                if (response.status > 500 && response.status < 600) {
-                    throw new Error(`Server error: ${response.status}`);
-                }
-            } catch (error) {
-                if (unstable__logErrors) {
-                    console.error('cache.revalidateTag', error);
-                }
+            if (response.status > 500 && response.status < 600) {
+                throw new Error(`Server error: ${response.status}`);
             }
         },
     };

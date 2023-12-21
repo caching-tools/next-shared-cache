@@ -122,6 +122,11 @@ In these examples, the `onCreation` hook configures the cache behavior based on 
     - The method returns the `RevalidatedTags` from the first cache layer where they are found.
 
 4. **`revalidateTag(tag, revalidatedAt)`: Updating Revalidation Status Across Layers**
+
     - Similar to the `set` method, `revalidateTag` concurrently updates the revalidation status of a tag in all cache layers.
     - It marks the specified `tag` as revalidated with the provided timestamp (`revalidatedAt`) in both the `primaryCache` and `secondaryCache`.
     - It uses `Promise.allSettled` under the hood, ensuring that the revalidation status is consistently updated across all layers.
+
+5. **`name`: A descriptive name for the cache handler instance.**
+
+    - This is used for logging and debugging purposes.

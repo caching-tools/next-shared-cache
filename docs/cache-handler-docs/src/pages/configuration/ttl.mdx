@@ -54,12 +54,8 @@ IncrementalCache.onCreation(async () => {
         // ... other cache methods ...
 
         async set(key, value, ttl) {
-            try {
-                // Serialize value and set TTL using Redis 'EX' option
-                await client.set(key, JSON.stringify(value), typeof ttl === 'number' ? { EX: ttl } : undefined);
-            } catch (error) {
-                console.error('cache.set', error);
-            }
+            // Serialize value and set TTL using Redis 'EX' option
+            await client.set(key, JSON.stringify(value), typeof ttl === 'number' ? { EX: ttl } : undefined);
         },
 
         // ... other cache methods ...
@@ -81,15 +77,11 @@ IncrementalCache.onCreation(async () => {
         // ... other cache methods ...
 
         async set(key, value, ttl) {
-            try {
-                await client.json.set(key, '.', value);
+            await client.json.set(key, '.', value);
 
-                if (typeof ttl === 'number') {
-                    // Set TTL using Redis 'EXPIRE' command
-                    await client.expire(key, ttl);
-                }
-            } catch (error) {
-                console.error('cache.set', error);
+            if (typeof ttl === 'number') {
+                // Set TTL using Redis 'EXPIRE' command
+                await client.expire(key, ttl);
             }
         },
 

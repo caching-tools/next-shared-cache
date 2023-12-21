@@ -13,6 +13,7 @@ IncrementalCache.onCreation(async () => {
     const cacheStore = new Map();
 
     const cache = {
+        name: 'custom-map-cache',
         async get(key) {
             return cacheStore.get(key);
         },
@@ -30,6 +31,12 @@ IncrementalCache.onCreation(async () => {
 module.exports = IncrementalCache;
 ```
 
+<Callout type="info">
+    Don't suppress errors when implementing the `get`, `set`, `getRevalidatedTags`, and `revalidateTag` methods.
+    Instead, throw errors and let `IncrementalCache` class handle them. Refer to the [debugging cache
+    article](/troubleshooting#method-2-debug-mode) for more information.
+</Callout>
+
 ## Advanced Cache Configuration: Custom Revalidation
 
 When you are using built-in Handlers like [`redis-stack`](/redis-stack) there is no need in configuring revalidation. However, if you crafting your own cache handler, you need to implement revalidation logic.
@@ -42,6 +49,7 @@ For control over the revalidation process, implement `getRevalidatedTags` and `r
 const revalidateTags = {};
 
 const cache = {
+    name: 'custom-map-cache',
     async get(key) {
         return cacheStore.get(key);
     },
