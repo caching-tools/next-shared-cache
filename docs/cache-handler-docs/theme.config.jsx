@@ -52,9 +52,8 @@ export default {
     banner: {
         key: '0.6.0-release',
         text: (
-            <a href={`${process.env.NEXT_PUBLIC_BASE_URL}/configuration/on-creation`}>
-                🎉 Version 0.6.0 is out, featuring significant refactoring and an API breaking change. However, the new
-                docs provide guidance on the new multi-layered cache configuration!
+            <a href={`${process.env.NEXT_PUBLIC_BASE_URL}`}>
+                🎉 Version 0.6.2 is out, offering named Handlers and explicit logs for improved debugging experience.
             </a>
         ),
     },

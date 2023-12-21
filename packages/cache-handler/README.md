@@ -2,7 +2,7 @@
 
 **Flexible API to replace the default Next.js cache, accommodating custom cache solutions for multi-instance self-hosted deployments**
 
-🎉 Version 0.6.0 is out, featuring significant refactoring and an API breaking change. However, [the new docs ↗](https://caching-tools.github.io/next-shared-cache/configuration/on-creation) provide guidance on the new multi-layered cache configuration!
+🎉 Version 0.6.2 is out, offering named Handlers and explicit logs for improved debugging experience.
 
 Check out the [changelog](https://github.com/caching-tools/next-shared-cache/blob/canary/packages/cache-handler/CHANGELOG.md)
 
