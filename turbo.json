@@ -5,7 +5,14 @@
     "pipeline": {
         "build": {
             "dependsOn": ["^build"],
-            "env": ["REDIS_URL", "REMOTE_CACHE_SERVER_BASE_URL", "SERVER_STARTED", "PORT", "PPR_ENABLED"],
+            "env": [
+                "REDIS_URL",
+                "REMOTE_CACHE_SERVER_BASE_URL",
+                "SERVER_STARTED",
+                "PORT",
+                "PPR_ENABLED",
+                "HANDLER_PATH"
+            ],
             "outputs": [".next/**", "!.next/cache/**", "dist/**", "out/**"]
         },
         "build:docs": {
