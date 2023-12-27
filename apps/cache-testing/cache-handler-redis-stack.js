@@ -18,12 +18,14 @@ const client = createClient({
     },
 });
 
-client.on('error', (_error) => {
-    // console.error('Redis error:', error);
+client.on('error', (error) => {
+    console.error('Redis error:', error);
 });
 
 IncrementalCache.onCreation(async () => {
+    console.log('Connecting Redis client...');
     await client.connect();
+    console.log('Redis client connected.');
 
     const redisCache = await createRedisCache({
         client,
