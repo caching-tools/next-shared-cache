@@ -61,7 +61,7 @@ To maintain code consistency and quality, follow our coding and style guidelines
 Maintaining a uniform code style throughout the project is essential. Use the command below to format your code according to our standards automatically:
 
 ```bash
-npm run format
+npm run format:fix
 ```
 
 ### 2. Lint Checks

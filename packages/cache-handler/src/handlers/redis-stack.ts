@@ -1,13 +1,14 @@
 /* eslint-disable import/no-default-export -- use default here */
 import type { RedisClientType } from 'redis';
 import type { RevalidatedTags, CacheHandlerValue, Cache } from '../cache-handler';
-import type { RedisJSON } from '../common-types';
-import { withTimeout } from '../with-timeout';
+import type { RedisJSON, UseTtlOptions } from '../common-types';
+import { promiseWithTimeout } from '../helpers/promise-with-timeout';
+import { calculateEvictionDelay } from '../helpers/calculate-eviction-delay';
 
 /**
  * The configuration options for the Redis Handler
  */
-export type RedisCacheHandlerOptions<T> = {
+export type RedisCacheHandlerOptions<T> = UseTtlOptions & {
     /**
      * The Redis client instance.
      */
@@ -20,21 +21,6 @@ export type RedisCacheHandlerOptions<T> = {
      * Optional. Key to store the `RevalidatedTags`. Defaults to `__sharedRevalidatedTags__`.
      */
     revalidatedTagsKey?: string;
-    /**
-     * Optional. Enables ttl support. Defaults to `false`.
-     *
-     * @remarks
-     * - **File System Cache**: Ensure that the file system cache is disabled
-     * by setting `useFileSystem: false` in your cache handler configuration.
-     * This is crucial for the TTL feature to work correctly.
-     * If the file system cache is enabled,
-     * the cache entries will HIT from the file system cache when expired in Redis.
-     * - **Pages Directory Limitation**: Due to a known issue in Next.js,
-     * disabling the file system cache may not function properly within the Pages directory.
-     * It is recommended to use TTL primarily in the App directory.
-     * More details on this limitation can be found in the file system cache configuration documentation.
-     */
-    useTtl?: boolean;
     /**
      * Timeout in milliseconds for Redis operations.
      */
@@ -93,7 +79,7 @@ export default async function createCache<T extends RedisClientType>({
         },
     );
 
-    await withTimeout(setInitialRevalidatedTags, timeoutMs);
+    await promiseWithTimeout(setInitialRevalidatedTags, timeoutMs);
 
     return {
         name: 'redis-stack',
@@ -102,7 +88,8 @@ export default async function createCache<T extends RedisClientType>({
 
             const getCacheValue = client.json.get(keyPrefix + key);
 
-            const cacheValue = ((await withTimeout(getCacheValue, timeoutMs)) ?? null) as CacheHandlerValue | null;
+            const cacheValue = ((await promiseWithTimeout(getCacheValue, timeoutMs)) ??
+                null) as CacheHandlerValue | null;
 
             if (cacheValue?.value?.kind === 'ROUTE') {
                 cacheValue.value.body = Buffer.from(cacheValue.value.body as unknown as string, 'base64');
@@ -110,7 +97,7 @@ export default async function createCache<T extends RedisClientType>({
 
             return cacheValue;
         },
-        async set(key, cacheValue, ttl) {
+        async set(key, cacheValue, maxAgeSeconds) {
             assertClientIsReady();
 
             let preparedCacheValue = cacheValue;
@@ -123,20 +110,28 @@ export default async function createCache<T extends RedisClientType>({
 
             const setCacheValue = client.json.set(keyPrefix + key, '.', preparedCacheValue as unknown as RedisJSON);
 
-            await withTimeout(setCacheValue, timeoutMs);
+            await promiseWithTimeout(setCacheValue, timeoutMs);
 
-            if (useTtl && typeof ttl === 'number') {
-                const setExpire = client.expire(keyPrefix + key, ttl);
-
-                await withTimeout(setExpire, timeoutMs);
+            if (typeof maxAgeSeconds !== 'number') {
+                return;
             }
+
+            const evictionDelay = calculateEvictionDelay(maxAgeSeconds, useTtl);
+
+            if (!evictionDelay) {
+                return;
+            }
+
+            const setExpire = client.expire(keyPrefix + key, evictionDelay);
+
+            await promiseWithTimeout(setExpire, timeoutMs);
         },
         async getRevalidatedTags() {
             assertClientIsReady();
 
             const getRevalidatedTags = client.json.get(keyPrefix + revalidatedTagsKey);
 
-            const sharedRevalidatedTags = ((await withTimeout(getRevalidatedTags, timeoutMs)) ?? undefined) as
+            const sharedRevalidatedTags = ((await promiseWithTimeout(getRevalidatedTags, timeoutMs)) ?? undefined) as
                 | RevalidatedTags
                 | undefined;
 
@@ -147,7 +142,7 @@ export default async function createCache<T extends RedisClientType>({
 
             const setRevalidatedTags = client.json.set(keyPrefix + revalidatedTagsKey, `.${tag}`, revalidatedAt);
 
-            await withTimeout(setRevalidatedTags, timeoutMs);
+            await promiseWithTimeout(setRevalidatedTags, timeoutMs);
         },
     };
 }

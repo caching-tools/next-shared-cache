@@ -53,7 +53,7 @@ export default {
         key: '0.6.0-release',
         text: (
             <a href={`${process.env.NEXT_PUBLIC_BASE_URL}`}>
-                🎉 Version 0.6.2 is out, offering named Handlers and explicit logs for improved debugging experience.
+                🎉 Version 0.6.3 is out, offering stale-while-revalidate strategy emulation!
             </a>
         ),
     },

@@ -1,8 +1,9 @@
 /* eslint-disable import/no-default-export -- use default here */
 import { reviveFromBase64Representation, replaceJsonWithBase64 } from '@neshca/json-replacer-reviver';
 import type { RedisClientType } from 'redis';
-import { withTimeout } from '../with-timeout';
+import { promiseWithTimeout } from '../helpers/promise-with-timeout';
 import type { RevalidatedTags, CacheHandlerValue, Cache } from '../cache-handler';
+import { calculateEvictionDelay } from '../helpers/calculate-eviction-delay';
 import type { RedisCacheHandlerOptions } from './redis-stack';
 
 /**
@@ -53,7 +54,7 @@ export default function createCache<T extends RedisClientType>({
 
             const getOperation = client.get(keyPrefix + key);
 
-            const result = await withTimeout(getOperation, timeoutMs);
+            const result = await promiseWithTimeout(getOperation, timeoutMs);
 
             if (!result) {
                 return null;
@@ -62,24 +63,26 @@ export default function createCache<T extends RedisClientType>({
             // use reviveFromBase64Representation to restore binary data from Base64
             return JSON.parse(result, reviveFromBase64Representation) as CacheHandlerValue | null;
         },
-        async set(key, value, ttl) {
+        async set(key, value, maxAgeSeconds) {
             assertClientIsReady();
+
+            const evictionDelay = calculateEvictionDelay(maxAgeSeconds, useTtl);
 
             // use replaceJsonWithBase64 to store binary data in Base64 and save space
             const setOperation = client.set(
                 keyPrefix + key,
                 JSON.stringify(value, replaceJsonWithBase64),
-                useTtl && typeof ttl === 'number' ? { EX: ttl } : undefined,
+                evictionDelay ? { EX: evictionDelay } : undefined,
             );
 
-            await withTimeout(setOperation, timeoutMs);
+            await promiseWithTimeout(setOperation, timeoutMs);
         },
         async getRevalidatedTags() {
             assertClientIsReady();
 
             const getOperation = client.hGetAll(keyPrefix + revalidatedTagsKey);
 
-            const sharedRevalidatedTags = await withTimeout(getOperation, timeoutMs);
+            const sharedRevalidatedTags = await promiseWithTimeout(getOperation, timeoutMs);
 
             const entries = Object.entries(sharedRevalidatedTags);
 
@@ -98,7 +101,7 @@ export default function createCache<T extends RedisClientType>({
                 [tag]: revalidatedAt,
             });
 
-            await withTimeout(setOperation, timeoutMs);
+            await promiseWithTimeout(setOperation, timeoutMs);
         },
     };
 }
