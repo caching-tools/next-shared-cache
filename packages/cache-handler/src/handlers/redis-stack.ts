@@ -1,13 +1,14 @@
 /* eslint-disable import/no-default-export -- use default here */
 import type { RedisClientType } from 'redis';
 import type { RevalidatedTags, CacheHandlerValue, Cache } from '../cache-handler';
-import type { RedisJSON } from '../common-types';
-import { withTimeout } from '../with-timeout';
+import type { RedisJSON, UseTtlOptions } from '../common-types';
+import { withTimeout } from '../helpers/with-timeout';
+import { calculateEvictionDelay } from '../helpers/calculate-eviction-delay';
 
 /**
  * The configuration options for the Redis Handler
  */
-export type RedisCacheHandlerOptions<T> = {
+export type RedisCacheHandlerOptions<T> = UseTtlOptions & {
     /**
      * The Redis client instance.
      */
@@ -20,21 +21,6 @@ export type RedisCacheHandlerOptions<T> = {
      * Optional. Key to store the `RevalidatedTags`. Defaults to `__sharedRevalidatedTags__`.
      */
     revalidatedTagsKey?: string;
-    /**
-     * Optional. Enables ttl support. Defaults to `false`.
-     *
-     * @remarks
-     * - **File System Cache**: Ensure that the file system cache is disabled
-     * by setting `useFileSystem: false` in your cache handler configuration.
-     * This is crucial for the TTL feature to work correctly.
-     * If the file system cache is enabled,
-     * the cache entries will HIT from the file system cache when expired in Redis.
-     * - **Pages Directory Limitation**: Due to a known issue in Next.js,
-     * disabling the file system cache may not function properly within the Pages directory.
-     * It is recommended to use TTL primarily in the App directory.
-     * More details on this limitation can be found in the file system cache configuration documentation.
-     */
-    useTtl?: boolean;
     /**
      * Timeout in milliseconds for Redis operations.
      */
@@ -110,7 +96,7 @@ export default async function createCache<T extends RedisClientType>({
 
             return cacheValue;
         },
-        async set(key, cacheValue, ttl) {
+        async set(key, cacheValue, maxAgeSeconds) {
             assertClientIsReady();
 
             let preparedCacheValue = cacheValue;
@@ -125,11 +111,19 @@ export default async function createCache<T extends RedisClientType>({
 
             await withTimeout(setCacheValue, timeoutMs);
 
-            if (useTtl && typeof ttl === 'number') {
-                const setExpire = client.expire(keyPrefix + key, ttl);
-
-                await withTimeout(setExpire, timeoutMs);
+            if (typeof maxAgeSeconds !== 'number') {
+                return;
             }
+
+            const ttlValue = calculateEvictionDelay(maxAgeSeconds, useTtl);
+
+            if (!ttlValue) {
+                return;
+            }
+
+            const setExpire = client.expire(keyPrefix + key, ttlValue);
+
+            await withTimeout(setExpire, timeoutMs);
         },
         async getRevalidatedTags() {
             assertClientIsReady();
