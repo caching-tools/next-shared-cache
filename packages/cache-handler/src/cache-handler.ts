@@ -14,7 +14,7 @@ import type {
     IncrementalCacheValue,
     TagsManifest,
 } from '@neshca/next-common';
-import { isTagsManifest } from './is-tags-manifest';
+import { isTagsManifest } from './helpers/is-tags-manifest';
 
 const RSC_PREFETCH_SUFFIX = '.prefetch.rsc';
 const RSC_SUFFIX = '.rsc';
@@ -42,18 +42,21 @@ export type Cache = {
      */
     get: (key: string) => Promise<CacheHandlerValue | null | undefined>;
     /**
-     * Adds or updates a value in the cache. Use `ttl` only if you don't use Pages directory.
+     * Sets or updates a value in the cache store.
      *
      * @param key - The unique string identifier for the cache entry.
      *
      * @param value - The value to be stored in the cache.
      *
-     * @param ttl - Optional. The time-to-live in seconds.
-     * If not provided, the cache entry persists based on default cache behavior or until manually removed.
+     * @param maxAgeSeconds - Optional. Delay in seconds before the cache entry becomes stale.
+     * If undefined, the cache entry will not become stale.
      *
      * @returns A Promise with no value.
+     *
+     * @remarks
+     * Use `maxAgeSeconds` only if you don't use Pages directory.
      */
-    set: (key: string, value: CacheHandlerValue, ttl?: number) => Promise<void>;
+    set: (key: string, value: CacheHandlerValue, maxAgeSeconds?: number) => Promise<void>;
     /**
      * Retrieves the {@link RevalidatedTags} object.
      *
@@ -364,11 +367,11 @@ export class IncrementalCache implements CacheHandler {
 
                 return null;
             },
-            async set(key, value, ttl) {
+            async set(key, value, maxAgeSeconds) {
                 await Promise.allSettled(
                     cacheList.map((cacheItem) => {
                         try {
-                            return cacheItem.set(key, value, ttl);
+                            return cacheItem.set(key, value, maxAgeSeconds);
                         } catch (error) {
                             if (IncrementalCache.#debug) {
                                 // eslint-disable-next-line no-console -- we want to log this
@@ -724,7 +727,7 @@ export class IncrementalCache implements CacheHandler {
                 value: data,
                 lastModified: Date.now(),
             },
-            typeof revalidate === 'number' ? revalidate : undefined,
+            revalidate || undefined,
         );
 
         if (IncrementalCache.#debug) {
