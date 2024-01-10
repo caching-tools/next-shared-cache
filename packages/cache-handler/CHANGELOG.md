@@ -1,5 +1,11 @@
 # @neshca/cache-handler
 
+## 0.6.3
+
+### Patch Changes
+
+- 277865a: Added support for stale-while-revalidate strategy in `useTtl` option.
+
 ## 0.6.2
 
 ### Patch Changes
