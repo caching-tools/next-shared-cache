@@ -1,5 +1,11 @@
 # cache-handler-docs
 
+## 0.6.3
+
+### Patch Changes
+
+- 277865a: Updated docs in `Using TTL` section.
+
 ## 0.6.2
 
 ### Patch Changes
