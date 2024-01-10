@@ -24,12 +24,16 @@
     "type": "module",
     "exports": {
         ".": "./dist/cache-handler.cjs",
+        "./helpers": "./dist/helpers/helpers.cjs",
         "./*": "./dist/handlers/*.cjs"
     },
     "typesVersions": {
         "*": {
             "*": [
                 "dist/cache-handler.d.cts"
+            ],
+            "helpers": [
+                "dist/helpers/helpers.d.cts"
             ],
             "redis-stack": [
                 "dist/handlers/redis-stack.d.cts"
@@ -50,8 +54,8 @@
         "clean": "rimraf ./dist ./.turbo ./node_modules",
         "dev": "tsup --watch",
         "lint": "eslint .",
-        "test": "node --test --import tsx/esm **/*.test.ts",
-        "test:watch": "node --watch --test --import tsx/esm **/*.test.ts"
+        "test": "node --test --import tsx/esm src/**/*.test.ts",
+        "test:watch": "node --watch --test --import tsx/esm src/**/*.test.ts"
     },
     "dependencies": {
         "@neshca/json-replacer-reviver": "*",
