@@ -1,11 +1,18 @@
 import { test } from 'node:test';
+import Timers from 'node:timers/promises';
 import assert from 'node:assert';
 import { promiseWithTimeout } from './promise-with-timeout';
 
-function simulateOperation(duration: number): Promise<string> {
-    return new Promise((resolve) => {
-        setTimeout(resolve, duration, 'completed');
-    });
+async function simulateOperation(duration: number): Promise<string> {
+    await Timers.scheduler.wait(duration);
+
+    return 'completed';
+}
+
+async function simulateOperationError(duration: number): Promise<void> {
+    await Timers.scheduler.wait(duration);
+
+    throw new Error('Operation error');
 }
 
 await test('should resolve if operation finishes before timeout', async () => {
@@ -57,12 +64,9 @@ await test('should return original operation if timeoutMs is greater than MAX_IN
 });
 
 await test('should reject if operation throws an error', async () => {
-    const errorOperation = new Promise((_, reject) => {
-        setTimeout(reject, 100, new Error('Operation error'));
-    });
-
     try {
-        await promiseWithTimeout(errorOperation, 200);
+        const operationError = simulateOperationError(100);
+        await promiseWithTimeout(operationError, 200);
         assert.fail('Expected operation to throw an error');
     } catch (error) {
         if (error instanceof Error) {
