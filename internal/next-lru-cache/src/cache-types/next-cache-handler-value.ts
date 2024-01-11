@@ -35,6 +35,8 @@ function calculateObjectSize({ value }: CacheHandlerValue): number {
 
 export type { LruCacheOptions };
 
-export function createCache(options?: LruCacheOptions): LRUCache<string, CacheHandlerValue> {
+export function createCache(
+    options?: LruCacheOptions,
+): LRUCache<string, CacheHandlerValue & { maxAgeSeconds?: number }> {
     return createConfiguredCache(calculateObjectSize, options);
 }

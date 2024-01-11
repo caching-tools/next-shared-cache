@@ -1,10 +1,5 @@
+import { scheduler } from 'node:timers/promises';
 import { test, expect } from '@playwright/test';
-
-function wait(ms: number): Promise<void> {
-    return new Promise((resolve) => {
-        setTimeout(resolve, ms);
-    });
-}
 
 const paths = [
     '/app/with-params/dynamic-true/200',
@@ -146,7 +141,7 @@ test.describe('Time-based revalidation', () => {
             await expect(page.getByTestId('cache-state')).toContainText('stale', { timeout: 7500 });
 
             // Temporary workaround: Addressing intermittent test failures observed in GitHub Actions.
-            await wait(1000);
+            await scheduler.wait(1000);
 
             await page.reload();
 

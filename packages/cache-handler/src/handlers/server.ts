@@ -7,6 +7,10 @@ export type ServerCacheHandlerOptions = {
      * The base URL of the cache store server.
      */
     baseUrl: URL | string;
+    /**
+     * Timeout in milliseconds for remote cache store operations.
+     */
+    timeoutMs?: number;
 };
 
 /**
@@ -33,7 +37,7 @@ export type ServerCacheHandlerOptions = {
  * - the `getRevalidatedTags` method retrieves revalidated tags from the server.
  * - the `revalidateTag` method updates the revalidation time for a specific tag in the server cache.
  */
-export default function createCache({ baseUrl }: ServerCacheHandlerOptions): Cache {
+export default function createCache({ baseUrl, timeoutMs }: ServerCacheHandlerOptions): Cache {
     return {
         name: 'server',
         async get(key) {
@@ -42,6 +46,7 @@ export default function createCache({ baseUrl }: ServerCacheHandlerOptions): Cac
             url.searchParams.set('key', key);
 
             const response = await fetch(url, {
+                signal: timeoutMs ? AbortSignal.timeout(timeoutMs) : undefined,
                 // @ts-expect-error -- act as an internal fetch call
                 next: {
                     internal: true,
@@ -69,6 +74,7 @@ export default function createCache({ baseUrl }: ServerCacheHandlerOptions): Cac
                 headers: {
                     'Content-Type': 'application/json',
                 },
+                signal: timeoutMs ? AbortSignal.timeout(timeoutMs) : undefined,
                 // @ts-expect-error -- act as an internal fetch call
                 next: {
                     internal: true,
@@ -84,6 +90,7 @@ export default function createCache({ baseUrl }: ServerCacheHandlerOptions): Cac
             const url = new URL('/getRevalidatedTags', baseUrl);
 
             const response = await fetch(url, {
+                signal: timeoutMs ? AbortSignal.timeout(timeoutMs) : undefined,
                 // @ts-expect-error -- act as an internal fetch call
                 next: {
                     internal: true,
@@ -107,6 +114,7 @@ export default function createCache({ baseUrl }: ServerCacheHandlerOptions): Cac
                 headers: {
                     'Content-Type': 'application/json',
                 },
+                signal: timeoutMs ? AbortSignal.timeout(timeoutMs) : undefined,
                 // @ts-expect-error -- act as an internal fetch call
                 next: {
                     internal: true,

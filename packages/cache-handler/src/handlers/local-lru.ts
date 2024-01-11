@@ -1,10 +1,9 @@
 /* eslint-disable import/no-default-export -- use default here */
 import type { LruCacheOptions } from '@neshca/next-lru-cache/next-cache-handler-value';
 import { createCache } from '@neshca/next-lru-cache/next-cache-handler-value';
-import type { Cache } from '../cache-handler';
+import type { Cache, CacheHandlerValue } from '../cache-handler';
 import { calculateEvictionDelay } from '../helpers/calculate-eviction-delay';
 import type { UseTtlOptions } from '../common-types';
-import { MAX_INT32 } from '../constants';
 
 export type LruCacheHandlerOptions = LruCacheOptions & UseTtlOptions;
 
@@ -31,7 +30,6 @@ export type LruCacheHandlerOptions = LruCacheOptions & UseTtlOptions;
  *
  * @remarks
  * - Use this Handler as a fallback for any remote store Handler instead of the filesystem when you use only the App router.
- * - The max TTL value is 2147483.647 seconds (24.8 days) due to a `setTimeout` limitation.
  */
 export default function createLruCache({ useTtl = false, ...lruOptions }: LruCacheHandlerOptions = {}): Cache {
     const lruCache = createCache(lruOptions);
@@ -39,12 +37,35 @@ export default function createLruCache({ useTtl = false, ...lruOptions }: LruCac
     return {
         name: 'local-lru',
         get(key) {
-            return Promise.resolve(lruCache.get(key));
-        },
-        set(key, value, maxAgeSeconds = 0) {
-            const evictionDelay = calculateEvictionDelay(maxAgeSeconds * 1000, useTtl);
+            const cacheValue = lruCache.get(key);
 
-            lruCache.set(key, value, evictionDelay ? { ttl: Math.min(evictionDelay, MAX_INT32) } : undefined);
+            if (!cacheValue) {
+                return Promise.resolve(null);
+            }
+
+            const { lastModified, maxAgeSeconds } = cacheValue;
+
+            if (!useTtl || !maxAgeSeconds) {
+                return Promise.resolve(cacheValue as CacheHandlerValue);
+            }
+
+            const ageSeconds = lastModified ? Math.floor((Date.now() - lastModified) / 1000) : 0;
+
+            const evictionAge = calculateEvictionDelay(maxAgeSeconds, useTtl);
+
+            if (!evictionAge || evictionAge > ageSeconds) {
+                return Promise.resolve(cacheValue as CacheHandlerValue);
+            }
+
+            lruCache.delete(key);
+
+            return Promise.resolve(null);
+        },
+        set(key, value, maxAgeSeconds) {
+            lruCache.set(key, {
+                ...value,
+                maxAgeSeconds,
+            });
 
             return Promise.resolve();
         },
