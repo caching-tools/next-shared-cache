@@ -1,5 +1,11 @@
 # @neshca/cache-handler
 
+## 0.6.4
+
+### Patch Changes
+
+- 9dcb393: Refactored `lru-cache` Handler to overcome ttl via setTimeout limitations. Added `timeoutMs` option to `server` Handler.
+
 ## 0.6.3
 
 ### Patch Changes
