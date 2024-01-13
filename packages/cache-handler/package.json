@@ -1,6 +1,6 @@
 {
     "name": "@neshca/cache-handler",
-    "version": "0.6.4",
+    "version": "0.6.5",
     "description": "Flexible API to replace the default Next.js cache, accommodating custom cache solutions for multi-instance deployments.",
     "keywords": [
         "cache",
