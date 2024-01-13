@@ -50,7 +50,7 @@ npm run e2e:ui -w @neshca/cache-testing
 **Important**: Clear the Redis DB before executing tests:
 
 ```bash
-docker exec -it redis-stack redis-cli
+docker exec -it cache-handler-redis redis-cli
 127.0.0.1:6379> flushall
 OK
 ```

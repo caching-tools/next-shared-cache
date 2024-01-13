@@ -1,9 +1,9 @@
 /* eslint-disable import/no-default-export -- use default here */
-import { reviveFromBase64Representation, replaceJsonWithBase64 } from '@neshca/json-replacer-reviver';
+import { replaceJsonWithBase64, reviveFromBase64Representation } from '@neshca/json-replacer-reviver';
 import type { RedisClientType } from 'redis';
-import { promiseWithTimeout } from '../helpers/promise-with-timeout';
-import type { RevalidatedTags, CacheHandlerValue, Cache } from '../cache-handler';
+import type { Cache, CacheHandlerValue, RevalidatedTags } from '../cache-handler';
 import { calculateEvictionDelay } from '../helpers/calculate-eviction-delay';
+import { getTimeoutRedisCommandOptions } from '../helpers/get-timeout-redis-command-options';
 import type { RedisCacheHandlerOptions } from './redis-stack';
 
 /**
@@ -39,11 +39,11 @@ export default function createCache<T extends RedisClientType>({
     keyPrefix = '',
     revalidatedTagsKey = '__sharedRevalidatedTags__',
     useTtl = false,
-    timeoutMs,
+    timeoutMs = 5000,
 }: RedisCacheHandlerOptions<T>): Cache {
     function assertClientIsReady(): void {
         if (!client.isReady) {
-            throw new Error('Redis client is not ready');
+            throw new Error('Redis client is not ready yet or connection is lost. Keep trying...');
         }
     }
 
@@ -52,9 +52,9 @@ export default function createCache<T extends RedisClientType>({
         async get(key) {
             assertClientIsReady();
 
-            const getOperation = client.get(keyPrefix + key);
+            const getOperation = client.get(getTimeoutRedisCommandOptions(timeoutMs), keyPrefix + key);
 
-            const result = await promiseWithTimeout(getOperation, timeoutMs);
+            const result = await getOperation;
 
             if (!result) {
                 return null;
@@ -69,20 +69,20 @@ export default function createCache<T extends RedisClientType>({
             const evictionDelay = calculateEvictionDelay(maxAgeSeconds, useTtl);
 
             // use replaceJsonWithBase64 to store binary data in Base64 and save space
-            const setOperation = client.set(
+            await client.set(
+                getTimeoutRedisCommandOptions(timeoutMs),
                 keyPrefix + key,
                 JSON.stringify(value, replaceJsonWithBase64),
                 evictionDelay ? { EX: evictionDelay } : undefined,
             );
-
-            await promiseWithTimeout(setOperation, timeoutMs);
         },
         async getRevalidatedTags() {
             assertClientIsReady();
 
-            const getOperation = client.hGetAll(keyPrefix + revalidatedTagsKey);
-
-            const sharedRevalidatedTags = await promiseWithTimeout(getOperation, timeoutMs);
+            const sharedRevalidatedTags = await client.hGetAll(
+                getTimeoutRedisCommandOptions(timeoutMs),
+                keyPrefix + revalidatedTagsKey,
+            );
 
             const entries = Object.entries(sharedRevalidatedTags);
 
@@ -97,11 +97,9 @@ export default function createCache<T extends RedisClientType>({
         async revalidateTag(tag, revalidatedAt) {
             assertClientIsReady();
 
-            const setOperation = client.hSet(keyPrefix + revalidatedTagsKey, {
+            await client.hSet(getTimeoutRedisCommandOptions(timeoutMs), keyPrefix + revalidatedTagsKey, {
                 [tag]: revalidatedAt,
             });
-
-            await promiseWithTimeout(setOperation, timeoutMs);
         },
     };
 }

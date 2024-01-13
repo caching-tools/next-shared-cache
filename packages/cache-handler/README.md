@@ -2,7 +2,7 @@
 
 **Flexible API to replace the default Next.js cache, accommodating custom cache solutions for multi-instance self-hosted deployments**
 
-🎉 Version 0.6.4 is out, offering stale-while-revalidate strategy emulation!
+🎉 Version 0.6.5 is out, offering stale-while-revalidate strategy emulation and codebase improvements!
 
 Check out the [changelog](https://github.com/caching-tools/next-shared-cache/blob/canary/packages/cache-handler/CHANGELOG.md)
 
