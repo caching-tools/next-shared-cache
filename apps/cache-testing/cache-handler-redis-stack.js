@@ -8,14 +8,9 @@ if (!process.env.REDIS_URL) {
     console.warn('Make sure that REDIS_URL is added to the .env.local file and loaded properly.');
 }
 
-const CONNECT_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
-
 const client = createClient({
     url: process.env.REDIS_URL,
     name: `cache-handler:${process.env.PORT ?? process.pid}`,
-    socket: {
-        connectTimeout: CONNECT_TIMEOUT_MS,
-    },
 });
 
 client.on('error', (error) => {
@@ -30,9 +25,10 @@ IncrementalCache.onCreation(async () => {
     const redisCache = await createRedisCache({
         client,
         keyPrefix: 'JSON:',
+        timeoutMs: 1000,
     });
 
-    const redisStringsCache = createRedisStringsCache({ client, keyPrefix: 'strings:' });
+    const redisStringsCache = createRedisStringsCache({ client, keyPrefix: 'strings:', timeoutMs: 1000 });
 
     const localCache = createLruCache();
 

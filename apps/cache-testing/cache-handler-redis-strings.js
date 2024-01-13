@@ -8,14 +8,10 @@ if (!process.env.REDIS_URL) {
 }
 
 const PREFIX = 'string:';
-const CONNECT_TIMEOUT_MS = 5 * 60 * 1000;
 
 const client = createClient({
     url: process.env.REDIS_URL,
     name: `cache-handler:${PREFIX}${process.env.PORT ?? process.pid}`,
-    socket: {
-        connectTimeout: CONNECT_TIMEOUT_MS,
-    },
 });
 
 client.on('error', (error) => {
@@ -23,9 +19,11 @@ client.on('error', (error) => {
 });
 
 IncrementalCache.onCreation(async () => {
+    console.log('Connecting Redis client...');
     await client.connect();
+    console.log('Redis client connected.');
 
-    const redisCache = await createRedisCache({
+    const redisCache = createRedisCache({
         client,
         keyPrefix: PREFIX,
     });
