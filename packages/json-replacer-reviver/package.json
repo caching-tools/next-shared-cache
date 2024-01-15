@@ -24,6 +24,7 @@
         "clean": "rimraf ./dist ./.turbo ./node_modules",
         "dev": "tsup --watch",
         "lint": "eslint .",
+        "lint:fix": "eslint --fix .",
         "test": "node --test --import tsx/esm **/*.test.ts",
         "test:watch": "node --watch --test --import tsx/esm **/*.test.ts"
     },

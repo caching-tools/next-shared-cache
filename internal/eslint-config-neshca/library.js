@@ -23,5 +23,12 @@ module.exports = {
     rules: {
         '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
         '@typescript-eslint/no-unnecessary-condition': 'off',
+        'import/order': [
+            'error',
+            {
+                'newlines-between': 'always',
+                alphabetize: { order: 'asc', orderImportKind: 'asc', caseInsensitive: true },
+            },
+        ],
     },
 };

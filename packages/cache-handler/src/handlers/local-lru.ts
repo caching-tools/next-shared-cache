@@ -1,9 +1,10 @@
 /* eslint-disable import/no-default-export -- use default here */
 import type { LruCacheOptions } from '@neshca/next-lru-cache/next-cache-handler-value';
 import { createCache } from '@neshca/next-lru-cache/next-cache-handler-value';
+
 import type { Cache, CacheHandlerValue } from '../cache-handler';
-import { calculateEvictionDelay } from '../helpers/calculate-eviction-delay';
 import type { UseTtlOptions } from '../common-types';
+import { calculateEvictionDelay } from '../helpers/calculate-eviction-delay';
 
 export type LruCacheHandlerOptions = LruCacheOptions & UseTtlOptions;
 

@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
-import { pino } from 'pino';
-import Fastify from 'fastify';
 import { createCache } from '@neshca/next-lru-cache/cache-string-value';
+import Fastify from 'fastify';
+import { pino } from 'pino';
 
 const logger = pino({
     transport: {

@@ -1,6 +1,7 @@
+import type { PageProps } from './types';
+
 import { CacheStateWatcher } from 'cache-testing/components/cache-state-watcher';
 import { PreRenderedAt } from 'cache-testing/components/pre-rendered-at';
-import type { PageProps } from './types';
 
 export function CommonPagesPage({ count, revalidateAfter, time, path }: PageProps): JSX.Element {
     return (

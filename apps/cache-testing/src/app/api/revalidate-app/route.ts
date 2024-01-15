@@ -1,6 +1,7 @@
 import { revalidatePath, revalidateTag } from 'next/cache';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
+
 import { formatTime } from 'cache-testing/utils/format-time';
 
 export function GET(request: NextRequest): Promise<NextResponse> {

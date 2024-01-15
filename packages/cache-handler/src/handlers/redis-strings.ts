@@ -1,9 +1,11 @@
 /* eslint-disable import/no-default-export -- use default here */
 import { replaceJsonWithBase64, reviveFromBase64Representation } from '@neshca/json-replacer-reviver';
 import type { RedisClientType } from 'redis';
+
 import type { Cache, CacheHandlerValue, RevalidatedTags } from '../cache-handler';
 import { calculateEvictionDelay } from '../helpers/calculate-eviction-delay';
 import { getTimeoutRedisCommandOptions } from '../helpers/get-timeout-redis-command-options';
+
 import type { RedisCacheHandlerOptions } from './redis-stack';
 
 /**

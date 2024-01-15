@@ -1,4 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
+
 import { formatTime } from 'cache-testing/utils/format-time';
 
 export default async function handler(request: NextApiRequest, result: NextApiResponse): Promise<void> {

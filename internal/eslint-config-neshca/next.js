@@ -40,5 +40,12 @@ module.exports = {
         'no-console': 'off',
         '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
         'import/no-extraneous-dependencies': ['error', { includeTypes: true }],
+        'import/order': [
+            'error',
+            {
+                'newlines-between': 'always',
+                alphabetize: { order: 'asc', orderImportKind: 'asc', caseInsensitive: true },
+            },
+        ],
     },
 };

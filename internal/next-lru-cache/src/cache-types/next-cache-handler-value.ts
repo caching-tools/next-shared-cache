@@ -1,5 +1,6 @@
-import type { LRUCache } from 'lru-cache';
 import type { CacheHandlerValue } from '@neshca/next-common';
+import type { LRUCache } from 'lru-cache';
+
 import type { LruCacheOptions } from '../create-configured-cache';
 import { createConfiguredCache } from '../create-configured-cache';
 
