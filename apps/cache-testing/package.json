@@ -12,10 +12,11 @@
         "e2e": "playwright test --config=./playwright.config.ts",
         "e2e:ui": "playwright test --ui --config=./playwright.config.ts",
         "lint": "next lint",
+        "lint:fix": "next lint --fix",
         "start": "dotenv -e .env.local -v SERVER_STARTED=1 node .next/standalone/apps/cache-testing/server.js"
     },
     "dependencies": {
-        "next": "14.0.5-canary.28",
+        "next": "14.0.5-canary.58",
         "react": "18.2.0",
         "react-dom": "18.2.0"
     },
@@ -23,7 +24,7 @@
         "@neshca/cache-handler": "*",
         "@neshca/json-replacer-reviver": "*",
         "@neshca/tsconfig": "*",
-        "@next/eslint-plugin-next": "14.0.5-canary.28",
+        "@next/eslint-plugin-next": "14.0.5-canary.58",
         "@playwright/test": "1.40.1",
         "@types/node": "20.11.0",
         "@types/react": "18.2.47",

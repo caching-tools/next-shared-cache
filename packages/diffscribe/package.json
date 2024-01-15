@@ -22,7 +22,8 @@
         "build": "tsup",
         "clean": "rimraf ./dist ./.turbo ./node_modules",
         "dev": "tsup --watch",
-        "lint": "eslint ."
+        "lint": "eslint .",
+        "lint:fix": "eslint --fix ."
     },
     "devDependencies": {
         "@neshca/tsconfig": "*",

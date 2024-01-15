@@ -1,6 +1,7 @@
+import assert from 'node:assert';
 import { test } from 'node:test';
 import Timers from 'node:timers/promises';
-import assert from 'node:assert';
+
 import { promiseWithTimeout } from './promise-with-timeout';
 
 async function simulateOperation(duration: number): Promise<string> {

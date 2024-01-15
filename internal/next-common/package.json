@@ -9,10 +9,11 @@
     },
     "scripts": {
         "clean": "rimraf ./.turbo ./node_modules",
-        "lint": "eslint ."
+        "lint": "eslint .",
+        "lint:fix": "eslint --fix ."
     },
     "dependencies": {
-        "next": "14.0.5-canary.28"
+        "next": "14.0.5-canary.58"
     },
     "devDependencies": {
         "@neshca/tsconfig": "*",

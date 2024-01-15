@@ -1,4 +1,5 @@
 import type { GetStaticPropsContext, GetStaticPropsResult } from 'next';
+
 import type { CountBackendApiResponseJson, PageProps } from './types';
 
 const revalidate = 5;

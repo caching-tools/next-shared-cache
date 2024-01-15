@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { randomBytes } from 'node:crypto';
+
 import Fastify from 'fastify';
 import { pino } from 'pino';
 

@@ -9,7 +9,8 @@
     },
     "scripts": {
         "clean": "rimraf ./.turbo ./node_modules",
-        "lint": "eslint ."
+        "lint": "eslint .",
+        "lint:fix": "eslint --fix ."
     },
     "dependencies": {
         "lru-cache": "10.1.0"

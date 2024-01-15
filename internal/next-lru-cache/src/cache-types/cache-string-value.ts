@@ -1,4 +1,5 @@
 import type { LRUCache } from 'lru-cache';
+
 import type { LruCacheOptions } from '../create-configured-cache';
 import { createConfiguredCache } from '../create-configured-cache';
 

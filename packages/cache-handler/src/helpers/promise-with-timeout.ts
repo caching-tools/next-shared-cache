@@ -28,7 +28,7 @@ export function promiseWithTimeout<T>(operation: Promise<T>, timeoutMs?: number)
             })
             .catch((error) => {
                 clearTimeout(timeoutId);
-                reject(error);
+                reject(error as Error);
             });
     });
 }
