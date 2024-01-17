@@ -50,10 +50,10 @@ export default {
         ),
     },
     banner: {
-        key: '0.5.1-release',
+        key: '0.6.0-release',
         text: (
-            <a href={`${process.env.NEXT_PUBLIC_BASE_URL}/redis-stack`}>
-                🎉 Version 0.5.4 is out, introducing async onCreation hook, async Handlers, and fixed types!
+            <a href={`${process.env.NEXT_PUBLIC_BASE_URL}`}>
+                🎉 Version 0.6.5 is out, offering stale-while-revalidate strategy emulation and codebase improvements!
             </a>
         ),
     },

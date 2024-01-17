@@ -43,3 +43,7 @@ dist
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# act
+.actrc
+.act.json

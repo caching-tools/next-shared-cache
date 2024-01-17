@@ -1,5 +1,132 @@
-import { Callout } from 'nextra/components';
+The `onCreation` method in the `@neshca/cache-handler` API is designed to facilitate the creation of a custom cache instance with configurable behavior. It accepts a single argument, `cacheCreationContext`, which provides contextual information necessary for configuring the cache.
 
-## Configuring `onCreation` callback
+## `onCreationHook`
 
-<Callout type="warning">This section of the documentation is still under development. Please check back later.</Callout>
+The `onCreation` method expects a function of type `OnCreationHook`, which is defined as follows:
+
+```typescript
+type OnCreationHook = (cacheCreationContext: CacheCreationContext) => Promise<CacheConfig> | CacheConfig;
+```
+
+This function takes the `cacheCreationContext` as its argument and returns either a `CacheConfig` object or a Promise that resolves to a `CacheConfig` object. The `CacheConfig` type is designed to specify the cache behavior and settings, including whether to use the file system for caching and the details of the custom cache implementation.
+
+### `cacheCreationContext` Argument
+
+The `cacheCreationContext` argument is an object of type `CacheCreationContext`, providing essential information for cache configuration. It includes the following properties:
+
+1. **`serverDistDir` (string):**
+
+    - Description: The absolute path to the Next.js server directory.
+    - Purpose: This path is critical for locating server-side resources and files that may be required by the cache implementation, such as directories for storing cache data in the file system.
+
+2. **`dev` (boolean, optional):**
+
+    - Description: Indicates whether the Next.js application is running in development mode.
+    - Purpose: This flag can be used to alter cache behavior based on the environment.
+
+3. **`buildId` (string, optional):**
+
+    - Description: A unique identifier for the current build of the Next.js application, generated during the `next build` process.
+    - Purpose: The `buildId` may be used as a prefix for namespacing cache keys, ensuring distinct and relevant cache data for each build of the application.
+
+### Usage of `onCreationHook`
+
+When implementing the `onCreationHook`, you can utilize the information provided in the `cacheCreationContext` to dynamically configure the cache according to the server environment and specific application needs. This approach allows for a high degree of flexibility and customization in how caching is handled within a Next.js application.
+
+### Example
+
+Here's a simplified example of how the `onCreation` method might be used:
+
+```js filename="cache-handler.js"
+IncrementalCache.onCreation(async (context) => {
+    const customCacheLogic = {
+        // Define custom get, set, and other cache methods
+    };
+
+    return {
+        cache: customCacheLogic,
+    };
+});
+```
+
+In this example, the `onCreation` method defines custom cache logic and decides whether to use file system caching based on whether the application is in development mode.
+
+### Structure of `CacheConfig`
+
+The `onCreation` hook in the `@neshca/cache-handler` API returns a `CacheConfig` object or a Promise that resolves to a `CacheConfig` object. This return value is crucial for configuring the caching behavior of the application. Below is a detailed explanation of the structure and components of the `CacheConfig` object:
+
+The `CacheConfig` object defines the configuration for the cache system. It typically includes the following properties:
+
+1. **`cache` (Cache | Cache[]):**
+
+    - Description: Represents the [custom cache](/configuration/cache) instance or an array of cache instances. These instances must conform to the `Cache` interface, as defined in the `@neshca/cache-handler` API.
+    - Usage: This is where you provide your custom cache implementation. If an array of caches is provided, it enables the use of multiple caching layers or strategies, offering more complex and tailored caching solutions.
+
+2. **`useFileSystem` (boolean, optional):**
+
+    - Description: Determines whether to utilize file system caching in addition to the custom cache implementation.
+    - Usage: This can be set to `true` to enable file system caching or `false` to rely solely on the custom cache logic provided. It's particularly useful in scenarios where persistent caching is needed across server restarts or deployments.
+
+### Example Usage and Return Value
+
+Here is an example of how the `onCreation` hook might be implemented and what the return value looks like:
+
+```js filename="cache-handler.js"
+IncrementalCache.onCreation(async (context) => {
+    const customCache = {
+        // Custom cache methods like get, set, etc.
+    };
+
+    const cacheConfig = {
+        useFileSystem: false, // Example of disabling file system caching
+        cache: customCache, // Custom cache implementation
+    };
+
+    return cacheConfig; // Returning the CacheConfig object
+});
+
+// Or in a more complex scenario with multiple caches
+IncrementalCache.onCreation(async (context) => {
+    const primaryCache = {
+        /* ... */
+    };
+    const secondaryCache = {
+        /* ... */
+    };
+
+    return {
+        useFileSystem: true,
+        cache: [primaryCache, secondaryCache], // Array of cache instances
+    };
+});
+```
+
+In these examples, the `onCreation` hook configures the cache behavior based on the application's running environment and returns the appropriate `CacheConfig` object, either with a single cache implementation or multiple cache layers. This is how multi layer caching works:
+
+1. **`get(key)`: Data Retrieval Across Layers**
+
+    - The `get` method iterates through each cache layer, starting with the `primaryCache`.
+    - It attempts to retrieve the value associated with `key` from the `primaryCache` first.
+    - If the `primaryCache` results in a cache miss (value not found), the system then checks the `secondaryCache`.
+    - The method returns the value as soon as it is found in any layer, ensuring that the main cache layer is always checked first.
+
+2. **`set(key, value, ttl)`: Data Storage Across Layers**
+
+    - The `set` method concurrently updates or adds the value in all cache layers by iterating over each cache instance (`primaryCache` and `secondaryCache`).
+    - This ensures that the data is consistently stored across all layers, maintaining data integrity and availability.
+    - It uses `Promise.allSettled` under the hood, ensuring that the operation completes in all caches, regardless of whether one or more of the `set` operations fail or succeed.
+
+3. **`getRevalidatedTags()`: Retrieving Revalidated Tags Across Layers**
+
+    - The search for revalidated tags begins with the `primaryCache` and, if not found, proceeds to the `secondaryCache`.
+    - The method returns the `RevalidatedTags` from the first cache layer where they are found.
+
+4. **`revalidateTag(tag, revalidatedAt)`: Updating Revalidation Status Across Layers**
+
+    - Similar to the `set` method, `revalidateTag` concurrently updates the revalidation status of a tag in all cache layers.
+    - It marks the specified `tag` as revalidated with the provided timestamp (`revalidatedAt`) in both the `primaryCache` and `secondaryCache`.
+    - It uses `Promise.allSettled` under the hood, ensuring that the revalidation status is consistently updated across all layers.
+
+5. **`name`: A descriptive name for the cache handler instance.**
+
+    - This is used for logging and debugging purposes.

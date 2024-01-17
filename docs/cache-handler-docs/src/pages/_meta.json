@@ -3,13 +3,18 @@
         "type": "separator",
         "title": "Getting Started"
     },
-    "index": "Why configure caching?",
-    "installation": "",
+    "index": "Introduction",
+    "installation": "Installation and the First Steps",
     "-- @neshca/cache-handler API": {
         "type": "separator",
         "title": "@neshca/cache-handler API"
     },
     "configuration": "Configuration",
+    "-- Troubleshooting": {
+        "type": "separator",
+        "title": "Troubleshooting"
+    },
+    "troubleshooting": "",
     "-- Examples": {
         "type": "separator",
         "title": "Examples"

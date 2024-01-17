@@ -4,7 +4,7 @@ Efficient and simple HTTP caching server with LRU eviction, tailored for seamles
 
 ### Overview
 
-This project provides a simple HTTP server that works seamlessly with @neshca/cache-handler/server. It implements an efficient LRU (Least Recently Used) key eviction policy, ensuring optimal use of cache resources by automatically removing the least recently accessed items when the cache reaches its capacity.
+This project provides a simple HTTP server that works seamlessly with `@neshca/cache-handler/server`. It implements an efficient LRU (Least Recently Used) key eviction policy, ensuring optimal use of cache resources by automatically removing the least recently accessed items when the cache reaches its capacity.
 
 ### Usage
 

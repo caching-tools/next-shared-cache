@@ -16,81 +16,84 @@ npm i -D @neshca/json-replacer-reviver
 Create a file called `cache-handler.js` next to your `next.config.js` with the following contents:
 
 ```js filename="cache-handler.js" copy
-const { reviveFromBase64Representation, replaceJsonWithBase64 } = require('@neshca/json-replacer-reviver');
 const { IncrementalCache } = require('@neshca/cache-handler');
+const createLruCache = require('@neshca/cache-handler/local-lru').default;
+const { reviveFromBase64Representation, replaceJsonWithBase64 } = require('@neshca/json-replacer-reviver');
 const { createClient } = require('redis');
 
-/** @type {import('@neshca/cache-handler').TagsManifest} */
-const localTagsManifest = {
-    version: 1,
-    items: {},
-};
-
-const TAGS_MANIFEST_KEY = 'sharedTagsManifest';
+const REVALIDATED_TAGS_KEY = 'sharedRevalidatedTags';
 
 const client = createClient({
     url: process.env.REDIS_URL ?? 'redis://localhost:6379',
 });
 
 client.on('error', (error) => {
-    console.error('Redis error:', error.message);
+    console.error('Redis error:', error);
 });
 
 IncrementalCache.onCreation(async () => {
+    // read more about TTL limitations https://caching-tools.github.io/next-shared-cache/configuration/ttl
+    const useTtl = false;
+
     await client.connect();
 
-    return {
-        cache: {
-            async get(key) {
-                try {
-                    const result = (await client.get(key)) ?? null;
+    const localCache = createLruCache({
+        useTtl,
+    });
 
-                    if (!result) {
-                        return null;
-                    }
+    function assertClientIsReady() {
+        if (!client.isReady) {
+            throw new Error('Redis client is not ready');
+        }
+    }
+    const redisCache = {
+        name: 'custom-redis-strings',
+        async get(key) {
+            assertClientIsReady();
 
-                    // use reviveFromBase64Representation to restore binary data from Base64
-                    return JSON.parse(result, reviveFromBase64Representation);
-                } catch (error) {
-                    return null;
-                }
-            },
-            async set(key, value) {
-                try {
-                    // use replaceJsonWithBase64 to store binary data in Base64 and save space
-                    await client.set(key, JSON.stringify(value, replaceJsonWithBase64));
-                } catch (error) {
-                    // ignore because value will be written to disk
-                }
-            },
-            async getTagsManifest() {
-                try {
-                    const remoteTagsManifest = await client.hGetAll(TAGS_MANIFEST_KEY);
+            const result = await client.get(key);
 
-                    if (!remoteTagsManifest) {
-                        return localTagsManifest;
-                    }
+            if (!result) {
+                return null;
+            }
 
-                    Object.entries(remoteTagsManifest).reduce((acc, [tag, revalidatedAt]) => {
-                        acc[tag] = { revalidatedAt: parseInt(revalidatedAt ?? '0', 10) };
-                        return acc;
-                    }, localTagsManifest.items);
-
-                    return localTagsManifest;
-                } catch (error) {
-                    return localTagsManifest;
-                }
-            },
-            async revalidateTag(tag, revalidatedAt) {
-                try {
-                    await client.hSet(TAGS_MANIFEST_KEY, {
-                        [tag]: revalidatedAt,
-                    });
-                } catch (error) {
-                    localTagsManifest.items[tag] = { revalidatedAt };
-                }
-            },
+            return JSON.parse(result, reviveFromBase64Representation);
         },
+        async set(key, value, ttl) {
+            assertClientIsReady();
+
+            await client.set(
+                key,
+                JSON.stringify(value, replaceJsonWithBase64),
+                useTtl && typeof ttl === 'number' ? { EX: ttl } : undefined,
+            );
+        },
+        async getRevalidatedTags() {
+            assertClientIsReady();
+
+            const sharedRevalidatedTags = await client.hGetAll(REVALIDATED_TAGS_KEY);
+
+            const entries = Object.entries(sharedRevalidatedTags);
+
+            const revalidatedTags = entries.reduce((acc, [tag, revalidatedAt]) => {
+                acc[tag] = Number(revalidatedAt);
+                return acc;
+            }, {});
+
+            return revalidatedTags;
+        },
+        async revalidateTag(tag, revalidatedAt) {
+            assertClientIsReady();
+
+            await client.hSet(REVALIDATED_TAGS_KEY, {
+                [tag]: revalidatedAt,
+            });
+        },
+    };
+
+    return {
+        cache: [redisCache, localCache],
+        useFileSystem: !useTtl,
     };
 });
 
@@ -98,16 +101,3 @@ module.exports = IncrementalCache;
 ```
 
 <Callout type="info">Ensure that the Redis instance is running when you build your Next.js app.</Callout>
-
-Then, use the following configuration in your `next.config.js` file:
-
-```js filename="next.config.js" copy
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-    experimental: {
-        incrementalCacheHandlerPath: require.resolve('./cache-handler'), // path to the cache handler file you created
-    },
-};
-
-module.exports = nextConfig;
-```

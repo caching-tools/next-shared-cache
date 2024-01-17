@@ -1,5 +1,16 @@
-import { Callout } from 'nextra/components';
-
 ## Using `@neshca/cache-handler` in development environment
 
-<Callout type="warning">This section of the documentation is still under development. Please check back later.</Callout>
+Since the primary purpose of `@neshca/cache-handler` is to accommodate the sharing of the cache between multiple and independent replicas of the Next.js application, there is no need to use it in a development environment.
+
+The easiest way to turn off the cache handler in a development environment is to use `process.env.NODE_ENV`:
+
+```js filename="next.config.js" copy
+const nextConfig = {
+    /* ... */
+    experimental: {
+        incrementalCacheHandlerPath:
+            process.env.NODE_ENV === 'development' ? undefined : require.resolve('./cache-handler'),
+    },
+    /* ... */
+};
+```

@@ -1,5 +1,6 @@
-import type { LRUCache } from 'lru-cache';
 import type { CacheHandlerValue } from '@neshca/next-common';
+import type { LRUCache } from 'lru-cache';
+
 import type { LruCacheOptions } from '../create-configured-cache';
 import { createConfiguredCache } from '../create-configured-cache';
 
@@ -33,6 +34,10 @@ function calculateObjectSize({ value }: CacheHandlerValue): number {
     }
 }
 
-export function createCache(options?: LruCacheOptions): LRUCache<string, CacheHandlerValue> {
+export type { LruCacheOptions };
+
+export function createCache(
+    options?: LruCacheOptions,
+): LRUCache<string, CacheHandlerValue & { maxAgeSeconds?: number }> {
     return createConfiguredCache(calculateObjectSize, options);
 }

@@ -1,37 +1,33 @@
-import type { RedisClientType, RedisClusterType } from 'redis';
-import type { CacheConfig } from './cache-handler';
+import type { RedisClientType } from 'redis';
 
 export type RedisJSON = Parameters<RedisClientType['json']['set']>['2'];
 
-type CacheHandlerOptions = {
+export type UseTtlOptions = {
     /**
-     * Whether to read/write to disk. Defaults to 'read-yes/write-yes'.
+     * Optional. Boolean or function that returns a delay after which the cache entry must be deleted.
+     *
+     * Function receives the `maxAge` from the Next.js as a parameter.
+     * This can be used to emulate the behavior of the stale-while-revalidate strategy.
+     *
+     * @example
+     *
+     * ```js
+     * const lruCache = createLruCache({
+     *   // emulate the behavior of the stale-while-revalidate strategy
+     *   useTtl: (maxAge) => maxAge * 1.5
+     * });
+     * ```
+     *
+     * @remarks
+     * - **File System Cache**: Ensure that the file system cache is disabled
+     * by setting `useFileSystem: false` in your cache handler configuration.
+     * This is crucial for the TTL feature to work correctly.
+     * If the file system cache is enabled,
+     * the cache entries will HIT from the file system cache when expired in remote cache store.
+     * - **Pages Directory Limitation**: Due to a known issue in Next.js,
+     * disabling the file system cache may not function properly within the Pages directory.
+     * It is recommended to use TTL primarily with the App directory.
+     * More details on this limitation can be found in the file system cache configuration documentation.
      */
-    diskAccessMode?: CacheConfig['diskAccessMode'];
-    /**
-     * Whether to log errors to the console. Defaults to false.
-     */
-    unstable__logErrors?: boolean;
-};
-
-export type RedisCacheHandlerOptions<T extends RedisClientType | RedisClusterType> = CacheHandlerOptions & {
-    /**
-     * Redis client instance
-     */
-    client: T;
-    /**
-     * Prefix for all keys. Useful for namespacing. Defaults to no prefix.
-     */
-    keyPrefix?: string;
-    /**
-     * Key to store the tags manifest. Defaults to '__sharedTagsManifest__'.
-     */
-    tagsManifestKey?: string;
-};
-
-export type ServerCacheHandlerOptions = CacheHandlerOptions & {
-    /**
-     * Base URL of the server.
-     */
-    baseUrl: string;
+    useTtl?: boolean | ((ttl: number) => number);
 };

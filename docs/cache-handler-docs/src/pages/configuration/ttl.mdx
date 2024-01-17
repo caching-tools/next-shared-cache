@@ -1,0 +1,133 @@
+## Using TTL in Cache Configuration
+
+### Overview
+
+Time to Live (TTL) is a crucial feature in cache management. It automatically expires cache entries after a predefined duration, ensuring your cache remains up-to-date and efficient.
+
+### Prerequisites
+
+To effectively implement TTL, consider the following:
+
+-   **File System Cache Limitation**: Set `useFileSystem: false` in your cache configuration. This step is essential for TTL to function correctly. If the file system cache is enabled, it may cause cache entries to be retrieved from the file system cache even after they've expired in Redis of LRU.
+-   **Next.js Pages Directory Issue**: There is a known limitation with Next.js regarding the file system cache within the Pages directory. It's recommended to apply TTL only for the App directory pages. For more information, refer to the [file system cache configuration documentation](/configuration/use-file-system#configuring-access-to-the-file-system).
+
+### TTL and Incremental Static Regeneration (ISR)
+
+In Next.js, ISR allows routes to be incrementally updated through the [`revalidate` ↗](https://nextjs.org/docs/app/building-your-application/data-fetching/fetching-caching-and-revalidating#time-based-revalidation) property in `fetch` or inside the `page` or `route` file.
+
+### Using TTL in Preconfigured Handlers
+
+Here's how to use TTL in preconfigured Handlers:
+
+```js filename="cache-handler.js" copy
+IncrementalCache.onCreation(async () => {
+    await client.connect();
+
+    // In this example, we emulate a stale-while-revalidate cache strategy
+    // After the `maxAge` the cache entry will be treated as stale and will be revalidated
+    // And if the revalidation fails, it will be removed from the cache after `maxAge * 1.5`
+    function useTtl(maxAge) {
+        return maxAge * 1.5;
+    }
+
+    const redisCache = await createRedisCache({
+        client,
+        useTtl, // Enable TTL for Redis cache
+    });
+
+    const localCache = createLruCache({
+        useTtl, // Enable TTL for local cache
+    });
+
+    return {
+        cache: [redisCache, localCache],
+        useFileSystem: !useTtl, // Disable file system cache to ensure TTL effectiveness
+    };
+});
+```
+
+### Implementing TTL in Custom Cache Handlers
+
+For custom cache handlers, here are examples for Redis:
+
+#### Redis Strings Example
+
+```js filename="cache-handler.js" copy
+IncrementalCache.onCreation(async () => {
+    const cache = {
+        // ... other cache methods ...
+
+        async set(key, value, maxAge) {
+            // Serialize value and set TTL using Redis 'EX' option
+            await client.set(
+                key,
+                JSON.stringify(value, replaceJsonWithBase64),
+                // Delete key when they become stale
+                typeof maxAge === 'number' ? { EX: maxAge } : undefined,
+            );
+        },
+
+        // ... other cache methods ...
+    };
+
+    return {
+        useFileSystem: false, // Disable file system cache for TTL efficiency
+        cache,
+    };
+});
+```
+
+#### Redis Stack Example
+
+```js filename="cache-handler.js" copy
+IncrementalCache.onCreation(async () => {
+    const cache = {
+        // ... other cache methods ...
+
+        async set(key, value, maxAge) {
+            await client.json.set(key, '.', value);
+
+            if (typeof maxAge === 'number') {
+                // Delete key when they become stale
+                // Set TTL using Redis 'EXPIRE' command
+                await client.expire(key, maxAge);
+            }
+        },
+
+        // ... other cache methods ...
+    };
+
+    return {
+        useFileSystem: false, // Disable file system cache for TTL efficiency
+        cache,
+    };
+});
+```
+
+#### Stale While Revalidate Example
+
+```js filename="cache-handler.js" copy
+const { calculateEvictionDelay } = require('@neshca/cache-handler/helpers');
+
+// ...
+
+IncrementalCache.onCreation(async () => {
+    const cache = {
+        // ... other cache methods ...
+
+        async set(key, value, maxAge) {
+            const EX = calculateEvictionDelay(maxAgeSeconds, useTtl);
+            // Serialize value and set TTL using Redis 'EX' option
+            // Delete key with a delay when they become stale
+            await client.set(key, JSON.stringify(value, replaceJsonWithBase64), EX ? { EX } : undefined);
+        },
+
+        // ... other cache methods ...
+    };
+
+    return {
+        useFileSystem: false, // Disable file system cache for TTL efficiency
+        cache,
+    };
+});
+```

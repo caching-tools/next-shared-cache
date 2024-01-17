@@ -1,7 +1,7 @@
 {
     "name": "@neshca/cache-handler",
-    "version": "0.5.4",
-    "description": "Flexible API to replace the default Next.js cache, accommodating custom cache solutions for multi-instance deployments.    ",
+    "version": "0.6.5",
+    "description": "Flexible API to replace the default Next.js cache, accommodating custom cache solutions for multi-instance deployments.",
     "keywords": [
         "cache",
         "isr",
@@ -24,6 +24,7 @@
     "type": "module",
     "exports": {
         ".": "./dist/cache-handler.cjs",
+        "./helpers": "./dist/helpers/helpers.cjs",
         "./*": "./dist/handlers/*.cjs"
     },
     "typesVersions": {
@@ -31,14 +32,20 @@
             "*": [
                 "dist/cache-handler.d.cts"
             ],
+            "helpers": [
+                "dist/helpers/helpers.d.cts"
+            ],
             "redis-stack": [
-                "dist/handlers/redis-stack.d.cjs"
+                "dist/handlers/redis-stack.d.cts"
             ],
             "redis-strings": [
-                "dist/handlers/redis-strings.d.cjs"
+                "dist/handlers/redis-strings.d.cts"
             ],
             "server": [
-                "dist/handlers/server.d.cjs"
+                "dist/handlers/server.d.cts"
+            ],
+            "local-lru": [
+                "dist/handlers/local-lru.d.cts"
             ]
         }
     },
@@ -46,7 +53,10 @@
         "build": "tsup --dts-resolve",
         "clean": "rimraf ./dist ./.turbo ./node_modules",
         "dev": "tsup --watch",
-        "lint": "eslint ."
+        "lint": "eslint .",
+        "lint:fix": "eslint --fix .",
+        "test": "node --test --import tsx/esm src/**/*.test.ts",
+        "test:watch": "node --watch --test --import tsx/esm src/**/*.test.ts"
     },
     "dependencies": {
         "@neshca/json-replacer-reviver": "*",
@@ -56,14 +66,15 @@
         "@neshca/next-common": "*",
         "@neshca/next-lru-cache": "*",
         "@neshca/tsconfig": "*",
-        "@types/node": "20.10.0",
+        "@types/node": "20.11.4",
         "eslint-config-neshca": "*",
         "rimraf": "5.0.5",
         "tsup": "8.0.1",
-        "typescript": "5.3.2"
+        "tsx": "4.7.0",
+        "typescript": "5.3.3"
     },
     "peerDependencies": {
-        "next": ">=13.5",
+        "next": ">=13.5.1",
         "redis": ">=4.6"
     },
     "distTags": [

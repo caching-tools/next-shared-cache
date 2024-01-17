@@ -1,7 +1,16 @@
 import { LRUCache } from 'lru-cache';
 
+/**
+ * Configuration options for the LRU cache.
+ */
 export type LruCacheOptions = {
+    /**
+     * Optional. Maximum number of items the cache can hold. Defaults to 1000.
+     */
     maxItemsNumber?: number;
+    /**
+     * Optional. Maximum size in bytes for each item in the cache. Defaults to 100 MB.
+     */
     maxItemSizeBytes?: number;
 };
 

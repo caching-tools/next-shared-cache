@@ -11,75 +11,92 @@ Create a file called `cache-handler.js` next to you `next.config.js` with the fo
 
 ```js filename="cache-handler.js" copy
 const { IncrementalCache } = require('@neshca/cache-handler');
+const createLruCache = require('@neshca/cache-handler/local-lru').default;
 const { createClient } = require('redis');
 
-/** @type {import('@neshca/cache-handler').TagsManifest} */
-let localTagsManifest = {
-    version: 1,
-    items: {},
-};
-
-const TAGS_MANIFEST_KEY = 'sharedTagsManifest';
+const REVALIDATED_TAGS_KEY = 'sharedRevalidatedTags';
 
 const client = createClient({
     url: process.env.REDIS_URL ?? 'redis://localhost:6379',
 });
 
 client.on('error', (error) => {
-    console.error('Redis error:', error.message);
+    console.error('Redis error:', error);
 });
 
 IncrementalCache.onCreation(async () => {
     await client.connect();
 
-    await client.json.set(TAGS_MANIFEST_KEY, '.', localTagsManifest, {
-        NX: true,
-    });
-    return {
-        cache: {
-            async get(key) {
-                try {
-                    const cacheValue = (await client.json.get(key)) ?? null;
+    // read more about TTL limitations https://caching-tools.github.io/next-shared-cache/configuration/ttl
+    const useTtl = false;
 
-                    if (cacheValue && cacheValue.value?.kind === 'ROUTE' && cacheValue.value.body.type === 'Buffer') {
-                        cacheValue.value.body = Buffer.from(cacheValue.value.body);
-                    }
+    function assertClientIsReady() {
+        if (!client.isReady) {
+            throw new Error('Redis client is not ready');
+        }
+    }
 
-                    return cacheValue;
-                } catch (error) {
-                    return null;
-                }
-            },
-            async set(key, value) {
-                try {
-                    await client.json.set(key, '.', value);
-                } catch (error) {
-                    // ignore because value will be written to disk
-                }
-            },
-            async getTagsManifest() {
-                try {
-                    const sharedTagsManifest = (await client.json.get(TAGS_MANIFEST_KEY)) ?? null;
+    assertClientIsReady();
 
-                    if (sharedTagsManifest) {
-                        localTagsManifest = sharedTagsManifest;
-                    }
-
-                    return localTagsManifest;
-                } catch (error) {
-                    return localTagsManifest;
-                }
-            },
-            async revalidateTag(tag, revalidatedAt) {
-                try {
-                    await client.json.set(TAGS_MANIFEST_KEY, `.items.${tag}`, {
-                        revalidatedAt,
-                    });
-                } catch (error) {
-                    localTagsManifest.items[tag] = { revalidatedAt };
-                }
-            },
+    await client.json.set(
+        REVALIDATED_TAGS_KEY,
+        '.',
+        {},
+        {
+            NX: true,
         },
+    );
+
+    const localCache = createLruCache({
+        useTtl,
+    });
+
+    const redisCache = {
+        name: 'custom-redis-stack',
+        async get(key) {
+            assertClientIsReady();
+
+            const cacheValue = (await client.json.get(key)) ?? null;
+
+            if (cacheValue?.value?.kind === 'ROUTE') {
+                cacheValue.value.body = Buffer.from(cacheValue.value.body, 'base64');
+            }
+
+            return cacheValue;
+        },
+        async set(key, cacheValue, ttl) {
+            assertClientIsReady();
+
+            let preparedCacheValue = cacheValue;
+
+            if (cacheValue.value?.kind === 'ROUTE') {
+                preparedCacheValue = structuredClone(cacheValue);
+                preparedCacheValue.value.body = cacheValue.value.body.toString('base64');
+            }
+
+            await client.json.set(key, '.', preparedCacheValue);
+
+            if (useTtl && typeof ttl === 'number') {
+                await client.expire(key, ttl);
+            }
+        },
+        async getRevalidatedTags() {
+            assertClientIsReady();
+
+            const sharedRevalidatedTags = (await client.json.get(REVALIDATED_TAGS_KEY)) ?? undefined;
+
+            return sharedRevalidatedTags;
+        },
+        async revalidateTag(tag, revalidatedAt) {
+            assertClientIsReady();
+
+            await client.json.set(REVALIDATED_TAGS_KEY, `.${tag}`, revalidatedAt);
+        },
+    };
+
+    return {
+        cache: [redisCache, localCache],
+        useFileSystem: !useTtl,
     };
 });
 
@@ -87,16 +104,3 @@ module.exports = IncrementalCache;
 ```
 
 <Callout type="info">Ensure that the Redis instance is running when you build your Next.js app.</Callout>
-
-Then, use the following configuration in your `next.config.js` file:
-
-```js filename="next.config.js" copy
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-    experimental: {
-        incrementalCacheHandlerPath: require.resolve('./cache-handler'), // path to the cache handler file you created
-    },
-};
-
-module.exports = nextConfig;
-```

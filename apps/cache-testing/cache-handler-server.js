@@ -1,23 +1,23 @@
+const { scheduler } = require('node:timers/promises');
 const { IncrementalCache } = require('@neshca/cache-handler');
-const { createHandler } = require('@neshca/cache-handler/server');
+const createServerCache = require('@neshca/cache-handler/server').default;
+const createLruCache = require('@neshca/cache-handler/local-lru').default;
 
 const baseUrl = process.env.REMOTE_CACHE_SERVER_BASE_URL ?? 'http://localhost:8080';
 
-async function wait(ms) {
-    return new Promise((resolve) => {
-        setTimeout(resolve, ms);
-    });
-}
+IncrementalCache.onCreation(async () => {
+    await scheduler.wait(1000);
 
-IncrementalCache.onCreation(async (options) => {
-    // For testing purposes
-    await wait(100);
-
-    const getConfig = createHandler({
+    const httpCache = createServerCache({
         baseUrl,
     });
 
-    return getConfig(options);
+    const localCache = createLruCache();
+
+    return {
+        cache: [httpCache, localCache],
+        useFileSystem: true,
+    };
 });
 
 module.exports = IncrementalCache;

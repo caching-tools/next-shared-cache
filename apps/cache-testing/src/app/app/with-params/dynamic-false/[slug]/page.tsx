@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
-import { createGetData } from 'cache-testing/utils/create-get-data';
+
 import { CommonAppPage } from 'cache-testing/utils/common-app-page';
+import { createGetData } from 'cache-testing/utils/create-get-data';
 
 type PageParams = { params: { slug: string } };
 

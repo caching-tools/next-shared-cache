@@ -1,7 +1,9 @@
 {
     "on-creation": "onCreation",
     "cache": "cache",
-    "disk-access-mode": "diskAccessMode",
-    "local-cache": "",
-    "development-environment": ""
+    "use-file-system": "useFileSystem",
+    "opt-out-cache-on-build": "Opt out the cache on Build",
+    "development-environment": "",
+    "build-id-as-prefix-key": "Build Id as a Prefix Key",
+    "ttl": "Using TTL"
 }

@@ -33,24 +33,18 @@ const { createHandler } = require('@neshca/cache-handler/server');
 
 const baseUrl = process.env.REMOTE_CACHE_SERVER_BASE_URL ?? 'http://localhost:8080';
 
-IncrementalCache.onCreation(
-    createHandler({
+IncrementalCache.onCreation(() => {
+    const httpCache = createServerCache({
         baseUrl,
-    }),
-);
+    });
+
+    const localCache = createLruCache();
+
+    return {
+        cache: [httpCache, localCache],
+        useFileSystem: true,
+    };
+});
 
 module.exports = IncrementalCache;
-```
-
-Then, use the following configuration in your `next.config.js` file:
-
-```js filename="next.config.js" copy
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-    experimental: {
-        incrementalCacheHandlerPath: require.resolve('./cache-handler'), // path to the cache handler file you created
-    },
-};
-
-module.exports = nextConfig;
 ```

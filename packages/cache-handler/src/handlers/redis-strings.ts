@@ -1,93 +1,107 @@
-/* eslint-disable camelcase -- unstable__* */
-/* eslint-disable no-console -- log errors */
-import { reviveFromBase64Representation, replaceJsonWithBase64 } from '@neshca/json-replacer-reviver';
-import type { RedisClientType, RedisClusterType } from 'redis';
-import type { TagsManifest, OnCreationHook, CacheHandlerValue } from '../cache-handler';
-import type { RedisCacheHandlerOptions } from '../common-types';
+/* eslint-disable import/no-default-export -- use default here */
+import { replaceJsonWithBase64, reviveFromBase64Representation } from '@neshca/json-replacer-reviver';
+import type { RedisClientType } from 'redis';
 
-const localTagsManifest: TagsManifest = {
-    version: 1,
-    items: {},
-};
+import type { Cache, CacheHandlerValue, RevalidatedTags } from '../cache-handler';
+import { calculateEvictionDelay } from '../helpers/calculate-eviction-delay';
+import { getTimeoutRedisCommandOptions } from '../helpers/get-timeout-redis-command-options';
 
-const TAGS_MANIFEST_KEY = '__sharedTagsManifest__';
+import type { RedisCacheHandlerOptions } from './redis-stack';
 
-export function createHandler<T extends RedisClientType | RedisClusterType>({
+/**
+ * Creates a Handler using Redis client.
+ *
+ * This function initializes a Handler for managing cache operations using Redis.
+ * It supports both Redis Client and Redis Cluster types. The handler includes
+ * methods to get, set, and manage cache values and revalidated tags.
+ *
+ * @param options - The configuration options for the Redis Handler. See {@link RedisCacheHandlerOptions}.
+ *
+ * @returns An object representing the cache, with methods for cache operations.
+ *
+ * @example
+ * ```js
+ * const redisClient = createRedisClient(...);
+ * const cache = await createCache({
+ *   client: redisClient,
+ *   keyPrefix: 'myApp:',
+ *   revalidatedTagsKey: 'myRevalidatedTags'
+ * });
+ * ```
+ *
+ * @remarks
+ * The `get` method retrieves a value from the cache, automatically converting `Buffer` types when necessary.
+ *
+ * The `set` method allows setting a value in the cache.
+ *
+ * The `getRevalidatedTags` and `revalidateTag` methods are used for handling tag-based cache revalidation.
+ */
+export default function createCache<T extends RedisClientType>({
     client,
-    diskAccessMode = 'read-yes/write-yes',
     keyPrefix = '',
-    tagsManifestKey = TAGS_MANIFEST_KEY,
-    unstable__logErrors,
-}: RedisCacheHandlerOptions<T>): OnCreationHook {
-    return function getConfig() {
-        return {
-            diskAccessMode,
-            cache: {
-                async get(key) {
-                    try {
-                        const result = (await client.get(keyPrefix + key)) ?? null;
+    revalidatedTagsKey = '__sharedRevalidatedTags__',
+    useTtl = false,
+    timeoutMs = 5000,
+}: RedisCacheHandlerOptions<T>): Cache {
+    function assertClientIsReady(): void {
+        if (!client.isReady) {
+            throw new Error('Redis client is not ready yet or connection is lost. Keep trying...');
+        }
+    }
 
-                        if (!result) {
-                            return null;
-                        }
+    return {
+        name: 'redis-strings',
+        async get(key) {
+            assertClientIsReady();
 
-                        // use reviveFromBase64Representation to restore binary data from Base64
-                        return JSON.parse(result, reviveFromBase64Representation) as CacheHandlerValue | null;
-                    } catch (error) {
-                        if (unstable__logErrors) {
-                            console.error('cache.get', error);
-                        }
+            const getOperation = client.get(getTimeoutRedisCommandOptions(timeoutMs), keyPrefix + key);
 
-                        return null;
-                    }
-                },
-                async set(key, value) {
-                    try {
-                        // use replaceJsonWithBase64 to store binary data in Base64 and save space
-                        await client.set(keyPrefix + key, JSON.stringify(value, replaceJsonWithBase64));
-                    } catch (error) {
-                        if (unstable__logErrors) {
-                            console.error('cache.set', error);
-                        }
-                        // ignore because value will be written to disk
-                    }
-                },
-                async getTagsManifest() {
-                    try {
-                        const remoteTagsManifest = await client.hGetAll(keyPrefix + tagsManifestKey);
+            const result = await getOperation;
 
-                        if (!remoteTagsManifest) {
-                            return localTagsManifest;
-                        }
+            if (!result) {
+                return null;
+            }
 
-                        Object.entries(remoteTagsManifest).reduce((acc, [tag, revalidatedAt]) => {
-                            acc[tag] = { revalidatedAt: parseInt(revalidatedAt ?? '0', 10) };
-                            return acc;
-                        }, localTagsManifest.items);
+            // use reviveFromBase64Representation to restore binary data from Base64
+            return JSON.parse(result, reviveFromBase64Representation) as CacheHandlerValue | null;
+        },
+        async set(key, value, maxAgeSeconds) {
+            assertClientIsReady();
 
-                        return localTagsManifest;
-                    } catch (error) {
-                        if (unstable__logErrors) {
-                            console.error('cache.getTagsManifest', error);
-                        }
+            const evictionDelay = calculateEvictionDelay(maxAgeSeconds, useTtl);
 
-                        return localTagsManifest;
-                    }
-                },
-                async revalidateTag(tag, revalidatedAt) {
-                    try {
-                        await client.hSet(keyPrefix + tagsManifestKey, {
-                            [tag]: revalidatedAt,
-                        });
-                    } catch (error) {
-                        if (unstable__logErrors) {
-                            console.error('cache.revalidateTag', error);
-                        }
+            // use replaceJsonWithBase64 to store binary data in Base64 and save space
+            await client.set(
+                getTimeoutRedisCommandOptions(timeoutMs),
+                keyPrefix + key,
+                JSON.stringify(value, replaceJsonWithBase64),
+                evictionDelay ? { EX: evictionDelay } : undefined,
+            );
+        },
+        async getRevalidatedTags() {
+            assertClientIsReady();
 
-                        localTagsManifest.items[tag] = { revalidatedAt };
-                    }
-                },
-            },
-        };
+            const sharedRevalidatedTags = await client.hGetAll(
+                getTimeoutRedisCommandOptions(timeoutMs),
+                keyPrefix + revalidatedTagsKey,
+            );
+
+            const entries = Object.entries(sharedRevalidatedTags);
+
+            const revalidatedTags = entries.reduce<RevalidatedTags>((acc, [tag, revalidatedAt]) => {
+                acc[tag] = Number(revalidatedAt);
+
+                return acc;
+            }, {});
+
+            return revalidatedTags;
+        },
+        async revalidateTag(tag, revalidatedAt) {
+            assertClientIsReady();
+
+            await client.hSet(getTimeoutRedisCommandOptions(timeoutMs), keyPrefix + revalidatedTagsKey, {
+                [tag]: revalidatedAt,
+            });
+        },
     };
 }

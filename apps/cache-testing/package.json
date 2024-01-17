@@ -12,10 +12,11 @@
         "e2e": "playwright test --config=./playwright.config.ts",
         "e2e:ui": "playwright test --ui --config=./playwright.config.ts",
         "lint": "next lint",
+        "lint:fix": "next lint --fix",
         "start": "dotenv -e .env.local -v SERVER_STARTED=1 node .next/standalone/apps/cache-testing/server.js"
     },
     "dependencies": {
-        "next": "14.0.4-canary.18",
+        "next": "14.0.5-canary.58",
         "react": "18.2.0",
         "react-dom": "18.2.0"
     },
@@ -23,18 +24,18 @@
         "@neshca/cache-handler": "*",
         "@neshca/json-replacer-reviver": "*",
         "@neshca/tsconfig": "*",
-        "@next/eslint-plugin-next": "14.0.4-canary.18",
-        "@playwright/test": "1.40.0",
-        "@types/node": "20.10.0",
-        "@types/react": "18.2.39",
-        "@types/react-dom": "18.2.17",
+        "@next/eslint-plugin-next": "14.0.5-canary.58",
+        "@playwright/test": "1.41.0",
+        "@types/node": "20.11.4",
+        "@types/react": "18.2.48",
+        "@types/react-dom": "18.2.18",
         "dotenv-cli": "7.3.0",
         "eslint-config-neshca": "*",
-        "fastify": "4.24.3",
+        "fastify": "4.25.2",
         "pm2": "5.3.0",
-        "redis": "4.6.11",
+        "redis": "4.6.12",
         "rimraf": "5.0.5",
-        "tsx": "4.6.0",
-        "typescript": "5.3.2"
+        "tsx": "4.7.0",
+        "typescript": "5.3.3"
     }
 }

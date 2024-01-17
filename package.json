@@ -19,14 +19,16 @@
         "dev:backend": "FORCE_COLOR=1 turbo run dev --log-prefix=none --filter=backend",
         "dev:with-redis": "FORCE_COLOR=1 turbo run dev --log-prefix=none --filter=!@neshca/server --filter=!diffscribe",
         "e2e": "FORCE_COLOR=1 turbo run e2e --log-prefix=none",
-        "format": "prettier --write .",
-        "lint": "FORCE_COLOR=1 turbo run lint",
+        "format:check": "prettier --check .",
+        "format:fix": "prettier --write .",
+        "lint": "FORCE_COLOR=1 turbo run lint && npm run format:check",
+        "lint:fix": "FORCE_COLOR=1 turbo run lint:fix && npm run format:fix",
         "release": "npm run build && npm run lint && changeset publish",
         "start": "FORCE_COLOR=1 turbo run start --log-prefix=none --filter=!./apps/* --filter=!./docs/*",
         "start:app": "FORCE_COLOR=1 turbo run start --log-prefix=none --filter=cache-testing",
         "start:backend": "FORCE_COLOR=1 turbo run start --log-prefix=none --filter=backend",
         "test": "FORCE_COLOR=1 turbo run test",
-        "version-packages": "changeset version && npm run format"
+        "version-packages": "changeset version && npm run format:fix"
     },
     "dependencies": {
         "@changesets/cli": "2.27.1"
@@ -36,9 +38,9 @@
         "@neshca/prettier-config": "*",
         "@neshca/tsconfig": "*",
         "diffscribe": "*",
-        "eslint": "8.54.0",
+        "eslint": "8.56.0",
         "glob": "10.3.10",
-        "prettier": "3.1.0",
+        "prettier": "3.2.2",
         "turbo": "1.10.16"
     },
     "engines": {

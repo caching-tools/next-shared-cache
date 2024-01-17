@@ -1,6 +1,6 @@
 {
     "name": "@neshca/server",
-    "version": "0.5.1",
+    "version": "0.6.0",
     "description": "Efficient and simple HTTP caching server with LRU eviction, tailored for seamless integration with `@neshca/cache-handler/server` Handler",
     "homepage": "https://github.com/caching-tools/next-shared-cache/tree/canary/packages/server",
     "bugs": "https://github.com/caching-tools/next-shared-cache/issues",
@@ -23,22 +23,23 @@
         "clean": "rimraf ./dist ./.turbo ./node_modules",
         "dev": "node --watch --import tsx/esm ./src/server.ts",
         "lint": "eslint .",
+        "lint:fix": "eslint --fix .",
         "start": "node --import tsx/esm ./src/server.ts"
     },
     "dependencies": {
-        "fastify": "4.24.3",
-        "pino": "8.16.2"
+        "fastify": "4.25.2",
+        "pino": "8.17.2"
     },
     "devDependencies": {
         "@neshca/next-common": "*",
         "@neshca/next-lru-cache": "*",
         "@neshca/tsconfig": "*",
-        "@types/node": "20.10.0",
+        "@types/node": "20.11.4",
         "eslint-config-neshca": "*",
         "rimraf": "5.0.5",
         "tsup": "8.0.1",
-        "tsx": "4.6.0",
-        "typescript": "5.3.2"
+        "tsx": "4.7.0",
+        "typescript": "5.3.3"
     },
     "distTags": [
         "next13.5",

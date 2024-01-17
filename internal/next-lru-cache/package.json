@@ -9,7 +9,8 @@
     },
     "scripts": {
         "clean": "rimraf ./.turbo ./node_modules",
-        "lint": "eslint ."
+        "lint": "eslint .",
+        "lint:fix": "eslint --fix ."
     },
     "dependencies": {
         "lru-cache": "10.1.0"
@@ -17,9 +18,9 @@
     "devDependencies": {
         "@neshca/next-common": "*",
         "@neshca/tsconfig": "*",
-        "@types/node": "20.10.0",
+        "@types/node": "20.11.4",
         "eslint-config-neshca": "*",
         "rimraf": "5.0.5",
-        "typescript": "5.3.2"
+        "typescript": "5.3.3"
     }
 }

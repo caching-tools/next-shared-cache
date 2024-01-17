@@ -2,14 +2,9 @@
 /* eslint-disable import/no-named-as-default-member -- pm2 does't have named exports */
 
 import process from 'node:process';
+import { scheduler } from 'node:timers/promises';
 import Fastify from 'fastify';
 import pm2 from 'pm2';
-
-function wait(delay: number): Promise<void> {
-    return new Promise((resolve) => {
-        setTimeout(resolve, delay);
-    });
-}
 
 const args = process.argv.slice(2).reduce<Record<string, string>>((acc, arg) => {
     const [key, value] = arg.split('=');
@@ -74,7 +69,7 @@ app.get('/restart/:port', async (request, reply) => {
         }
 
         // workaround for unstable tests
-        void wait(1000).then(async () => {
+        void scheduler.wait(1000).then(async () => {
             await reply.code(200).send({ restarted: name });
         });
     });

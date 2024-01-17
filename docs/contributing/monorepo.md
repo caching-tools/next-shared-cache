@@ -28,6 +28,30 @@ npm run i
 
 **Note**: Don't be alarmed if you notice updates in the `package-lock.json` file after this step. These changes are expected and can be safely committed to your version control.
 
+### 4. Running Tests locally
+
+Install `act` globally using the official [installation instructions](https://github.com/nektos/act?tab=readme-ov-file#installation-through-package-managers).
+
+Create a `.actrc` file in the root of the project with the following contents:
+
+```bash
+-e .act.json
+```
+
+Then, create `.act.json` file near the `.actrc` file with the following contents:
+
+```json
+{
+    "act": true
+}
+```
+
+Finally, run the tests locally with:
+
+```bash
+act pull_request
+```
+
 ## Contribution Guidelines
 
 To maintain code consistency and quality, follow our coding and style guidelines. Run required checks before committing:
@@ -37,7 +61,7 @@ To maintain code consistency and quality, follow our coding and style guidelines
 Maintaining a uniform code style throughout the project is essential. Use the command below to format your code according to our standards automatically:
 
 ```bash
-npm run format
+npm run format:fix
 ```
 
 ### 2. Lint Checks

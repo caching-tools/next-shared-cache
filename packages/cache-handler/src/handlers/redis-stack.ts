@@ -1,96 +1,152 @@
-/* eslint-disable camelcase -- unstable__* */
-/* eslint-disable no-console -- log errors */
-import type { RedisClientType, RedisClusterType } from 'redis';
-import type { TagsManifest, OnCreationHook, CacheHandlerValue } from '../cache-handler';
-import type { RedisCacheHandlerOptions, RedisJSON } from '../common-types';
+/* eslint-disable import/no-default-export -- use default here */
 
-let localTagsManifest: TagsManifest = {
-    version: 1,
-    items: {},
+import type { RedisClientType } from 'redis';
+
+import type { RevalidatedTags, CacheHandlerValue, Cache } from '../cache-handler';
+import type { RedisJSON, UseTtlOptions } from '../common-types';
+import { calculateEvictionDelay } from '../helpers/calculate-eviction-delay';
+import { getTimeoutRedisCommandOptions } from '../helpers/get-timeout-redis-command-options';
+
+/**
+ * The configuration options for the Redis Handler
+ */
+export type RedisCacheHandlerOptions<T> = UseTtlOptions & {
+    /**
+     * The Redis client instance.
+     */
+    client: T;
+    /**
+     * Optional. Prefix for all keys, useful for namespacing. Defaults to an empty string.
+     */
+    keyPrefix?: string;
+    /**
+     * Optional. Key to store the `RevalidatedTags`. Defaults to `__sharedRevalidatedTags__`.
+     */
+    revalidatedTagsKey?: string;
+    /**
+     * Timeout in milliseconds for Redis operations. Defaults to 5000.
+     */
+    timeoutMs?: number;
 };
 
-const TAGS_MANIFEST_KEY = '__sharedTagsManifest__';
-
-export function createHandler<T extends RedisClientType | RedisClusterType>({
+/**
+ * Creates a Handler using Redis client.
+ *
+ * This function initializes a Handler for managing cache operations using Redis.
+ * It supports Redis Client. The handler includes
+ * methods to get, set, and manage cache values and revalidated tags.
+ *
+ * @param options - The configuration options for the Redis Handler. See {@link RedisCacheHandlerOptions}.
+ *
+ * @returns A promise that resolves to object representing the cache, with methods for cache operations.
+ *
+ * @example
+ * ```js
+ * const redisClient = createRedisClient(...);
+ * const cache = await createCache({
+ *   client: redisClient,
+ *   keyPrefix: 'myApp:',
+ *   revalidatedTagsKey: 'myRevalidatedTags'
+ * });
+ * ```
+ *
+ * @remarks
+ * The `get` method retrieves a value from the cache, automatically converting `Buffer` types when necessary.
+ *
+ * The `set` method allows setting a value in the cache.
+ *
+ * The `getRevalidatedTags` and `revalidateTag` methods are used for handling tag-based cache revalidation.
+ */
+export default async function createCache<T extends RedisClientType>({
     client,
-    diskAccessMode = 'read-yes/write-yes',
     keyPrefix = '',
-    tagsManifestKey = TAGS_MANIFEST_KEY,
-    unstable__logErrors,
-}: RedisCacheHandlerOptions<T>): OnCreationHook {
-    return async function getConfig() {
-        await client.json.set(keyPrefix + tagsManifestKey, '.', localTagsManifest, {
+    revalidatedTagsKey = '__sharedRevalidatedTags__',
+    useTtl = false,
+    timeoutMs = 5000,
+}: RedisCacheHandlerOptions<T>): Promise<Cache> {
+    function assertClientIsReady(): void {
+        if (!client.isReady) {
+            throw new Error('Redis client is not ready');
+        }
+    }
+
+    assertClientIsReady();
+
+    await client.json.set(
+        getTimeoutRedisCommandOptions(timeoutMs),
+        keyPrefix + revalidatedTagsKey,
+        '.',
+        {},
+        {
             NX: true,
-        });
+        },
+    );
 
-        return {
-            diskAccessMode,
-            cache: {
-                async get(key) {
-                    try {
-                        const cacheValue = ((await client.json.get(keyPrefix + key)) ??
-                            null) as CacheHandlerValue | null;
+    return {
+        name: 'redis-stack',
+        async get(key) {
+            assertClientIsReady();
 
-                        if (
-                            cacheValue &&
-                            cacheValue.value?.kind === 'ROUTE' &&
-                            // @ts-expect-error -- after JSON parsing, body is a Json Buffer representation
-                            cacheValue.value.body.type === 'Buffer'
-                        ) {
-                            cacheValue.value.body = Buffer.from(cacheValue.value.body);
-                        }
+            const cacheValue = (await client.json.get(
+                getTimeoutRedisCommandOptions(timeoutMs),
+                keyPrefix + key,
+            )) as CacheHandlerValue | null;
 
-                        return cacheValue;
-                    } catch (error) {
-                        if (unstable__logErrors) {
-                            console.error('cache.get', error);
-                        }
+            if (cacheValue?.value?.kind === 'ROUTE') {
+                cacheValue.value.body = Buffer.from(cacheValue.value.body as unknown as string, 'base64');
+            }
 
-                        return null;
-                    }
-                },
-                async set(key, value) {
-                    try {
-                        await client.json.set(keyPrefix + key, '.', value as unknown as RedisJSON);
-                    } catch (error) {
-                        if (unstable__logErrors) {
-                            console.error('cache.set', error);
-                        }
-                        // ignore because value will be written to disk
-                    }
-                },
-                async getTagsManifest() {
-                    try {
-                        const sharedTagsManifest = ((await client.json.get(keyPrefix + tagsManifestKey)) ??
-                            null) as TagsManifest | null;
+            return cacheValue;
+        },
+        async set(key, cacheValue, maxAgeSeconds) {
+            assertClientIsReady();
 
-                        if (sharedTagsManifest) {
-                            localTagsManifest = sharedTagsManifest;
-                        }
+            let preparedCacheValue = cacheValue;
 
-                        return localTagsManifest;
-                    } catch (error) {
-                        if (unstable__logErrors) {
-                            console.error('cache.getTagsManifest', error);
-                        }
+            if (cacheValue.value?.kind === 'ROUTE') {
+                preparedCacheValue = structuredClone(cacheValue);
+                // @ts-expect-error -- object must have the same shape as cacheValue
+                preparedCacheValue.value.body = cacheValue.value.body.toString('base64') as unknown as Buffer;
+            }
 
-                        return localTagsManifest;
-                    }
-                },
-                async revalidateTag(tag, revalidatedAt) {
-                    try {
-                        await client.json.set(keyPrefix + tagsManifestKey, `.items.${tag}`, {
-                            revalidatedAt,
-                        });
-                    } catch (error) {
-                        if (unstable__logErrors) {
-                            console.error('cache.revalidateTag', error);
-                        }
+            const options = getTimeoutRedisCommandOptions(timeoutMs);
 
-                        localTagsManifest.items[tag] = { revalidatedAt };
-                    }
-                },
-            },
-        };
+            const setCacheValue = client.json.set(
+                options,
+                keyPrefix + key,
+                '.',
+                preparedCacheValue as unknown as RedisJSON,
+            );
+
+            const commands: Promise<unknown>[] = [setCacheValue];
+
+            const evictionDelay = calculateEvictionDelay(maxAgeSeconds, useTtl);
+
+            if (evictionDelay) {
+                commands.push(client.expire(options, keyPrefix + key, evictionDelay));
+            }
+
+            await Promise.all(commands);
+        },
+        async getRevalidatedTags() {
+            assertClientIsReady();
+
+            const sharedRevalidatedTags = (await client.json.get(
+                getTimeoutRedisCommandOptions(timeoutMs),
+                keyPrefix + revalidatedTagsKey,
+            )) as RevalidatedTags | undefined;
+
+            return sharedRevalidatedTags;
+        },
+        async revalidateTag(tag, revalidatedAt) {
+            assertClientIsReady();
+
+            await client.json.set(
+                getTimeoutRedisCommandOptions(timeoutMs),
+                keyPrefix + revalidatedTagsKey,
+                `.${tag}`,
+                revalidatedAt,
+            );
+        },
     };
 }
