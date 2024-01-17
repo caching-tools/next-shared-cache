@@ -6,8 +6,8 @@
         "paths": {
             "@neshca/next-common": ["../../internal/next-common/src/next-common.ts"],
             "@neshca/next-lru-cache/next-cache-handler-value": [
-                "../../internal/next-lru-cache/src/cache-types/next-cache-handler-value.ts"
-            ]
-        }
-    }
+                "../../internal/next-lru-cache/src/cache-types/next-cache-handler-value.ts",
+            ],
+        },
+    },
 }

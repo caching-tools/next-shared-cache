@@ -1,3 +1,3 @@
 {
-    "extends": "@neshca/tsconfig/base.json"
+    "extends": "@neshca/tsconfig/base.json",
 }
