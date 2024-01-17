@@ -17,7 +17,7 @@
     },
     "devDependencies": {
         "@neshca/tsconfig": "*",
-        "@types/node": "20.11.4",
+        "@types/node": "20.11.5",
         "eslint-config-neshca": "*",
         "rimraf": "5.0.5",
         "typescript": "5.3.3"
