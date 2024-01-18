@@ -2,10 +2,10 @@
     "extends": "@neshca/tsconfig/nextjs.json",
     "compilerOptions": {
         "paths": {
-            "cache-testing/*": ["./src/*"]
+            "cache-testing/*": ["./src/*"],
         },
-        "strictNullChecks": true
+        "strictNullChecks": true,
     },
     "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "run-app-instances.ts"],
-    "exclude": ["node_modules"]
+    "exclude": ["node_modules"],
 }
