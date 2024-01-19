@@ -845,4 +845,8 @@ export class IncrementalCache implements CacheHandler {
                 throw new Error("Invariant: Can't determine file path kind");
         }
     }
+
+    resetRequestCache(): void {
+        // not implemented yet
+    }
 }
