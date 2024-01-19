@@ -1,5 +1,11 @@
 # @neshca/cache-handler
 
+## 0.6.6
+
+### Patch Changes
+
+- 3f02029: Added the `resetRequestCache` method to match with original `CacheHandler` class.
+
 ## 0.6.5
 
 ### Patch Changes

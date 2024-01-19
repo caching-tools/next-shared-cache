@@ -1,5 +1,11 @@
 # cache-handler-docs
 
+## 0.6.4
+
+### Patch Changes
+
+- 5ba656c: Updated installation documentation section with stabilized `cacheHandler` Next Config option.
+
 ## 0.6.3
 
 ### Patch Changes
