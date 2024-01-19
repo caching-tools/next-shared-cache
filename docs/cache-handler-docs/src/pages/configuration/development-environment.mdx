@@ -6,11 +6,11 @@ The easiest way to turn off the cache handler in a development environment is to
 
 ```js filename="next.config.js" copy
 const nextConfig = {
-    /* ... */
-    experimental: {
-        incrementalCacheHandlerPath:
-            process.env.NODE_ENV === 'development' ? undefined : require.resolve('./cache-handler'),
-    },
-    /* ... */
+    cacheHandler: process.env.NODE_ENV === 'production' ? require.resolve('./cache-handler') : undefined,
+    // Use `experimental` option instead of the `cacheHandler` property when using Next.js versions from 13.5.1 to 14.0.4
+    /* experimental: {
+            incrementalCacheHandlerPath:
+                process.env.NODE_ENV === 'production' ? require.resolve('./cache-handler') : undefined,
+    }, */
 };
 ```
