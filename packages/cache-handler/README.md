@@ -2,7 +2,7 @@
 
 **Flexible API to replace the default Next.js cache, accommodating custom cache solutions for multi-instance self-hosted deployments**
 
-🎉 Version 0.6.5 is out, offering stale-while-revalidate strategy emulation and codebase improvements!
+🎉 Next.js stabilized the API, and we are almost there, just a few steps before version 1.0.0!
 
 Check out the [changelog](https://github.com/caching-tools/next-shared-cache/blob/canary/packages/cache-handler/CHANGELOG.md)
 
@@ -62,7 +62,7 @@ Discover the versatility of `@neshca/cache-handler` in the examples section, whe
 
 ## Project Status
 
-This project is on its way to a stable release but will remain in beta until Next.js stabilizes [cacheHandler API](https://github.com/vercel/next.js/pull/57953). Any **breaking changes** made to the API will result in a **minor** version increase of the package until it reaches a stable version. You are welcome to try it out and provide feedback.
+Next.js stabilized the API, and we are almost there. Any **breaking changes** made to the library will result in a **major** version increase of the package. You are welcome to try it out and provide feedback.
 
 ### Roadmap
 
