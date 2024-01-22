@@ -10,7 +10,7 @@ jobs:
     timeout-minutes: 10
     runs-on: ubuntu-latest
     env:
-      HANDLER_PATH: ./cache-handler-redis-stack
+      HANDLER_PATH: ./cache-handler-redis-stack.mjs
       REDIS_URL: redis://localhost:6379
     services:
       redis:

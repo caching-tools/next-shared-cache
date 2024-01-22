@@ -23,29 +23,38 @@
     },
     "type": "module",
     "exports": {
-        ".": "./dist/cache-handler.cjs",
-        "./helpers": "./dist/helpers/helpers.cjs",
-        "./*": "./dist/handlers/*.cjs"
+        ".": {
+            "require": "./dist/cache-handler.cjs",
+            "import": "./dist/cache-handler.js"
+        },
+        "./helpers": {
+            "require": "./dist/helpers/helpers.cjs",
+            "import": "./dist/helpers/helpers.js"
+        },
+        "./*": {
+            "require": "./dist/handlers/*.cjs",
+            "import": "./dist/handlers/*.js"
+        }
     },
     "typesVersions": {
         "*": {
             "*": [
-                "dist/cache-handler.d.cts"
+                "dist/cache-handler.d.ts"
             ],
             "helpers": [
-                "dist/helpers/helpers.d.cts"
+                "dist/helpers/helpers.d.ts"
             ],
             "redis-stack": [
-                "dist/handlers/redis-stack.d.cts"
+                "dist/handlers/redis-stack.d.ts"
             ],
             "redis-strings": [
-                "dist/handlers/redis-strings.d.cts"
+                "dist/handlers/redis-strings.d.ts"
             ],
             "server": [
-                "dist/handlers/server.d.cts"
+                "dist/handlers/server.d.ts"
             ],
             "local-lru": [
-                "dist/handlers/local-lru.d.cts"
+                "dist/handlers/local-lru.d.ts"
             ]
         }
     },
