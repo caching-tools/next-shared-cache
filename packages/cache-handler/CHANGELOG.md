@@ -1,5 +1,11 @@
 # @neshca/cache-handler
 
+## 0.6.7
+
+### Patch Changes
+
+- ddf957f: Added support for ES Modules.
+
 ## 0.6.6
 
 ### Patch Changes

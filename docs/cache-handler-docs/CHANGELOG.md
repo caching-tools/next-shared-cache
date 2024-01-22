@@ -1,5 +1,11 @@
 # cache-handler-docs
 
+## 0.6.5
+
+### Patch Changes
+
+- ddf957f: Added a section with ES Modules example.
+
 ## 0.6.4
 
 ### Patch Changes
