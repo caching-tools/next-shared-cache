@@ -52,7 +52,7 @@ pnpm create next-app --example cache-handler-redis cache-handler-redis-app
     const { IncrementalCache } = require('@neshca/cache-handler');
 
     IncrementalCache.onCreation(async () => {
-        // Don't do this in production. This is just an example.
+        // Don't use Map in production. This is just an example.
         const cacheStore = new Map();
 
         const cache = {
@@ -73,16 +73,43 @@ pnpm create next-app --example cache-handler-redis cache-handler-redis-app
     module.exports = IncrementalCache;
     ```
 
+    EcmaScript modules can be used by adding the `.mjs` extension to the file and using an `import` statement instead of a `require` call:
+
+    ```js filename="cache-handler.mjs" copy
+    import { IncrementalCache } from '@neshca/cache-handler';
+
+    IncrementalCache.onCreation(async () => {
+        const cacheStore = new Map();
+
+        const cache = {
+            async get(key) {
+                return cacheStore.get(key);
+            },
+            async set(key, value) {
+                cacheStore.set(key, value);
+            },
+        };
+
+        return {
+            cache,
+            useFileSystem: true,
+        };
+    });
+
+    export default IncrementalCache;
+    ```
+
 3. **Integrate with Next.js**:  
    Update your `next.config.js` to utilize the cache handler, ensuring it's only active in production:
 
     ```js filename="next.config.js" copy
     const nextConfig = {
-        cacheHandler: process.env.NODE_ENV === 'production' ? require.resolve('./cache-handler') : undefined,
+        // './cache-handler.mjs' in case you're using EcmaScript modules.
+        cacheHandler: process.env.NODE_ENV === 'production' ? require.resolve('./cache-handler.js') : undefined,
         // Use `experimental` option instead of the `cacheHandler` property when using Next.js versions from 13.5.1 to 14.0.4
         /* experimental: {
             incrementalCacheHandlerPath:
-                process.env.NODE_ENV === 'production' ? require.resolve('./cache-handler') : undefined,
+                process.env.NODE_ENV === 'production' ? require.resolve('./cache-handler.js') : undefined,
         }, */
     };
 

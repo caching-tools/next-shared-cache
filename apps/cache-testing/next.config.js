@@ -1,6 +1,6 @@
 const path = require('node:path');
 
-const cacheHandler = require.resolve(process.env.HANDLER_PATH ?? './cache-handler-redis-stack');
+const cacheHandler = require.resolve(process.env.HANDLER_PATH ?? './cache-handler-redis-stack.mjs');
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
