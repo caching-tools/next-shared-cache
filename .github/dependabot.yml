@@ -10,9 +10,9 @@ updates:
     open-pull-requests-limit: 20
     ignore:
       - dependency-name: 'next'
-        versions: ['14.0.x']
+        versions: ['14.x.x']
       - dependency-name: '@next/eslint-plugin-next'
-        versions: ['14.0.x']
+        versions: ['14.x.x']
     groups:
       next-js:
         patterns:
