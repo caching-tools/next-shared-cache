@@ -126,7 +126,7 @@ export default async function createCache<T extends RedisClientType>({
                 commands.push(client.expire(options, keyPrefix + key, evictionDelay));
             }
 
-            await Promise.all(commands);
+            await Promise.allSettled(commands);
         },
         async getRevalidatedTags() {
             assertClientIsReady();
