@@ -1,5 +1,11 @@
 # @neshca/cache-handler
 
+## 0.6.8
+
+### Patch Changes
+
+- f3b30a5: Refactor `redis-stack` Handler to use `Promise.allSettled` for `set` callback.
+
 ## 0.6.7
 
 ### Patch Changes
