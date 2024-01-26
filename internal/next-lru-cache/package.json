@@ -13,7 +13,7 @@
         "lint:fix": "eslint --fix ."
     },
     "dependencies": {
-        "lru-cache": "10.1.0"
+        "lru-cache": "10.2.0"
     },
     "devDependencies": {
         "@neshca/next-common": "*",
