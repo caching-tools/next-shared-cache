@@ -1,5 +1,11 @@
 # @neshca/cache-handler
 
+## 0.6.9
+
+### Patch Changes
+
+- 8570f6e: Refactor debug flag initialization in cache-handler.ts
+
 ## 0.6.8
 
 ### Patch Changes
