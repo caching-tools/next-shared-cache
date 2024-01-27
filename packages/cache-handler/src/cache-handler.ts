@@ -254,7 +254,7 @@ export class IncrementalCache implements CacheHandler {
 
     static #revalidatedTags: RevalidatedTags = {};
 
-    static #debug = Boolean(process.env.NEXT_PRIVATE_DEBUG_CACHE);
+    static #debug = typeof process.env.NEXT_PRIVATE_DEBUG_CACHE !== 'undefined';
 
     static onCreationHook: OnCreationHook;
 
