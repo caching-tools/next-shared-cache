@@ -7,7 +7,7 @@ module.exports = {
     singleQuote: true,
     overrides: [
         {
-            files: '*.{yml,yaml}',
+            files: '*.{yml,yaml,md,mdx}',
             options: {
                 tabWidth: 2,
             },

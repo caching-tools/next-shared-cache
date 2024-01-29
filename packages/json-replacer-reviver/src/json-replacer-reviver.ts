@@ -76,7 +76,7 @@ export function isBufferBase64Representation(value: unknown): value is BufferBas
  * console.log(parsed); // <Buffer 68 65 6c 6c 6f>
  * ```
  */
-export function reviveFromJsonRepresentation(key: string, value: unknown): unknown {
+export function reviveFromJsonRepresentation(_key: string, value: unknown): unknown {
     if (isBufferJsonRepresentation(value)) {
         // @ts-expect-error -- TS doesn't know that Buffer.from can accept a BufferJsonRepresentation
         return Buffer.from(value);
@@ -103,7 +103,7 @@ export function reviveFromJsonRepresentation(key: string, value: unknown): unkno
  * console.log(parsed); // <Buffer 68 65 6c 6c 6f>
  * ```
  */
-export function replaceJsonWithBase64(key: string, value: unknown): unknown {
+export function replaceJsonWithBase64(_key: string, value: unknown): unknown {
     if (isBufferJsonRepresentation(value)) {
         return { type: 'BufferBase64', data: Buffer.from(value.data).toString('base64') };
     }
@@ -129,7 +129,7 @@ export function replaceJsonWithBase64(key: string, value: unknown): unknown {
  * console.log(parsed); // <Buffer 68 65 6c 6c 6f>
  * ```
  */
-export function reviveFromBase64Representation(key: string, value: unknown): unknown {
+export function reviveFromBase64Representation(_key: string, value: unknown): unknown {
     if (isBufferBase64Representation(value)) {
         return Buffer.from(value.data, 'base64');
     }

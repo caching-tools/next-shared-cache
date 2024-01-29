@@ -1,4 +1,3 @@
-/* eslint-disable import/no-default-export -- use default here */
 import type { LruCacheOptions } from '@neshca/next-lru-cache/next-cache-handler-value';
 import { createCache } from '@neshca/next-lru-cache/next-cache-handler-value';
 

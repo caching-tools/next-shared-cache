@@ -3,16 +3,16 @@ import path from 'node:path';
 
 import type {
     CacheHandler,
-    CacheHandlerValue,
-    CacheHandlerParametersSet,
     CacheHandlerParametersGet,
-    FileSystemCacheContext,
-    CachedFetchValue,
     CacheHandlerParametersRevalidateTag,
-    RouteMetadata,
-    NonNullableRouteMetadata,
+    CacheHandlerParametersSet,
+    CacheHandlerValue,
+    CachedFetchValue,
+    FileSystemCacheContext,
     IncrementalCacheKindHint,
     IncrementalCacheValue,
+    NonNullableRouteMetadata,
+    RouteMetadata,
     TagsManifest,
 } from '@neshca/next-common';
 
@@ -213,13 +213,13 @@ export class IncrementalCache implements CacheHandler {
      * ```
      */
     public static get name(): string {
-        if (this.#cacheListLength === undefined) {
+        if (IncrementalCache.#cacheListLength === undefined) {
             return '@neshca/cache-handler is not configured yet';
         }
 
-        return `@neshca/cache-handler with ${this.#cacheListLength} Handler${
-            this.#cacheListLength > 1 ? 's' : ''
-        } and ${this.#useFileSystem ? 'file system' : 'no file system'} caching`;
+        return `@neshca/cache-handler with ${IncrementalCache.#cacheListLength} Handler${
+            IncrementalCache.#cacheListLength > 1 ? 's' : ''
+        } and ${IncrementalCache.#useFileSystem ? 'file system' : 'no file system'} caching`;
     }
 
     static #resolveCreationPromise: () => void;
@@ -272,12 +272,12 @@ export class IncrementalCache implements CacheHandler {
      * @param onCreationHook - The {@link OnCreationHook} function to be called during cache creation.
      */
     public static onCreation(onCreationHook: OnCreationHook): void {
-        this.onCreationHook = onCreationHook;
+        IncrementalCache.onCreationHook = onCreationHook;
     }
 
     static async configureIncrementalCache(cacheCreationContext: CacheCreationContext): Promise<void> {
         // Retrieve cache configuration by invoking the onCreation hook with the provided context
-        const config = this.onCreationHook(cacheCreationContext);
+        const config = IncrementalCache.onCreationHook(cacheCreationContext);
 
         // Destructure the cache and useFileSystem settings from the configuration
         // Await the configuration if it's a promise
@@ -287,36 +287,41 @@ export class IncrementalCache implements CacheHandler {
         const { serverDistDir } = cacheCreationContext;
 
         // Set the class-level flag to determine if the file system caching should be used
-        this.#useFileSystem = useFileSystem;
+        IncrementalCache.#useFileSystem = useFileSystem;
 
         // Check if the pages directory exists and set the flag accordingly
-        this.#hasPagesDir = fs.existsSync(path.join(serverDistDir, 'pages'));
+        IncrementalCache.#hasPagesDir = fs.existsSync(path.join(serverDistDir, 'pages'));
 
         // Define the path for the tags manifest file
-        this.#tagsManifestPath = path.join(serverDistDir, '..', 'cache', 'fetch-cache', 'tags-manifest.json');
+        IncrementalCache.#tagsManifestPath = path.join(
+            serverDistDir,
+            '..',
+            'cache',
+            'fetch-cache',
+            'tags-manifest.json',
+        );
 
         try {
             // Ensure the directory for the tags manifest exists
             await fsPromises.mkdir(path.dirname(IncrementalCache.#tagsManifestPath), { recursive: true });
 
             // Read the tags manifest from the file system
-            const tagsManifestData = await fsPromises.readFile(this.#tagsManifestPath, 'utf-8');
+            const tagsManifestData = await fsPromises.readFile(IncrementalCache.#tagsManifestPath, 'utf-8');
 
             // Parse the tags manifest data
             const tagsManifestFromFileSystem = JSON.parse(tagsManifestData) as unknown;
 
             // Update the local RevalidatedTags if the parsed data is a valid tags manifest
             if (isTagsManifest(tagsManifestFromFileSystem)) {
-                this.#revalidatedTags = Object.entries(tagsManifestFromFileSystem.items).reduce<RevalidatedTags>(
-                    (revalidatedTags, [tag, { revalidatedAt }]) => {
-                        revalidatedTags[tag] = revalidatedAt;
+                IncrementalCache.#revalidatedTags = Object.entries(
+                    tagsManifestFromFileSystem.items,
+                ).reduce<RevalidatedTags>((revalidatedTags, [tag, { revalidatedAt }]) => {
+                    revalidatedTags[tag] = revalidatedAt;
 
-                        return revalidatedTags;
-                    },
-                    {},
-                );
+                    return revalidatedTags;
+                }, {});
             }
-        } catch (err) {
+        } catch (_error) {
             // If the file doesn't exist, use the default tagsManifest
         }
 
@@ -333,37 +338,33 @@ export class IncrementalCache implements CacheHandler {
               }, [])
             : [{ name: '0', ...cache }];
 
-        this.#cacheListLength = cacheList.length;
+        IncrementalCache.#cacheListLength = cacheList.length;
 
         // if no cache is provided and we don't use the file system
-        if (cacheList.length === 0 && !this.#useFileSystem) {
+        if (cacheList.length === 0 && !IncrementalCache.#useFileSystem) {
             throw new Error(
                 'No cache provided and file system caching is disabled. Please provide a cache or enable file system caching.',
             );
         }
 
-        this.#cache = {
+        IncrementalCache.#cache = {
             async get(key) {
                 for await (const cacheItem of cacheList) {
                     try {
                         const cacheValue = await cacheItem.get(key);
 
                         if (IncrementalCache.#debug) {
-                            // eslint-disable-next-line no-console -- we want to log this
-                            console.log(`get from "${cacheItem.name}"`, key, Boolean(cacheValue));
+                            console.info(`get from "${cacheItem.name}"`, key, Boolean(cacheValue));
                         }
 
                         return cacheValue;
                     } catch (error) {
                         if (IncrementalCache.#debug) {
-                            // eslint-disable-next-line no-console -- we want to log this
                             console.warn(
                                 `Cache handler "${cacheItem.name}" failed to get value for key "${key}".`,
                                 error,
                             );
                         }
-
-                        continue;
                     }
                 }
 
@@ -376,7 +377,6 @@ export class IncrementalCache implements CacheHandler {
                             return cacheItem.set(key, value, maxAgeSeconds);
                         } catch (error) {
                             if (IncrementalCache.#debug) {
-                                // eslint-disable-next-line no-console -- we want to log this
                                 console.warn(
                                     `Cache handler "${cacheItem.name}" failed to set value for key "${key}".`,
                                     error,
@@ -399,7 +399,6 @@ export class IncrementalCache implements CacheHandler {
                             // eslint-disable-next-line no-console -- we want to log this
                             console.warn(`Cache handler "${cacheItem.name}" failed to get revalidated tags.`, error);
                         }
-                        continue;
                     }
                 }
             },
@@ -443,7 +442,7 @@ export class IncrementalCache implements CacheHandler {
 
             try {
                 buildId = fs.readFileSync(path.join(this.#serverDistDir, '..', 'BUILD_ID'), 'utf-8');
-            } catch (error) {
+            } catch (_error) {
                 buildId = undefined;
             }
 
@@ -519,8 +518,7 @@ export class IncrementalCache implements CacheHandler {
                     // via header on GET same as SET
                     if (!tags?.every((tag) => cachedTags?.includes(tag))) {
                         if (IncrementalCache.#debug) {
-                            // eslint-disable-next-line no-console -- we want to log this
-                            console.log('tags vs cachedTags mismatch', tags, cachedTags);
+                            console.info('tags vs cachedTags mismatch', tags, cachedTags);
                         }
                         await this.set(cacheKey, cachedData.value, { tags });
                     }
@@ -636,8 +634,7 @@ export class IncrementalCache implements CacheHandler {
             cachedData = await this.readCacheFromFileSystem(cacheKey, kindHint, tags);
 
             if (IncrementalCache.#debug) {
-                // eslint-disable-next-line no-console -- we want to log this
-                console.log('get from file system', cacheKey, tags, kindHint, Boolean(cachedData));
+                console.info('get from file system', cacheKey, tags, kindHint, Boolean(cachedData));
             }
 
             if (cachedData) {
@@ -733,16 +730,14 @@ export class IncrementalCache implements CacheHandler {
         );
 
         if (IncrementalCache.#debug) {
-            // eslint-disable-next-line no-console -- we want to log this
-            console.log('set to external cache store', cacheKey);
+            console.info('set to external cache store', cacheKey);
         }
 
         if (data && IncrementalCache.#useFileSystem) {
             await this.writeCacheToFileSystem(data, cacheKey, tags);
 
             if (IncrementalCache.#debug) {
-                // eslint-disable-next-line no-console -- we want to log this
-                console.log('set to file system', cacheKey);
+                console.info('set to file system', cacheKey);
             }
         }
     }
@@ -751,8 +746,7 @@ export class IncrementalCache implements CacheHandler {
         const [tag] = args;
 
         if (IncrementalCache.#debug) {
-            // eslint-disable-next-line no-console -- we want to log this
-            console.log('revalidateTag', tag);
+            console.info('revalidateTag', tag);
         }
 
         await IncrementalCache.#creationPromise;
@@ -760,15 +754,13 @@ export class IncrementalCache implements CacheHandler {
         await IncrementalCache.#cache.revalidateTag?.(tag, Date.now());
 
         if (IncrementalCache.#debug) {
-            // eslint-disable-next-line no-console -- we want to log this
-            console.log('updated external revalidated tags');
+            console.info('updated external revalidated tags');
         }
 
         IncrementalCache.#revalidatedTags[tag] = Date.now();
 
         if (IncrementalCache.#debug) {
-            // eslint-disable-next-line no-console -- we want to log this
-            console.log('updated local revalidated tags');
+            console.info('updated local revalidated tags');
         }
 
         try {
@@ -788,8 +780,7 @@ export class IncrementalCache implements CacheHandler {
 
             await fsPromises.writeFile(IncrementalCache.#tagsManifestPath, JSON.stringify(tagsManifest));
             if (IncrementalCache.#debug) {
-                // eslint-disable-next-line no-console -- we want to log this
-                console.log('updated tags manifest file');
+                console.info('updated tags manifest file');
             }
         } catch (error) {
             // eslint-disable-next-line no-console -- we want to log this
@@ -811,7 +802,7 @@ export class IncrementalCache implements CacheHandler {
             return 'pages';
         }
         // Otherwise assume it's a pages file if the pages directory isn't enabled.
-        else if (this.#appDir && !pagesDir) {
+        if (this.#appDir && !pagesDir) {
             return 'app';
         }
 

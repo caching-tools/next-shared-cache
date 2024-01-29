@@ -14,7 +14,7 @@ import { MAX_INT32 } from '../constants';
  * the returned Promise will be rejected with an Error that has a message indicating the timeout period.
  */
 export function promiseWithTimeout<T>(operation: Promise<T>, timeoutMs?: number): Promise<T> {
-    if (typeof timeoutMs !== 'number' || isNaN(timeoutMs) || timeoutMs <= 0 || timeoutMs > MAX_INT32) {
+    if (typeof timeoutMs !== 'number' || Number.isNaN(timeoutMs) || timeoutMs <= 0 || timeoutMs > MAX_INT32) {
         return operation;
     }
 

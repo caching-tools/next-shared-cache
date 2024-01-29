@@ -3,8 +3,8 @@ import { Callout } from 'nextra/components';
 ## Redis strings example
 
 <Callout type="info">
-    In this example, we assume that in your deployment, you have `REDIS_URL` environment variable set to the URL of your
-    Redis instance. You can use any other way to set the URL.
+  In this example, we assume that in your deployment, you have `REDIS_URL` environment variable set to the URL of your
+  Redis instance. You can use any other way to set the URL.
 </Callout>
 
 Create a file called `cache-handler.js` next to your `next.config.js` with the following contents:
@@ -16,35 +16,35 @@ const createLruCache = require('@neshca/cache-handler/local-lru').default;
 const { createClient } = require('redis');
 
 const client = createClient({
-    url: process.env.REDIS_URL ?? 'redis://localhost:6379',
+  url: process.env.REDIS_URL ?? 'redis://localhost:6379',
 });
 
 client.on('error', (error) => {
-    console.error('Redis error:', error);
+  console.error('Redis error:', error);
 });
 
 IncrementalCache.onCreation(async () => {
-    // read more about TTL limitations https://caching-tools.github.io/next-shared-cache/configuration/ttl
-    const useTtl = false;
+  // read more about TTL limitations https://caching-tools.github.io/next-shared-cache/configuration/ttl
+  const useTtl = false;
 
-    await client.connect();
+  await client.connect();
 
-    const redisCache = await createRedisCache({
-        client,
-        useTtl,
-        // timeout for the Redis client operations like `get` and `set`
-        // afeter this timeout, the operation will be considered failed and the `localCache` will be used
-        timeoutMs: 5000,
-    });
+  const redisCache = await createRedisCache({
+    client,
+    useTtl,
+    // timeout for the Redis client operations like `get` and `set`
+    // afeter this timeout, the operation will be considered failed and the `localCache` will be used
+    timeoutMs: 5000,
+  });
 
-    const localCache = createLruCache({
-        useTtl,
-    });
+  const localCache = createLruCache({
+    useTtl,
+  });
 
-    return {
-        cache: [redisCache, localCache],
-        useFileSystem: !useTtl,
-    };
+  return {
+    cache: [redisCache, localCache],
+    useFileSystem: !useTtl,
+  };
 });
 
 module.exports = IncrementalCache;

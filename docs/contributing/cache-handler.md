@@ -10,34 +10,34 @@ To integrate Redis as a cache store:
 
 1. **Launch a Redis Instance using Docker**:
 
-    ```bash
-    docker run -d --name redis-stack -p 6379:6379 -p 8001:8001 redis/redis-stack:latest
-    ```
+   ```bash
+   docker run -d --name redis-stack -p 6379:6379 -p 8001:8001 redis/redis-stack:latest
+   ```
 
 2. **Setting Up the Local Environment**:
 
-    Create a `.env.local` file in the `apps/cache-testing` directory and define the `REDIS_URL` environment variable:
+   Create a `.env.local` file in the `apps/cache-testing` directory and define the `REDIS_URL` environment variable:
 
-    ```bash
-    REDIS_URL=redis://localhost:6379
-    ```
+   ```bash
+   REDIS_URL=redis://localhost:6379
+   ```
 
 3. **Starting Development Servers**:
 
-    To test changes in `@neshca/cache-handler`, utilize the `@neshca/cache-testing` app. Due to this app's implementation of SSG and ISR, initiate the local backend first:
+   To test changes in `@neshca/cache-handler`, utilize the `@neshca/cache-testing` app. Due to this app's implementation of SSG and ISR, initiate the local backend first:
 
-    ```bash
-    npm run dev:with-redis
-    ```
+   ```bash
+   npm run dev:with-redis
+   ```
 
-    Subsequently, in a distinct terminal, compile and launch the `@neshca/cache-testing` app:
+   Subsequently, in a distinct terminal, compile and launch the `@neshca/cache-testing` app:
 
-    ```bash
-    npm run build:app
-    npm run start:app
-    ```
+   ```bash
+   npm run build:app
+   npm run start:app
+   ```
 
-    **Note**: Always rebuild `@neshca/cache-testing` after every rebuild of `@neshca/cache-handler`.
+   **Note**: Always rebuild `@neshca/cache-testing` after every rebuild of `@neshca/cache-handler`.
 
 ### Running Tests Locally
 

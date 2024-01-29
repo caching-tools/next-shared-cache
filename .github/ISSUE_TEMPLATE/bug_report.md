@@ -29,10 +29,10 @@ If applicable, add screenshots or error logs to help explain your problem.
 
 **Environment:**
 
--   OS: [e.g., MacOS, Windows, Linux]
--   Node.js version: [e.g., 20.9.0]
--   `@neshca/cache-handler` version: [e.g., 0.4.3]
--   `next` version: [e.g., 14.0.2]
+- OS: [e.g., MacOS, Windows, Linux]
+- Node.js version: [e.g., 20.9.0]
+- `@neshca/cache-handler` version: [e.g., 0.4.3]
+- `next` version: [e.g., 14.0.2]
 
 **Dependencies and Versions**
 List any relevant dependencies and their versions.

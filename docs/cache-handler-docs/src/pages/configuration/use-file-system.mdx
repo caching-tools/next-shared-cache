@@ -10,32 +10,32 @@ The file system cache is enabled by default. You can disable it by setting `useF
 const { IncrementalCache } = require('@neshca/cache-handler');
 
 IncrementalCache.onCreation(async () => {
-    const cacheStore = new Map();
+  const cacheStore = new Map();
 
-    const cache = {
-        async get(key) {
-            return cacheStore.get(key);
-        },
-        async set(key, value) {
-            cacheStore.set(key, value);
-        },
-    };
+  const cache = {
+    async get(key) {
+      return cacheStore.get(key);
+    },
+    async set(key, value) {
+      cacheStore.set(key, value);
+    },
+  };
 
-    return {
-        cache,
-        // Disable it only if you are using only the App router.
-        // In this case you will gain some performance boost.
-        // Check out the warning below.
-        useFileSystem: false,
-    };
+  return {
+    cache,
+    // Disable it only if you are using only the App router.
+    // In this case you will gain some performance boost.
+    // Check out the warning below.
+    useFileSystem: false,
+  };
 });
 
 module.exports = IncrementalCache;
 ```
 
 <Callout type="warning">
-    There is a [bug ↗](https://github.com/vercel/next.js/issues/58094) in the Next.js' Pages router when disabling the
-    file system cache. Do not disable it if you are using Pages.
+  There is a [bug ↗](https://github.com/vercel/next.js/issues/58094) in the Next.js' Pages router when disabling the
+  file system cache. Do not disable it if you are using Pages.
 </Callout>
 
 ## The usage of `local-lru` Handler instead of file system cache
@@ -66,19 +66,19 @@ const createRedisCache = require('@neshca/cache-handler/redis-stack').default;
 const createLruCache = require('@neshca/cache-handler/local-lru').default;
 
 IncrementalCache.onCreation(async (context) => {
-    const createRedisCache = await createRedisCache({
-        /* ... */
-    });
+  const createRedisCache = await createRedisCache({
+    /* ... */
+  });
 
-    const lruCache = createLruCache({
-        maxItemsNumber: 10000, // Limit to 10000 items
-        maxItemSizeBytes: 1024 * 1024 * 500, // Limit to 500 MB
-    });
+  const lruCache = createLruCache({
+    maxItemsNumber: 10000, // Limit to 10000 items
+    maxItemSizeBytes: 1024 * 1024 * 500, // Limit to 500 MB
+  });
 
-    return {
-        cache: [createRedisCache, lruCache], // Array of cache instances
-        useFileSystem: false, // Disable file system cache
-    };
+  return {
+    cache: [createRedisCache, lruCache], // Array of cache instances
+    useFileSystem: false, // Disable file system cache
+  };
 });
 ```
 
@@ -86,16 +86,16 @@ IncrementalCache.onCreation(async (context) => {
 
 1. **`maxItemsNumber` (number, optional):**
 
-    - Description: Specifies the maximum number of items to be stored in the cache.
-    - Usage: This can be set to any positive integer. If not provided, the default value is 1000.
+   - Description: Specifies the maximum number of items to be stored in the cache.
+   - Usage: This can be set to any positive integer. If not provided, the default value is 1000.
 
 2. **`maxItemSizeBytes` (number, optional):**
 
-    - Description: Defines the maximum size of an item in bytes.
-    - Usage: This can be set to any positive integer representing the maximum size in bytes. If not provided, the default value is 100 MB.
+   - Description: Defines the maximum size of an item in bytes.
+   - Usage: This can be set to any positive integer representing the maximum size in bytes. If not provided, the default value is 100 MB.
 
 ### Considerations
 
--   It's recommended to use this Handler as a fallback for Redis Handler, particularly when using only the App router.
--   Don't use this Handler if you are using shared file systems between application replicas.
--   Be cautious of a known bug in Next.js' Pages router when disabling the file system cache. Do not disable it if you are using Pages, as mentioned in the preceding section.
+- It's recommended to use this Handler as a fallback for Redis Handler, particularly when using only the App router.
+- Don't use this Handler if you are using shared file systems between application replicas.
+- Be cautious of a known bug in Next.js' Pages router when disabling the file system cache. Do not disable it if you are using Pages, as mentioned in the preceding section.

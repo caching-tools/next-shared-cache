@@ -14,14 +14,12 @@ const client = createClient({
     name: `cache-handler:${PREFIX}${process.env.PORT ?? process.pid}`,
 });
 
-client.on('error', (error) => {
-    console.error('Redis error:', error);
-});
+client.on('error', () => {});
 
 IncrementalCache.onCreation(async () => {
-    console.log('Connecting Redis client...');
+    console.info('Connecting Redis client...');
     await client.connect();
-    console.log('Redis client connected.');
+    console.info('Redis client connected.');
 
     const redisCache = createRedisCache({
         client,

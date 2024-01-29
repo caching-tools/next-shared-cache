@@ -10,18 +10,18 @@ Please note that this project is in its beta version and may undergo significant
 
 ## Features:
 
--   **Smart Analysis**: Evaluates Git status and Git diffstat to identify essential changes.
--   **Security**: Your code stays with you – no sharing with OpenAI.
--   **User Interaction**: Engages with you to refine its interpretations.
--   **OpenAI Power**: Uses the OpenAI API to create concise, descriptive commit messages.
--   **Customizable**: Offers customization options like model type, temperature, and commit message length.
+- **Smart Analysis**: Evaluates Git status and Git diffstat to identify essential changes.
+- **Security**: Your code stays with you – no sharing with OpenAI.
+- **User Interaction**: Engages with you to refine its interpretations.
+- **OpenAI Power**: Uses the OpenAI API to create concise, descriptive commit messages.
+- **Customizable**: Offers customization options like model type, temperature, and commit message length.
 
 ## Prerequisites:
 
--   Node.js `>=18.17.0`
--   Git `>=2`
--   An OpenAI API key. You can get one [here](https://platform.openai.com/account/api-keys)
--   `.env` file with `OPENAI_API_KEY` set to your OpenAI API key.
+- Node.js `>=18.17.0`
+- Git `>=2`
+- An OpenAI API key. You can get one [here](https://platform.openai.com/account/api-keys)
+- `.env` file with `OPENAI_API_KEY` set to your OpenAI API key.
 
 ## Installation:
 
@@ -52,9 +52,9 @@ npx diffscribe [--model=<model_name>] [--modelTemperature=<temperature_value>] [
 
 ### Options:
 
--   `--model`: The OpenAI model to use. Supported models are `gpt-4` and `gpt-3.5-turbo`. The default is `gpt-4`.
--   `--modelTemperature`: The temperature setting for the OpenAI model. The default is `0.05`. Use it to control the randomness of the generated commit message. It should be between `0` and `2`.
--   `--commitLength`: The maximum length of the generated commit message. It should be between 50 and 500 characters. The default is `50`. It is not an actual limit but rather a guideline to the model.
+- `--model`: The OpenAI model to use. Supported models are `gpt-4` and `gpt-3.5-turbo`. The default is `gpt-4`.
+- `--modelTemperature`: The temperature setting for the OpenAI model. The default is `0.05`. Use it to control the randomness of the generated commit message. It should be between `0` and `2`.
+- `--commitLength`: The maximum length of the generated commit message. It should be between 50 and 500 characters. The default is `50`. It is not an actual limit but rather a guideline to the model.
 
 ### Example:
 
@@ -70,15 +70,15 @@ Based on the information provided, the commit message could be: "Add diffscribe 
 
 What happened behind the scenes:
 
--   `diffscribe` will run `git status --renames` and `git diff --cached --stat` to get the branch name, list of changed files, and the number of changes in each file. It does not look inside the files.
--   This information is sent to OpenAI's API, along with the context and guidelines for the GPT model.
--   GPT will try to understand the changes and prompt the user to confirm its understanding.
--   GPT will generate a commit message if the user confirms the understanding.
+- `diffscribe` will run `git status --renames` and `git diff --cached --stat` to get the branch name, list of changed files, and the number of changes in each file. It does not look inside the files.
+- This information is sent to OpenAI's API, along with the context and guidelines for the GPT model.
+- GPT will try to understand the changes and prompt the user to confirm its understanding.
+- GPT will generate a commit message if the user confirms the understanding.
 
 ## Notes:
 
--   Ensure you have the `.env` file in the same directory from which you are running `diffscribe`.
--   If you encounter errors related to model selection, temperature, or commit length, please check the passed arguments for validity.
+- Ensure you have the `.env` file in the same directory from which you are running `diffscribe`.
+- If you encounter errors related to model selection, temperature, or commit length, please check the passed arguments for validity.
 
 ## Developing and contributing
 

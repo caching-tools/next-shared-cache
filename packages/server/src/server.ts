@@ -57,7 +57,7 @@ server.get('/clear-cache', async (_request, reply): Promise<void> => {
 server
     .listen({ port, host })
     .then((address) => {
-        logger.info(`next-cache-server listening on %s`, address);
+        logger.info('next-cache-server listening on %s', address);
     })
     .catch((err) => {
         logger.error(err);

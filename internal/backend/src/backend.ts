@@ -57,18 +57,21 @@ server.get('/count/:routerType/:preRendered:/:fallback/:page', async (request, r
     const result = { count, unixTimeMs: Date.now() };
 
     switch (page) {
-        case '404':
+        case '404': {
             await reply.code(404).header('Content-Type', 'application/json; charset=utf-8').send(result);
             break;
-        case '200':
+        }
+        case '200': {
             await reply.code(200).header('Content-Type', 'application/json; charset=utf-8').send(result);
             break;
-        case 'alternate-200-404':
+        }
+        case 'alternate-200-404': {
             await reply
                 .code(count % 2 === 0 ? 200 : 404)
                 .header('Content-Type', 'application/json; charset=utf-8')
                 .send(result);
             break;
+        }
     }
 });
 
@@ -91,7 +94,7 @@ server.get('/time', async (_request, reply): Promise<void> => {
 server
     .listen({ port, host })
     .then((address) => {
-        logger.info(`backend listening on %s`, address);
+        logger.info('backend listening on %s', address);
     })
     .catch((err) => {
         logger.error(err);

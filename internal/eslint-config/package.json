@@ -1,0 +1,17 @@
+{
+    "name": "@repo/eslint-config",
+    "version": "0.0.0",
+    "private": true,
+    "files": [
+        "next.js"
+    ],
+    "devDependencies": {
+        "@typescript-eslint/eslint-plugin": "6.19.1",
+        "@typescript-eslint/parser": "6.19.1",
+        "@vercel/style-guide": "5.1.0",
+        "eslint-config-prettier": "9.1.0",
+        "eslint-config-turbo": "1.11.3",
+        "eslint-plugin-only-warn": "1.1.0",
+        "typescript": "5.3.3"
+    }
+}

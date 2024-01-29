@@ -1,12 +1,10 @@
-import type { GetStaticPropsContext, GetStaticPropsResult } from 'next';
+import type { GetStaticProps, GetStaticPropsContext, GetStaticPropsResult } from 'next';
 
 import type { CountBackendApiResponseJson, PageProps } from './types';
 
 const revalidate = 5;
 
-export function createPagesGetStaticProps(
-    path: string,
-): ({ params }: GetStaticPropsContext) => Promise<GetStaticPropsResult<PageProps>> {
+export function createPagesGetStaticProps(path: string): GetStaticProps<PageProps> {
     return async function getStaticProps({ params }: GetStaticPropsContext): Promise<GetStaticPropsResult<PageProps>> {
         if (!params) {
             throw new Error('no params');
@@ -29,7 +27,7 @@ export function createPagesGetStaticProps(
         }
 
         const parsedResult = (await result.json()) as CountBackendApiResponseJson;
-        //
+
         return {
             props: {
                 count: parsedResult.count,

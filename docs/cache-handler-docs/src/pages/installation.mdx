@@ -6,9 +6,9 @@ This section guides you through the initial setup and basic usage of `@neshca/ca
 
 ### Prerequisites
 
--   **Node.js:** Version 18.17 or newer.
--   **Next.js:** Version 13.5.1 or newer.
--   **Redis (optional):** Version 4.6.0 or newer.
+- **Node.js:** Version 18.17 or newer.
+- **Next.js:** Version 13.5.1 or newer.
+- **Redis (optional):** Version 4.6.0 or newer.
 
 ### Quick Start Installation
 
@@ -29,16 +29,16 @@ pnpm create next-app --example cache-handler-redis cache-handler-redis-app
 1. **Install `@neshca/cache-handler`**:  
    Execute this command in your Next.js project root directory:
 
-    ```sh npm2yarn copy
-    npm install -D @neshca/cache-handler
-    ```
+   ```sh npm2yarn copy
+   npm install -D @neshca/cache-handler
+   ```
 
 2. **Optional Redis Installation**:  
    Install Redis if you plan to use distributed caching across multiple server instances:
 
-    ```sh npm2yarn copy
-    npm install -D redis
-    ```
+   ```sh npm2yarn copy
+   npm install -D redis
+   ```
 
 ### Basic Custom Configuration
 
@@ -48,77 +48,77 @@ pnpm create next-app --example cache-handler-redis cache-handler-redis-app
 2. **Configure the Cache Handler**:  
    Below is a basic setup example:
 
-    ```js filename="cache-handler.js" copy
-    const { IncrementalCache } = require('@neshca/cache-handler');
+   ```js filename="cache-handler.js" copy
+   const { IncrementalCache } = require('@neshca/cache-handler');
 
-    IncrementalCache.onCreation(async () => {
-        // Don't use Map in production. This is just an example.
-        const cacheStore = new Map();
+   IncrementalCache.onCreation(async () => {
+     // Don't use Map in production. This is just an example.
+     const cacheStore = new Map();
 
-        const cache = {
-            async get(key) {
-                return cacheStore.get(key);
-            },
-            async set(key, value) {
-                cacheStore.set(key, value);
-            },
-        };
+     const cache = {
+       async get(key) {
+         return cacheStore.get(key);
+       },
+       async set(key, value) {
+         cacheStore.set(key, value);
+       },
+     };
 
-        return {
-            cache,
-            useFileSystem: true,
-        };
-    });
+     return {
+       cache,
+       useFileSystem: true,
+     };
+   });
 
-    module.exports = IncrementalCache;
-    ```
+   module.exports = IncrementalCache;
+   ```
 
-    EcmaScript modules can be used by adding the `.mjs` extension to the file and using an `import` statement instead of a `require` call:
+   EcmaScript modules can be used by adding the `.mjs` extension to the file and using an `import` statement instead of a `require` call:
 
-    ```js filename="cache-handler.mjs" copy
-    import { IncrementalCache } from '@neshca/cache-handler';
+   ```js filename="cache-handler.mjs" copy
+   import { IncrementalCache } from '@neshca/cache-handler';
 
-    IncrementalCache.onCreation(async () => {
-        const cacheStore = new Map();
+   IncrementalCache.onCreation(async () => {
+     const cacheStore = new Map();
 
-        const cache = {
-            async get(key) {
-                return cacheStore.get(key);
-            },
-            async set(key, value) {
-                cacheStore.set(key, value);
-            },
-        };
+     const cache = {
+       async get(key) {
+         return cacheStore.get(key);
+       },
+       async set(key, value) {
+         cacheStore.set(key, value);
+       },
+     };
 
-        return {
-            cache,
-            useFileSystem: true,
-        };
-    });
+     return {
+       cache,
+       useFileSystem: true,
+     };
+   });
 
-    export default IncrementalCache;
-    ```
+   export default IncrementalCache;
+   ```
 
 3. **Integrate with Next.js**:  
    Update your `next.config.js` to utilize the cache handler, ensuring it's only active in production:
 
-    ```js filename="next.config.js" copy
-    const nextConfig = {
-        // './cache-handler.mjs' in case you're using EcmaScript modules.
-        cacheHandler: process.env.NODE_ENV === 'production' ? require.resolve('./cache-handler.js') : undefined,
-        // Use `experimental` option instead of the `cacheHandler` property when using Next.js versions from 13.5.1 to 14.0.4
-        /* experimental: {
-            incrementalCacheHandlerPath:
-                process.env.NODE_ENV === 'production' ? require.resolve('./cache-handler.js') : undefined,
-        }, */
-    };
+   ```js filename="next.config.js" copy
+   const nextConfig = {
+     // './cache-handler.mjs' in case you're using EcmaScript modules.
+     cacheHandler: process.env.NODE_ENV === 'production' ? require.resolve('./cache-handler.js') : undefined,
+     // Use `experimental` option instead of the `cacheHandler` property when using Next.js versions from 13.5.1 to 14.0.4
+     /* experimental: {
+           incrementalCacheHandlerPath:
+               process.env.NODE_ENV === 'production' ? require.resolve('./cache-handler.js') : undefined,
+       }, */
+   };
 
-    module.exports = nextConfig;
-    ```
+   module.exports = nextConfig;
+   ```
 
 <Callout type="info">
-    Do not import <code>@neshca/cache-handler</code> to your components or pages. It is only meant to be used in{' '}
-    <code>cache-handler.js</code> files.
+  Do not import <code>@neshca/cache-handler</code> to your components or pages. It is only meant to be used in{' '}
+  <code>cache-handler.js</code> files.
 </Callout>
 
 ### Running Your Application
@@ -135,7 +135,7 @@ pnpm create next-app --example cache-handler-redis cache-handler-redis-app
 
 With the setup complete, explore `@neshca/cache-handler`'s advanced features:
 
--   Check out the [Redis Integration Example](/redis-stack);
--   Learn [how to use the API](/configuration/on-creation) and craft your own cache handler configuration;
--   Learn [how to use TTL](/configuration/ttl) for cache eviction.
--   See how to [debug and troubleshoot](/troubleshooting) your cache handler configuration.
+- Check out the [Redis Integration Example](/redis-stack);
+- Learn [how to use the API](/configuration/on-creation) and craft your own cache handler configuration;
+- Learn [how to use TTL](/configuration/ttl) for cache eviction.
+- See how to [debug and troubleshoot](/troubleshooting) your cache handler configuration.

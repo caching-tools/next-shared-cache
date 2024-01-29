@@ -3,8 +3,8 @@ import { Callout } from 'nextra/components';
 ## Redis Stack example
 
 <Callout type="info">
-    In this example, we assume that in your deployment, you have `REDIS_URL` environment variable set to the URL of your
-    Redis instance. You can use any other way to set the URL.
+  In this example, we assume that in your deployment, you have `REDIS_URL` environment variable set to the URL of your
+  Redis instance. You can use any other way to set the URL.
 </Callout>
 
 Create a file called `cache-handler.js` next to you `next.config.js` with the following contents:
@@ -17,87 +17,87 @@ const { createClient } = require('redis');
 const REVALIDATED_TAGS_KEY = 'sharedRevalidatedTags';
 
 const client = createClient({
-    url: process.env.REDIS_URL ?? 'redis://localhost:6379',
+  url: process.env.REDIS_URL ?? 'redis://localhost:6379',
 });
 
 client.on('error', (error) => {
-    console.error('Redis error:', error);
+  console.error('Redis error:', error);
 });
 
 IncrementalCache.onCreation(async () => {
-    await client.connect();
+  await client.connect();
 
-    // read more about TTL limitations https://caching-tools.github.io/next-shared-cache/configuration/ttl
-    const useTtl = false;
+  // read more about TTL limitations https://caching-tools.github.io/next-shared-cache/configuration/ttl
+  const useTtl = false;
 
-    function assertClientIsReady() {
-        if (!client.isReady) {
-            throw new Error('Redis client is not ready');
-        }
+  function assertClientIsReady() {
+    if (!client.isReady) {
+      throw new Error('Redis client is not ready');
     }
+  }
 
-    assertClientIsReady();
+  assertClientIsReady();
 
-    await client.json.set(
-        REVALIDATED_TAGS_KEY,
-        '.',
-        {},
-        {
-            NX: true,
-        },
-    );
+  await client.json.set(
+    REVALIDATED_TAGS_KEY,
+    '.',
+    {},
+    {
+      NX: true,
+    },
+  );
 
-    const localCache = createLruCache({
-        useTtl,
-    });
+  const localCache = createLruCache({
+    useTtl,
+  });
 
-    const redisCache = {
-        name: 'custom-redis-stack',
-        async get(key) {
-            assertClientIsReady();
+  const redisCache = {
+    name: 'custom-redis-stack',
+    async get(key) {
+      assertClientIsReady();
 
-            const cacheValue = (await client.json.get(key)) ?? null;
+      const cacheValue = (await client.json.get(key)) ?? null;
 
-            if (cacheValue?.value?.kind === 'ROUTE') {
-                cacheValue.value.body = Buffer.from(cacheValue.value.body, 'base64');
-            }
+      if (cacheValue?.value?.kind === 'ROUTE') {
+        cacheValue.value.body = Buffer.from(cacheValue.value.body, 'base64');
+      }
 
-            return cacheValue;
-        },
-        async set(key, cacheValue, ttl) {
-            assertClientIsReady();
+      return cacheValue;
+    },
+    async set(key, cacheValue, ttl) {
+      assertClientIsReady();
 
-            let preparedCacheValue = cacheValue;
+      let preparedCacheValue = cacheValue;
 
-            if (cacheValue.value?.kind === 'ROUTE') {
-                preparedCacheValue = structuredClone(cacheValue);
-                preparedCacheValue.value.body = cacheValue.value.body.toString('base64');
-            }
+      if (cacheValue.value?.kind === 'ROUTE') {
+        preparedCacheValue = structuredClone(cacheValue);
+        preparedCacheValue.value.body = cacheValue.value.body.toString('base64');
+      }
 
-            await client.json.set(key, '.', preparedCacheValue);
+      await client.json.set(key, '.', preparedCacheValue);
 
-            if (useTtl && typeof ttl === 'number') {
-                await client.expire(key, ttl);
-            }
-        },
-        async getRevalidatedTags() {
-            assertClientIsReady();
+      if (useTtl && typeof ttl === 'number') {
+        await client.expire(key, ttl);
+      }
+    },
+    async getRevalidatedTags() {
+      assertClientIsReady();
 
-            const sharedRevalidatedTags = (await client.json.get(REVALIDATED_TAGS_KEY)) ?? undefined;
+      const sharedRevalidatedTags = (await client.json.get(REVALIDATED_TAGS_KEY)) ?? undefined;
 
-            return sharedRevalidatedTags;
-        },
-        async revalidateTag(tag, revalidatedAt) {
-            assertClientIsReady();
+      return sharedRevalidatedTags;
+    },
+    async revalidateTag(tag, revalidatedAt) {
+      assertClientIsReady();
 
-            await client.json.set(REVALIDATED_TAGS_KEY, `.${tag}`, revalidatedAt);
-        },
-    };
+      await client.json.set(REVALIDATED_TAGS_KEY, `.${tag}`, revalidatedAt);
+    },
+  };
 
-    return {
-        cache: [redisCache, localCache],
-        useFileSystem: !useTtl,
-    };
+  return {
+    cache: [redisCache, localCache],
+    useFileSystem: !useTtl,
+  };
 });
 
 module.exports = IncrementalCache;

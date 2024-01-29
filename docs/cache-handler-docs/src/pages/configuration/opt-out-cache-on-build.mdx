@@ -6,28 +6,28 @@ There are scenarios, especially during deployment, where your Redis server may n
 
 1. **Modify the `cache-handler.js` File**: Adjust the `onCreation` method in your `cache-handler.js` file to conditionally connect to the Redis cache. The modified code should look like this:
 
-    ```js filename="cache-handler.js" copy
-    IncrementalCache.onCreation(async () => {
-        let redisCache;
+   ```js filename="cache-handler.js" copy
+   IncrementalCache.onCreation(async () => {
+     let redisCache;
 
-        if (process.env.REDIS_AVAILABLE) {
-            await client.connect();
+     if (process.env.REDIS_AVAILABLE) {
+       await client.connect();
 
-            redisCache = await createRedisCache({
-                client,
-            });
-        }
+       redisCache = await createRedisCache({
+         client,
+       });
+     }
 
-        // The cache array can contain undefined values. The will be filtered out by IncrementalCache.
-        const cache = [redisCache];
+     // The cache array can contain undefined values. The will be filtered out by IncrementalCache.
+     const cache = [redisCache];
 
-        return {
-            cache,
-            // Always use the file system cache when building the app without any cache.
-            useFileSystem: !cache.some(Boolean),
-        };
-    });
-    ```
+     return {
+       cache,
+       // Always use the file system cache when building the app without any cache.
+       useFileSystem: !cache.some(Boolean),
+     };
+   });
+   ```
 
 2. **Environment Variable Check**: The `process.env.REDIS_AVAILABLE` environment variable is used to determine if the server has already started. This ensures that the Redis client attempts a connection only when the server is up and running.
 
@@ -35,4 +35,4 @@ There are scenarios, especially during deployment, where your Redis server may n
 
 ### Notes:
 
--   This setup is particularly useful in continuous integration and deployment pipelines where the availability of external services like Redis might not be guaranteed at build time.
+- This setup is particularly useful in continuous integration and deployment pipelines where the availability of external services like Redis might not be guaranteed at build time.

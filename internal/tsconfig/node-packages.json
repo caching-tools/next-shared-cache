@@ -1,7 +1,0 @@
-{
-    "$schema": "https://json.schemastore.org/tsconfig",
-    "display": "Node packages",
-    "extends": "./base.json",
-    "include": ["src", "scripts"],
-    "exclude": ["node_modules"]
-}

@@ -1,8 +1,37 @@
 {
-    "eslint.workingDirectories": [
-        { "pattern": "apps/*/" },
-        { "pattern": "packages/*/" },
-        { "pattern": "internal/*/" },
-        { "pattern": "docs/*/" }
-    ]
+    "eslint.workingDirectories": [{ "pattern": "apps/*/" }, { "pattern": "docs/*/" }],
+    "editor.defaultFormatter": "biomejs.biome",
+    "[json]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[md]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[mdx]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.wordWrap": "on"
+    },
+    "[yml]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "typescript.surveys.enabled": false,
+    "explorer.fileNesting.enabled": true,
+    "explorer.fileNesting.patterns": {
+        "*.ts": "$(capture).test.ts, $(capture).test.tsx",
+        "*.tsx": "$(capture).test.ts, $(capture).test.tsx"
+    },
+    "cSpell.words": ["nextjs", "prerendered", "codestyle"],
+    "grammarly.selectors": [
+        {
+            "language": "markdown",
+            "scheme": "file"
+        }
+    ],
+    "typescript.tsdk": "node_modules/typescript/lib",
+    "[markdown]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[typescriptreact]": {
+        "editor.defaultFormatter": "biomejs.biome"
+    }
 }

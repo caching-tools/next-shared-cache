@@ -21,8 +21,8 @@ PORT=8080 HOST=localhost npx next-cache-server
 ### Configure Next.js to use the server:
 
 <Callout type="info">
-    In this example, we assume that in your deployment, you have `REMOTE_CACHE_SERVER_BASE_URL` environment variable set
-    to the URL of your `@neshca/server`. You can use any other way to set the URL.
+  In this example, we assume that in your deployment, you have `REMOTE_CACHE_SERVER_BASE_URL` environment variable set
+  to the URL of your `@neshca/server`. You can use any other way to set the URL.
 </Callout>
 
 Create a file called `cache-handler.js` next to you `next.config.js` with the following contents:
@@ -34,16 +34,16 @@ const { createHandler } = require('@neshca/cache-handler/server');
 const baseUrl = process.env.REMOTE_CACHE_SERVER_BASE_URL ?? 'http://localhost:8080';
 
 IncrementalCache.onCreation(() => {
-    const httpCache = createServerCache({
-        baseUrl,
-    });
+  const httpCache = createServerCache({
+    baseUrl,
+  });
 
-    const localCache = createLruCache();
+  const localCache = createLruCache();
 
-    return {
-        cache: [httpCache, localCache],
-        useFileSystem: true,
-    };
+  return {
+    cache: [httpCache, localCache],
+    useFileSystem: true,
+  };
 });
 
 module.exports = IncrementalCache;

@@ -1,4 +1,3 @@
-/* eslint-disable import/no-default-export -- use default here */
 import { replaceJsonWithBase64, reviveFromBase64Representation } from '@neshca/json-replacer-reviver';
 import type { RedisClientType } from 'redis';
 

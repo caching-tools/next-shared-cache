@@ -6,7 +6,9 @@ import { createConfiguredCache } from '../create-configured-cache';
 
 function calculateObjectSize({ value }: CacheHandlerValue): number {
     // Return default size if value is falsy
-    if (!value) return 25;
+    if (!value) {
+        return 25;
+    }
 
     switch (value.kind) {
         case 'REDIRECT': {

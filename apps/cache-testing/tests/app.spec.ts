@@ -1,5 +1,5 @@
 import { scheduler } from 'node:timers/promises';
-import { test, expect } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 
 const paths = [
     '/app/with-params/dynamic-true/200',
