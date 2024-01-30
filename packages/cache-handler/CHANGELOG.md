@@ -1,5 +1,13 @@
 # @neshca/cache-handler
 
+## 0.6.10
+
+### Patch Changes
+
+- bb61a52: Applied new code style.
+- Updated dependencies [bb61a52]
+  - @neshca/json-replacer-reviver@1.1.1
+
 ## 0.6.9
 
 ### Patch Changes

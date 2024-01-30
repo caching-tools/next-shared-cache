@@ -1,5 +1,11 @@
 # @neshca/json-replacer-reviver
 
+## 1.1.1
+
+### Patch Changes
+
+- bb61a52: Applied new code style.
+
 ## 1.1.0
 
 ### Minor Changes
