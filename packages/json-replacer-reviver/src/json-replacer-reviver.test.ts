@@ -2,11 +2,11 @@ import assert from 'node:assert';
 import { describe, it } from 'node:test';
 
 import {
+    isBufferBase64Representation,
     isBufferJsonRepresentation,
     replaceJsonWithBase64,
-    reviveFromJsonRepresentation,
-    isBufferBase64Representation,
     reviveFromBase64Representation,
+    reviveFromJsonRepresentation,
 } from './json-replacer-reviver';
 
 const TEST_STRING = 'Hello';

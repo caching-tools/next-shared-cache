@@ -21,7 +21,7 @@ export default async function handler(request: NextApiRequest, result: NextApiRe
             revalidated: true,
             now: formatTime(Date.now(), 3),
         });
-    } catch (err) {
+    } catch (_error) {
         result.status(500).send('Error revalidating');
     }
 }

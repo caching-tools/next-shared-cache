@@ -33,8 +33,8 @@ jobs:
         run: cd apps/cache-testing && npx playwright install --with-deps
       - name: Build
         run: npm run build
-      - name: Lint
-        run: npm run lint
+      - name: Check code style
+        run: npm run codestyle:check
       - name: Run unit tests
         run: npm test
       - name: Run e2e tests

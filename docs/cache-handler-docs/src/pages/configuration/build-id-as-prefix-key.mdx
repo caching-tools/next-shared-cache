@@ -8,10 +8,10 @@ If you are rebuilding for each stage of your environment, you will need to gener
 
 ```js filename="next.config.js" copy
 const nextConfig = {
-    generateBuildId: async () => {
-        // This could be anything, using the latest git hash
-        return process.env.GIT_HASH;
-    },
+  generateBuildId: async () => {
+    // This could be anything, using the latest git hash
+    return process.env.GIT_HASH;
+  },
 };
 ```
 
@@ -21,26 +21,26 @@ To use `buildId` for prefixing or namespacing the cache keys, use either of the 
 
 ```js filename="next.config.js" copy
 const nextConfig = {
-    generateBuildId: async () => {
-        // This could be anything, using the latest git hash
-        return process.env.GIT_HASH;
-    },
+  generateBuildId: async () => {
+    // This could be anything, using the latest git hash
+    return process.env.GIT_HASH;
+  },
 };
 ```
 
 ```js filename="cache-handler.js" copy
 IncrementalCache.onCreation(async () => {
-    await client.connect();
+  await client.connect();
 
-    const redisCache = await createRedisCache({
-        client,
-        keyPrefix: process.env.GIT_HASH,
-    });
+  const redisCache = await createRedisCache({
+    client,
+    keyPrefix: process.env.GIT_HASH,
+  });
 
-    return {
-        cache: redisCache,
-        useFileSystem: true,
-    };
+  return {
+    cache: redisCache,
+    useFileSystem: true,
+  };
 });
 ```
 
@@ -49,12 +49,12 @@ IncrementalCache.onCreation(async () => {
 #### Using without `generateBuildId`
 
 <Callout type="info">
-    In this case, you must build your app once and use the same build to deploy to all environments.
+  In this case, you must build your app once and use the same build to deploy to all environments.
 </Callout>
 
 ```js filename="next.config.js" copy
 const nextConfig = {
-    output: 'standalone',
+  output: 'standalone',
 };
 ```
 
@@ -64,26 +64,26 @@ const createRedisCache = require('@neshca/cache-handler/redis-stack').default;
 const createLruCache = require('@neshca/cache-handler/local-lru').default;
 
 IncrementalCache.onCreation(async ({ buildId }) => {
-    let redisCache;
+  let redisCache;
 
-    if (buildId) {
-        await client.connect();
+  if (buildId) {
+    await client.connect();
 
-        redisCache = await createRedisCache({
-            client,
-            keyPrefix: `${buildId}:`,
-        });
-    }
+    redisCache = await createRedisCache({
+      client,
+      keyPrefix: `${buildId}:`,
+    });
+  }
 
-    const localCache = createLruCache();
+  const localCache = createLruCache();
 
-    return {
-        cache: [redisCache, localCache],
-        useFileSystem: true,
-    };
+  return {
+    cache: [redisCache, localCache],
+    useFileSystem: true,
+  };
 });
 ```
 
 **Limitations:**
 
--   Some cache values may be lost during the build process because the `buildId` is defined after some cache values have already been set. However, `buildId` will be defined from the beginning when you start your app.
+- Some cache values may be lost during the build process because the `buildId` is defined after some cache values have already been set. However, `buildId` will be defined from the beginning when you start your app.

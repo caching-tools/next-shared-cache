@@ -42,7 +42,7 @@ Then, create `.act.json` file near the `.actrc` file with the following contents
 
 ```json
 {
-    "act": true
+  "act": true
 }
 ```
 
@@ -54,22 +54,8 @@ act pull_request
 
 ## Contribution Guidelines
 
-To maintain code consistency and quality, follow our coding and style guidelines. Run required checks before committing:
-
-### 1. Code Formatting
-
-Maintaining a uniform code style throughout the project is essential. Use the command below to format your code according to our standards automatically:
+To ensure consistent and high-quality code, adhere to our coding and style guidelines. Run the required checks and fix errors and warnings before committing your code:
 
 ```bash
-npm run format:fix
+npm run codestyle:fix
 ```
-
-### 2. Lint Checks
-
-Linting identifies common errors and enforces our coding standards. Ensure your changes meet our lint checks with the following:
-
-```bash
-npm run lint
-```
-
-Your adherence to these guidelines assists in maintaining a high-quality and consistent codebase. I appreciate your contributions!

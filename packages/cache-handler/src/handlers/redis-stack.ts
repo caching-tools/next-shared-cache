@@ -1,8 +1,6 @@
-/* eslint-disable import/no-default-export -- use default here */
-
 import type { RedisClientType } from 'redis';
 
-import type { RevalidatedTags, CacheHandlerValue, Cache } from '../cache-handler';
+import type { Cache, CacheHandlerValue, RevalidatedTags } from '../cache-handler';
 import type { RedisJSON, UseTtlOptions } from '../common-types';
 import { calculateEvictionDelay } from '../helpers/calculate-eviction-delay';
 import { getTimeoutRedisCommandOptions } from '../helpers/get-timeout-redis-command-options';

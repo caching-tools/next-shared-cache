@@ -19,16 +19,21 @@
             "dependsOn": ["^build:docs"],
             "outputs": [".next/**", "!.next/cache/**", "out/**"]
         },
-        "lint": {
+        "eslint:check": {
+            "cache": false,
+            "dependsOn": ["^eslint:check"]
+        },
+        "eslint:fix": {
+            "cache": false,
+            "dependsOn": ["^eslint:fix"]
+        },
+        "test": {
             "cache": false
         },
-        "lint:fix": {
-            "cache": false
-        },
-        "test": {},
         "e2e": {
             "inputs": [".next/**", "!.next/cache/**", "tests/**"],
-            "outputs": ["test-results/**", "playwright-report/**"]
+            "outputs": ["test-results/**", "playwright-report/**"],
+            "cache": false
         },
         "clean": {
             "cache": false

@@ -1,10 +1,8 @@
-import type { GetServerSidePropsContext, GetServerSidePropsResult } from 'next';
+import type { GetServerSideProps, GetServerSidePropsResult } from 'next';
 
 import type { CountBackendApiResponseJson, PageProps } from './types';
 
-export function createPagesGetServerSideProps(
-    path: string,
-): ({ params }: GetServerSidePropsContext) => Promise<GetServerSidePropsResult<PageProps>> {
+export function createPagesGetServerSideProps(path: string): GetServerSideProps<PageProps> {
     return async function getServerSideProps(): Promise<GetServerSidePropsResult<PageProps>> {
         const pathAndTag = `/count/${path}`;
 

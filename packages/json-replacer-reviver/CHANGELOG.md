@@ -4,22 +4,22 @@
 
 ### Minor Changes
 
--   954a21e: Use `exports` instead of `main` and `module` in `package.json`
+- 954a21e: Use `exports` instead of `main` and `module` in `package.json`
 
 ## 1.0.3
 
 ### Patch Changes
 
--   a9e4604: Switched testing framework from Jest to native Node.js
+- a9e4604: Switched testing framework from Jest to native Node.js
 
 ## 1.0.2
 
 ### Patch Changes
 
--   be8d389: Improve documentation
+- be8d389: Improve documentation
 
 ## 1.0.1
 
 ### Patch Changes
 
--   32bc1d6: Add changeset configuration for versioning
+- 32bc1d6: Add changeset configuration for versioning

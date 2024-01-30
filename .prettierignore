@@ -10,7 +10,7 @@ coverage
 # next.js
 .next/
 out/
-build
+build/
 
 # turbo
 .turbo
@@ -18,8 +18,14 @@ build
 # vercel
 .vercel
 
-# monorepo
-CHANGELOG.md
-
 #packages
 dist
+
+# biome fromatted files
+*.js
+*.ts
+*.tsx
+*.jsx
+*.cjs
+*.mjs
+*.mts

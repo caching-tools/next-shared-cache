@@ -28,9 +28,9 @@ export function calculateEvictionDelay(
 
     if (
         typeof computedEvictionDelay !== 'number' ||
-        isNaN(computedEvictionDelay) ||
+        Number.isNaN(computedEvictionDelay) ||
         computedEvictionDelay <= 0 ||
-        !isFinite(computedEvictionDelay)
+        !Number.isFinite(computedEvictionDelay)
     ) {
         throw new Error(
             `Invalid eviction delay "${computedEvictionDelay}" returned from useTtl function. Expected a positive integer. Received: ${computedEvictionDelay}`,

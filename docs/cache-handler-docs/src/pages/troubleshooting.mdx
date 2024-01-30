@@ -9,14 +9,14 @@ Add `console.log` statements to your cache handler:
 ```js filename="cache-handler.js"
 /* ... */
 const cache = {
-    async get(key) {
-        console.log('cache.get', key);
-        return cacheStore.get(key);
-    },
-    async set(key, value) {
-        console.log('cache.set', key, value);
-        cacheStore.set(key, value);
-    },
+  async get(key) {
+    console.log('cache.get', key);
+    return cacheStore.get(key);
+  },
+  async set(key, value) {
+    console.log('cache.set', key, value);
+    cacheStore.set(key, value);
+  },
 };
 /* ... */
 ```
@@ -69,10 +69,10 @@ If the cache handler is not active:
 1. Verify that the cache handler has been correctly installed, imported, and configured. Refer to the [Installation and the First Steps](/installation) section for guidance.
 2. Ensure that the `NEXT_PRIVATE_DEBUG_CACHE` environment variable is set. To verify, add the following to your `next.config.js` file:
 
-    ```js filename="next.config.js" copy
-    console.log('NEXT_PRIVATE_DEBUG_CACHE', process.env.NEXT_PRIVATE_DEBUG_CACHE);
-    ```
+   ```js filename="next.config.js" copy
+   console.log('NEXT_PRIVATE_DEBUG_CACHE', process.env.NEXT_PRIVATE_DEBUG_CACHE);
+   ```
 
-    When you build or run your application, `NEXT_PRIVATE_DEBUG_CACHE 1` should appear in your console.
+   When you build or run your application, `NEXT_PRIVATE_DEBUG_CACHE 1` should appear in your console.
 
 3. If you're using a third-party library to retrieve data or database records (e.g., `axios`, `node-fetch`, `pg`) within the App directory, ensure you're using the [`unstable_cache`](https://nextjs.org/docs/app/api-reference/functions/unstable_cache). By default, Next.js will cache only native fetch calls.

@@ -1,15 +1,17 @@
 #!/usr/bin/env node
-/* eslint-disable import/no-named-as-default-member -- pm2 does't have named exports */
 
-import process from 'node:process';
 import { scheduler } from 'node:timers/promises';
 import Fastify from 'fastify';
-import pm2 from 'pm2';
+import * as pm2Default from 'pm2';
+
+const { default: pm2 } = pm2Default as unknown as { default: typeof import('pm2') };
 
 const args = process.argv.slice(2).reduce<Record<string, string>>((acc, arg) => {
     const [key, value] = arg.split('=');
 
-    if (!key || !value) throw new Error(`Invalid argument: ${arg}`);
+    if (!key || !value) {
+        throw new Error(`Invalid argument: ${arg}`);
+    }
 
     acc[key] = value;
     return acc;
@@ -82,5 +84,5 @@ app.listen({ port: 9000, host: 'localhost' }, (error, address) => {
         console.error(error);
         process.exit(1);
     }
-    console.log(`orchestration listening on ${address}`);
+    console.info(`orchestration listening on ${address}`);
 });

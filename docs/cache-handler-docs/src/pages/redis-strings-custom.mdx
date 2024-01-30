@@ -9,8 +9,8 @@ npm i -D @neshca/json-replacer-reviver
 ```
 
 <Callout type="info">
-    In this example, we assume that in your deployment, you have `REDIS_URL` environment variable set to the URL of your
-    Redis instance. You can use any other way to set the URL.
+  In this example, we assume that in your deployment, you have `REDIS_URL` environment variable set to the URL of your
+  Redis instance. You can use any other way to set the URL.
 </Callout>
 
 Create a file called `cache-handler.js` next to your `next.config.js` with the following contents:
@@ -24,77 +24,77 @@ const { createClient } = require('redis');
 const REVALIDATED_TAGS_KEY = 'sharedRevalidatedTags';
 
 const client = createClient({
-    url: process.env.REDIS_URL ?? 'redis://localhost:6379',
+  url: process.env.REDIS_URL ?? 'redis://localhost:6379',
 });
 
 client.on('error', (error) => {
-    console.error('Redis error:', error);
+  console.error('Redis error:', error);
 });
 
 IncrementalCache.onCreation(async () => {
-    // read more about TTL limitations https://caching-tools.github.io/next-shared-cache/configuration/ttl
-    const useTtl = false;
+  // read more about TTL limitations https://caching-tools.github.io/next-shared-cache/configuration/ttl
+  const useTtl = false;
 
-    await client.connect();
+  await client.connect();
 
-    const localCache = createLruCache({
-        useTtl,
-    });
+  const localCache = createLruCache({
+    useTtl,
+  });
 
-    function assertClientIsReady() {
-        if (!client.isReady) {
-            throw new Error('Redis client is not ready');
-        }
+  function assertClientIsReady() {
+    if (!client.isReady) {
+      throw new Error('Redis client is not ready');
     }
-    const redisCache = {
-        name: 'custom-redis-strings',
-        async get(key) {
-            assertClientIsReady();
+  }
+  const redisCache = {
+    name: 'custom-redis-strings',
+    async get(key) {
+      assertClientIsReady();
 
-            const result = await client.get(key);
+      const result = await client.get(key);
 
-            if (!result) {
-                return null;
-            }
+      if (!result) {
+        return null;
+      }
 
-            return JSON.parse(result, reviveFromBase64Representation);
-        },
-        async set(key, value, ttl) {
-            assertClientIsReady();
+      return JSON.parse(result, reviveFromBase64Representation);
+    },
+    async set(key, value, ttl) {
+      assertClientIsReady();
 
-            await client.set(
-                key,
-                JSON.stringify(value, replaceJsonWithBase64),
-                useTtl && typeof ttl === 'number' ? { EX: ttl } : undefined,
-            );
-        },
-        async getRevalidatedTags() {
-            assertClientIsReady();
+      await client.set(
+        key,
+        JSON.stringify(value, replaceJsonWithBase64),
+        useTtl && typeof ttl === 'number' ? { EX: ttl } : undefined,
+      );
+    },
+    async getRevalidatedTags() {
+      assertClientIsReady();
 
-            const sharedRevalidatedTags = await client.hGetAll(REVALIDATED_TAGS_KEY);
+      const sharedRevalidatedTags = await client.hGetAll(REVALIDATED_TAGS_KEY);
 
-            const entries = Object.entries(sharedRevalidatedTags);
+      const entries = Object.entries(sharedRevalidatedTags);
 
-            const revalidatedTags = entries.reduce((acc, [tag, revalidatedAt]) => {
-                acc[tag] = Number(revalidatedAt);
-                return acc;
-            }, {});
+      const revalidatedTags = entries.reduce((acc, [tag, revalidatedAt]) => {
+        acc[tag] = Number(revalidatedAt);
+        return acc;
+      }, {});
 
-            return revalidatedTags;
-        },
-        async revalidateTag(tag, revalidatedAt) {
-            assertClientIsReady();
+      return revalidatedTags;
+    },
+    async revalidateTag(tag, revalidatedAt) {
+      assertClientIsReady();
 
-            await client.hSet(REVALIDATED_TAGS_KEY, {
-                [tag]: revalidatedAt,
-            });
-        },
-    };
+      await client.hSet(REVALIDATED_TAGS_KEY, {
+        [tag]: revalidatedAt,
+      });
+    },
+  };
 
-    return {
-        cache: [redisCache, localCache],
-        useFileSystem: !useTtl,
-    };
+  return {
+    cache: [redisCache, localCache],
+    useFileSystem: !useTtl,
+  };
 });
 
 module.exports = IncrementalCache;

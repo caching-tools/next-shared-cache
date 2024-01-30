@@ -32,9 +32,9 @@ Next.js applications are often deployed in a self-hosted distributed environment
 
 `@neshca/cache-handler` elegantly addresses these challenges by offering:
 
--   A straightforward API complemented by meticulously crafted Handlers.
--   Comprehensive customization options.
--   Simplified on-demand revalidation, akin to managing a single application instance.
+- A straightforward API complemented by meticulously crafted Handlers.
+- Comprehensive customization options.
+- Simplified on-demand revalidation, akin to managing a single application instance.
 
 ## Kickstarting Your Custom Cache Solution
 
@@ -44,17 +44,17 @@ Begin enhancing your application's caching system with our [Installation and the
 
 Discover the versatility of `@neshca/cache-handler` in the examples section, where real-world scenarios are illustrated.
 
--   [Official Next.js template ↗](https://github.com/vercel/next.js/tree/canary/examples/cache-handler-redis)
--   [Redis Stack ↗](https://caching-tools.github.io/next-shared-cache/redis-stack)
--   [Redis String ↗](https://caching-tools.github.io/next-shared-cache/redis-strings)
--   [HTTP server ↗](https://caching-tools.github.io/next-shared-cache/server)
--   [Custom Redis Stack ↗](https://caching-tools.github.io/next-shared-cache/redis-stack-custom)
--   [Custom Redis String ↗](https://caching-tools.github.io/next-shared-cache/redis-strings-custom)
+- [Official Next.js template ↗](https://github.com/vercel/next.js/tree/canary/examples/cache-handler-redis)
+- [Redis Stack ↗](https://caching-tools.github.io/next-shared-cache/redis-stack)
+- [Redis String ↗](https://caching-tools.github.io/next-shared-cache/redis-strings)
+- [HTTP server ↗](https://caching-tools.github.io/next-shared-cache/server)
+- [Custom Redis Stack ↗](https://caching-tools.github.io/next-shared-cache/redis-stack-custom)
+- [Custom Redis String ↗](https://caching-tools.github.io/next-shared-cache/redis-strings-custom)
 
 ## Requirements
 
--   Next.js 13.5.1 and newer;
--   Node.js 18.17.0 and newer.
+- Next.js 13.5.1 and newer;
+- Node.js 18.17.0 and newer.
 
 ## Documentation
 
@@ -66,12 +66,12 @@ Next.js stabilized the API, and we are almost there. Any **breaking changes** ma
 
 ### Roadmap
 
--   [x] Support for App routes;
--   [x] Support for Pages routes;
--   [x] Happy path tests;
--   [x] Examples;
--   [x] Documentation;
--   [ ] Full test coverage.
+- [x] Support for App routes;
+- [x] Support for Pages routes;
+- [x] Happy path tests;
+- [x] Examples;
+- [x] Documentation;
+- [ ] Full test coverage.
 
 ## Developing and contributing
 

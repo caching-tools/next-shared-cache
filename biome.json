@@ -1,0 +1,56 @@
+{
+    "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+    "organizeImports": {
+        "enabled": true
+    },
+    "linter": {
+        "enabled": true,
+        "rules": {
+            "recommended": true,
+            "suspicious": {
+                "noConsoleLog": "error",
+                "noApproximativeNumericConstant": "error",
+                "noMisrefactoredShorthandAssign": "error"
+            },
+            "correctness": {
+                "noUndeclaredVariables": "error",
+                "noUnusedVariables": "error"
+            },
+            "style": {
+                "noNamespace": "error",
+                "noNegationElse": "error",
+                "noParameterProperties": "error",
+                "noRestrictedGlobals": "error",
+                "noShoutyConstants": "error",
+                "useBlockStatements": "error",
+                "useCollapsedElseIf": "error",
+                "useShorthandArrayType": "error",
+                "useShorthandAssign": "error",
+                "useSingleCaseStatement": "error"
+            }
+        }
+    },
+    "formatter": {
+        "enabled": true,
+        "lineWidth": 120,
+        "indentStyle": "space",
+        "indentWidth": 4
+    },
+    "vcs": {
+        "clientKind": "git",
+        "useIgnoreFile": true,
+        "defaultBranch": "canary",
+        "enabled": true
+    },
+    "javascript": {
+        "formatter": {
+            "quoteStyle": "single"
+        },
+        "globals": ["JSX"]
+    },
+    "json": {
+        "formatter": {
+            "enabled": false
+        }
+    }
+}

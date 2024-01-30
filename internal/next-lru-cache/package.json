@@ -8,18 +8,15 @@
         "./*": "./src/cache-types/*.ts"
     },
     "scripts": {
-        "clean": "rimraf ./.turbo ./node_modules",
-        "lint": "eslint .",
-        "lint:fix": "eslint --fix ."
+        "clean": "rimraf ./.turbo ./node_modules"
     },
     "dependencies": {
         "lru-cache": "10.2.0"
     },
     "devDependencies": {
         "@neshca/next-common": "*",
-        "@neshca/tsconfig": "*",
+        "@repo/typescript-config": "*",
         "@types/node": "20.11.7",
-        "eslint-config-neshca": "*",
         "rimraf": "5.0.5",
         "typescript": "5.3.3"
     }

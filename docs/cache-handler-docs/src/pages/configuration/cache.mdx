@@ -10,31 +10,31 @@ The `onCreation` hook is used to configure a custom cache handler. The example b
 const { IncrementalCache } = require('@neshca/cache-handler');
 
 IncrementalCache.onCreation(async () => {
-    const cacheStore = new Map();
+  const cacheStore = new Map();
 
-    const cache = {
-        name: 'custom-map-cache',
-        async get(key) {
-            return cacheStore.get(key);
-        },
-        async set(key, value) {
-            cacheStore.set(key, value);
-        },
-    };
+  const cache = {
+    name: 'custom-map-cache',
+    async get(key) {
+      return cacheStore.get(key);
+    },
+    async set(key, value) {
+      cacheStore.set(key, value);
+    },
+  };
 
-    return {
-        cache,
-        useFileSystem: true,
-    };
+  return {
+    cache,
+    useFileSystem: true,
+  };
 });
 
 module.exports = IncrementalCache;
 ```
 
 <Callout type="info">
-    Don't suppress errors when implementing the `get`, `set`, `getRevalidatedTags`, and `revalidateTag` methods.
-    Instead, throw errors and let `IncrementalCache` class handle them. Refer to the [debugging cache
-    article](/troubleshooting#method-2-debug-mode) for more information.
+  Don't suppress errors when implementing the `get`, `set`, `getRevalidatedTags`, and `revalidateTag` methods. Instead,
+  throw errors and let `IncrementalCache` class handle them. Refer to the [debugging cache
+  article](/troubleshooting#method-2-debug-mode) for more information.
 </Callout>
 
 ## Advanced Cache Configuration: Custom Revalidation
@@ -49,19 +49,19 @@ For control over the revalidation process, implement `getRevalidatedTags` and `r
 const revalidateTags = {};
 
 const cache = {
-    name: 'custom-map-cache',
-    async get(key) {
-        return cacheStore.get(key);
-    },
-    async set(key, value) {
-        cacheStore.set(key, value);
-    },
-    async getRevalidatedTags() {
-        return revalidateTags;
-    },
-    async revalidateTag(tag, revalidatedAt) {
-        revalidateTags[tag] = revalidatedAt;
-    },
+  name: 'custom-map-cache',
+  async get(key) {
+    return cacheStore.get(key);
+  },
+  async set(key, value) {
+    cacheStore.set(key, value);
+  },
+  async getRevalidatedTags() {
+    return revalidateTags;
+  },
+  async revalidateTag(tag, revalidatedAt) {
+    revalidateTags[tag] = revalidatedAt;
+  },
 };
 ```
 
@@ -69,16 +69,16 @@ Structure of the `RevalidatedTags` object:
 
 ```json filename="revalidateTags"
 {
-    "/": 1701897682816,
-    "/blog": 1701897532812,
-    "3058ccffeebc5674604d8dd3a0d1321b5948c5b820a32bb9089572db907edca1": 1701895635813,
-    "_N_T_/user/123": 1701897523542
+  "/": 1701897682816,
+  "/blog": 1701897532812,
+  "3058ccffeebc5674604d8dd3a0d1321b5948c5b820a32bb9089572db907edca1": 1701895635813,
+  "_N_T_/user/123": 1701897523542
 }
 ```
 
 <Callout type="info">
-    For remote cache stores that don't support JavaScript objects directly, serialize the `revalidateTags` object before
-    storage and deserialize upon retrieval.
+  For remote cache stores that don't support JavaScript objects directly, serialize the `revalidateTags` object before
+  storage and deserialize upon retrieval.
 </Callout>
 
 ## Handling Fetch in Next.js Cache Handlers
@@ -89,16 +89,16 @@ Next.js modifies the global `fetch` function, which can lead to unexpected behav
 
 ```js filename="cache-handler.js" copy
 const cache = {
-    async get(key) {
-        const response = await fetch(url, {
-            next: {
-                // This option ensures that the fetch call is not affected by Next.js modifications
-                internal: true,
-            },
-        });
-        // Process the response as needed
-    },
-    // Other cache methods...
+  async get(key) {
+    const response = await fetch(url, {
+      next: {
+        // This option ensures that the fetch call is not affected by Next.js modifications
+        internal: true,
+      },
+    });
+    // Process the response as needed
+  },
+  // Other cache methods...
 };
 ```
 

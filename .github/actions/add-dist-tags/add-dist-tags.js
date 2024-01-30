@@ -2,7 +2,7 @@
 // @ts-check
 
 const core = require('@actions/core');
-const { execSync, execFileSync } = require('child_process');
+const { execFileSync } = require('child_process');
 const { globSync } = require('glob');
 const fs = require('fs');
 
@@ -33,13 +33,13 @@ function run() {
 
         for (const packagePath of packagesPaths) {
             const packageData = fs.readFileSync(packagePath, 'utf-8');
-            const { name, version, private, distTags } = JSON.parse(packageData);
+            const { name, version, private: isPrivate, distTags } = JSON.parse(packageData);
 
             if (!Array.isArray(distTags)) {
                 continue;
             }
 
-            if (private === true || private === 'true') {
+            if (isPrivate === true || isPrivate === 'true') {
                 continue;
             }
 
@@ -47,14 +47,14 @@ function run() {
                 continue;
             }
 
-            const package = publishedPackages.find((pkg) => pkg.name === name);
+            const publishedPackage = publishedPackages.find((pkg) => pkg.name === name);
 
-            if (!package) {
+            if (!publishedPackage) {
                 continue;
             }
 
             for (const tag of distTags) {
-                execFileSync('npm', ['dist-tag', 'add', `${package.name}@${package.version}`, tag], {
+                execFileSync('npm', ['dist-tag', 'add', `${publishedPackage.name}@${publishedPackage.version}`, tag], {
                     stdio: 'inherit',
                 });
             }

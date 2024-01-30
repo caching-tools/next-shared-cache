@@ -1,1 +1,1 @@
-export const MAX_INT32 = Math.pow(2, 31) - 1;
+export const MAX_INT32 = 2 ** 31 - 1;

@@ -3,8 +3,8 @@
 import { execFileSync } from 'node:child_process';
 import { createInterface } from 'node:readline/promises';
 
-import { OpenAI } from 'openai';
 import 'dotenv/config';
+import { OpenAI } from 'openai';
 
 // OpenAI client initialization
 const openai = new OpenAI({
@@ -30,7 +30,7 @@ function parseArguments(args: string[]): Record<string, string> {
     return args.reduce<Record<string, string>>((acc, arg) => {
         const [keyWithDash, value] = arg.split('=');
 
-        if (keyWithDash && keyWithDash.startsWith('--') && value) {
+        if (keyWithDash?.startsWith('--') && value) {
             const key = keyWithDash.slice(2);
 
             acc[key] = value;
@@ -49,12 +49,16 @@ const {
 
 // Validations
 const commitLengthNumber = parseInt(commitLength, 10);
-if (isNaN(commitLengthNumber) || commitLengthNumber < COMMIT_LENGTH_MIN || commitLengthNumber > COMMIT_LENGTH_MAX) {
+if (
+    Number.isNaN(commitLengthNumber) ||
+    commitLengthNumber < COMMIT_LENGTH_MIN ||
+    commitLengthNumber > COMMIT_LENGTH_MAX
+) {
     throw new Error(`Invalid commit length ${commitLength}`);
 }
 
 const temperature = parseFloat(modelTemperature);
-if (isNaN(temperature)) {
+if (Number.isNaN(temperature)) {
     throw new Error(`Invalid temperature ${modelTemperature}`);
 }
 
@@ -162,7 +166,6 @@ async function main(): Promise<void> {
                 question: string;
             };
 
-            // eslint-disable-next-line no-await-in-loop  -- We need to wait for the response
             const functionResponse = await functionToCall(functionArgs.question);
 
             messages.push(conversationMessage);
@@ -173,7 +176,6 @@ async function main(): Promise<void> {
                 content: functionResponse,
             });
 
-            // eslint-disable-next-line no-await-in-loop -- We need to wait for the response
             const nextResponse = await openai.chat.completions.create({
                 messages,
                 model,

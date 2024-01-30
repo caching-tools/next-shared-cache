@@ -22,8 +22,6 @@
         "build": "tsup",
         "clean": "rimraf ./dist ./.turbo ./node_modules",
         "dev": "node --watch --import tsx/esm ./src/server.ts",
-        "lint": "eslint .",
-        "lint:fix": "eslint --fix .",
         "start": "node --import tsx/esm ./src/server.ts"
     },
     "dependencies": {
@@ -33,9 +31,8 @@
     "devDependencies": {
         "@neshca/next-common": "*",
         "@neshca/next-lru-cache": "*",
-        "@neshca/tsconfig": "*",
+        "@repo/typescript-config": "*",
         "@types/node": "20.11.7",
-        "eslint-config-neshca": "*",
         "rimraf": "5.0.5",
         "tsup": "8.0.1",
         "tsx": "4.7.0",

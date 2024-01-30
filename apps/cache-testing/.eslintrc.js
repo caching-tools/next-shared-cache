@@ -1,4 +1,10 @@
-/** @type {import('eslint').ESLint.ConfigData} */
+/** @type {import("eslint").Linter.Config} */
 module.exports = {
-    extends: ['neshca/next'],
+    root: true,
+    extends: ['@repo/eslint-config/next.js'],
+    parser: '@typescript-eslint/parser',
+    parserOptions: {
+        project: true,
+    },
+    ignorePatterns: ['*.mjs'],
 };

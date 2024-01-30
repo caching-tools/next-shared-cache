@@ -42,7 +42,7 @@ export default {
         text: (
             <span>
                 MIT {new Date().getFullYear()} ©{' '}
-                <a href="https://github.com/caching-tools/next-shared-cache" rel="noopener" target="_blank">
+                <a href="https://github.com/caching-tools/next-shared-cache" rel="noreferrer noopener" target="_blank">
                     @neshca/cache-handler
                 </a>
                 .
