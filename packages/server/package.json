@@ -25,7 +25,7 @@
         "start": "node --import tsx/esm ./src/server.ts"
     },
     "dependencies": {
-        "fastify": "4.25.2",
+        "fastify": "4.26.0",
         "pino": "8.17.2"
     },
     "devDependencies": {
