@@ -1,5 +1,11 @@
 # cache-handler-docs
 
+## 0.6.6
+
+### Patch Changes
+
+- bb61a52: Applied new code style.
+
 ## 0.6.5
 
 ### Patch Changes

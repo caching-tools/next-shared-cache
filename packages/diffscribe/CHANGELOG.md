@@ -1,5 +1,11 @@
 # diffscribe
 
+## 0.2.2
+
+### Patch Changes
+
+- bb61a52: Applied new code style.
+
 ## 0.2.1
 
 ### Patch Changes

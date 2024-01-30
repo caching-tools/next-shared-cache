@@ -1,5 +1,11 @@
 # @neshca/server
 
+## 0.6.1
+
+### Patch Changes
+
+- bb61a52: Applied new code style.
+
 ## 0.6.0
 
 ### Minor Changes
