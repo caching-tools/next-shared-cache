@@ -30,7 +30,7 @@
         "start:app": "FORCE_COLOR=1 turbo run start --log-prefix=none --filter=cache-testing",
         "start:backend": "FORCE_COLOR=1 turbo run start --log-prefix=none --filter=backend",
         "test": "FORCE_COLOR=1 turbo run test --log-order=grouped",
-        "version-packages": "changeset version && npm run format:fix"
+        "version-packages": "changeset version && npm run codestyle:fix"
     },
     "dependencies": {
         "@changesets/cli": "2.27.1"
