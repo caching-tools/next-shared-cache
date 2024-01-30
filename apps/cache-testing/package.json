@@ -13,7 +13,8 @@
         "e2e:ui": "playwright test --ui --config=./playwright.config.ts",
         "eslint:check": "next lint",
         "eslint:fix": "next lint --fix",
-        "start": "dotenv -e .env.local -v SERVER_STARTED=1 node .next/standalone/apps/cache-testing/server.js"
+        "start": "dotenv -e .env.local -v SERVER_STARTED=1 node .next/standalone/apps/cache-testing/server.js",
+        "wait-for-redis": "node wait-for-redis.mjs"
     },
     "dependencies": {
         "next": "14.1.1-canary.1",
