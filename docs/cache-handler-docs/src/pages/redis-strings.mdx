@@ -7,23 +7,21 @@ import { Callout } from 'nextra/components';
   Redis instance. You can use any other way to set the URL.
 </Callout>
 
-Create a file called `cache-handler.js` next to your `next.config.js` with the following contents:
+Create a file called `cache-handler.mjs` next to your `next.config.js` with the following contents:
 
-```js filename="cache-handler.js" copy
-const { IncrementalCache } = require('@neshca/cache-handler');
-const createRedisCache = require('@neshca/cache-handler/redis-strings').default;
-const createLruCache = require('@neshca/cache-handler/local-lru').default;
-const { createClient } = require('redis');
-
-const client = createClient({
-  url: process.env.REDIS_URL ?? 'redis://localhost:6379',
-});
-
-client.on('error', (error) => {
-  console.error('Redis error:', error);
-});
+```js filename="cache-handler.mjs" copy
+import { IncrementalCache } from '@neshca/cache-handler';
+import createLruCache from '@neshca/cache-handler/local-lru';
+import createRedisCache from '@neshca/cache-handler/redis-strings';
+import { createClient } from 'redis';
 
 IncrementalCache.onCreation(async () => {
+  const client = createClient({
+    url: process.env.REDIS_URL ?? 'redis://localhost:6379',
+  });
+
+  client.on('error', (error) => {});
+
   // read more about TTL limitations https://caching-tools.github.io/next-shared-cache/configuration/ttl
   const useTtl = false;
 
@@ -47,7 +45,7 @@ IncrementalCache.onCreation(async () => {
   };
 });
 
-module.exports = IncrementalCache;
+export default IncrementalCache;
 ```
 
 <Callout type="info">Ensure that the Redis instance is running when you build your Next.js app.</Callout>

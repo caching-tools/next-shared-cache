@@ -19,7 +19,7 @@ In Next.js, ISR allows routes to be incrementally updated through the [`revalida
 
 Here's how to use TTL in preconfigured Handlers:
 
-```js filename="cache-handler.js" copy
+```js filename="cache-handler.mjs" copy
 IncrementalCache.onCreation(async () => {
   await client.connect();
 
@@ -52,7 +52,7 @@ For custom cache handlers, here are examples for Redis:
 
 #### Redis Strings Example
 
-```js filename="cache-handler.js" copy
+```js filename="cache-handler.mjs" copy
 IncrementalCache.onCreation(async () => {
   const cache = {
     // ... other cache methods ...
@@ -79,7 +79,7 @@ IncrementalCache.onCreation(async () => {
 
 #### Redis Stack Example
 
-```js filename="cache-handler.js" copy
+```js filename="cache-handler.mjs" copy
 IncrementalCache.onCreation(async () => {
   const cache = {
     // ... other cache methods ...
@@ -106,9 +106,8 @@ IncrementalCache.onCreation(async () => {
 
 #### Stale While Revalidate Example
 
-```js filename="cache-handler.js" copy
-const { calculateEvictionDelay } = require('@neshca/cache-handler/helpers');
-
+```js filename="cache-handler.mjs" copy
+import { calculateEvictionDelay } from 'neshca/cache-handler/helpers';
 // ...
 
 IncrementalCache.onCreation(async () => {

@@ -28,7 +28,7 @@ const nextConfig = {
 };
 ```
 
-```js filename="cache-handler.js" copy
+```js filename="cache-handler.mjs" copy
 IncrementalCache.onCreation(async () => {
   await client.connect();
 
@@ -58,11 +58,7 @@ const nextConfig = {
 };
 ```
 
-```js filename="cache-handler.js" copy
-const { IncrementalCache } = require('@neshca/cache-handler');
-const createRedisCache = require('@neshca/cache-handler/redis-stack').default;
-const createLruCache = require('@neshca/cache-handler/local-lru').default;
-
+```js filename="cache-handler.mjs" copy
 IncrementalCache.onCreation(async ({ buildId }) => {
   let redisCache;
 
