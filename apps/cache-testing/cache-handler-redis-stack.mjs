@@ -16,6 +16,12 @@ IncrementalCache.onCreation(async () => {
 
     client.on('error', () => {});
 
+    function useTtl(maxAge) {
+        const evictionAge = maxAge * 1.5;
+
+        return evictionAge;
+    }
+
     console.info('Connecting Redis client...');
     await client.connect();
     console.info('Redis client connected.');
@@ -33,6 +39,9 @@ IncrementalCache.onCreation(async () => {
     return {
         cache: [redisCache, redisStringsCache, localCache],
         useFileSystem: true,
+        experimental: {
+            useGlobalTtl: useTtl,
+        },
     };
 });
 

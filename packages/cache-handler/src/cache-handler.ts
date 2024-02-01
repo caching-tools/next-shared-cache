@@ -12,10 +12,13 @@ import type {
     IncrementalCacheKindHint,
     IncrementalCacheValue,
     NonNullableRouteMetadata,
+    PrerenderManifest,
     RouteMetadata,
     TagsManifest,
 } from '@neshca/next-common';
 
+import { UseTtlOptions } from './common-types';
+import { checkIfAgeIsGreaterThatEvictionAge } from './helpers/check-if-age-is-greater-that-eviction-age';
 import { isTagsManifest } from './helpers/is-tags-manifest';
 
 const RSC_PREFETCH_SUFFIX = '.prefetch.rsc';
@@ -40,9 +43,16 @@ export type Cache = {
      *
      * @param key - The unique string identifier for the cache entry.
      *
+     * @param maxAgeSeconds - Optional. Delay in seconds before the cache entry becomes stale.
+     * If undefined, the cache entry will not become stale.
+     *
      * @returns A Promise that resolves to the cached value (if found), `null` or `undefined` if the entry is not found.
      */
-    get: (key: string) => Promise<CacheHandlerValue | null | undefined>;
+    get: (
+        key: string,
+        maxAgeSeconds?: number,
+        useGlobalTtl?: UseTtlOptions['useTtl'],
+    ) => Promise<CacheHandlerValue | null | undefined>;
     /**
      * Sets or updates a value in the cache store.
      *
@@ -54,11 +64,13 @@ export type Cache = {
      * If undefined, the cache entry will not become stale.
      *
      * @returns A Promise with no value.
-     *
-     * @remarks
-     * Use `maxAgeSeconds` only if you don't use Pages directory.
      */
-    set: (key: string, value: CacheHandlerValue, maxAgeSeconds?: number) => Promise<void>;
+    set: (
+        key: string,
+        value: CacheHandlerValue,
+        maxAgeSeconds?: number,
+        useGlobalTtl?: UseTtlOptions['useTtl'],
+    ) => Promise<void>;
     /**
      * Retrieves the {@link RevalidatedTags} object.
      *
@@ -97,6 +109,9 @@ export type CacheConfig = {
      * Multiple caches can be used to implement various caching strategies or layers.
      */
     cache: Cache | (Cache | undefined | null)[];
+    experimental?: {
+        useGlobalTtl?: UseTtlOptions['useTtl'];
+    };
 };
 
 /**
@@ -256,7 +271,15 @@ export class IncrementalCache implements CacheHandler {
 
     static #debug = typeof process.env.NEXT_PRIVATE_DEBUG_CACHE !== 'undefined';
 
-    static onCreationHook: OnCreationHook;
+    static #onCreationHook: OnCreationHook;
+
+    static #useGlobalTtl?: UseTtlOptions['useTtl'];
+
+    static readonly #initialRevalidationTimes: Map<string, number | false> = new Map();
+
+    static readonly #prerenderedPagesWithFallbackFalse: Set<string> = new Set();
+
+    static readonly #runtimeRevalidationTimes: Map<string, number | false> = new Map();
 
     /**
      * Registers a hook to be called during the creation of an IncrementalCache instance.
@@ -272,22 +295,24 @@ export class IncrementalCache implements CacheHandler {
      * @param onCreationHook - The {@link OnCreationHook} function to be called during cache creation.
      */
     public static onCreation(onCreationHook: OnCreationHook): void {
-        IncrementalCache.onCreationHook = onCreationHook;
+        IncrementalCache.#onCreationHook = onCreationHook;
     }
 
-    static async configureIncrementalCache(cacheCreationContext: CacheCreationContext): Promise<void> {
+    static async #configureIncrementalCache(cacheCreationContext: CacheCreationContext): Promise<void> {
         // Retrieve cache configuration by invoking the onCreation hook with the provided context
-        const config = IncrementalCache.onCreationHook(cacheCreationContext);
+        const config = IncrementalCache.#onCreationHook(cacheCreationContext);
 
         // Destructure the cache and useFileSystem settings from the configuration
         // Await the configuration if it's a promise
-        const { cache, useFileSystem = true } = config instanceof Promise ? await config : config;
+        const { cache, useFileSystem = true, experimental } = config instanceof Promise ? await config : config;
 
         // Extract the server distribution directory from the cache creation context
         const { serverDistDir } = cacheCreationContext;
 
         // Set the class-level flag to determine if the file system caching should be used
         IncrementalCache.#useFileSystem = useFileSystem;
+
+        IncrementalCache.#useGlobalTtl = experimental?.useGlobalTtl;
 
         // Check if the pages directory exists and set the flag accordingly
         IncrementalCache.#hasPagesDir = fs.existsSync(path.join(serverDistDir, 'pages'));
@@ -325,6 +350,23 @@ export class IncrementalCache implements CacheHandler {
             // If the file doesn't exist, use the default tagsManifest
         }
 
+        try {
+            // Read the prerender manifest from the file system
+            const prerenderManifestFilePath = path.join(serverDistDir, '..', 'prerender-manifest.json');
+            const prerenderManifestFile = await fsPromises.readFile(prerenderManifestFilePath, 'utf-8');
+            const prerenderManifest = JSON.parse(prerenderManifestFile) as PrerenderManifest;
+
+            for (const [cacheKey, { initialRevalidateSeconds, srcRoute }] of Object.entries(prerenderManifest.routes)) {
+                // store the initial revalidation times
+                IncrementalCache.#initialRevalidationTimes.set(cacheKey, initialRevalidateSeconds);
+
+                // store the pages with `fallback: false`
+                if (srcRoute && prerenderManifest.dynamicRoutes[srcRoute]?.fallback === false) {
+                    IncrementalCache.#prerenderedPagesWithFallbackFalse.add(cacheKey);
+                }
+            }
+        } catch (_error) {}
+
         const cacheList: NamedCache[] = Array.isArray(cache)
             ? cache.reduce<NamedCache[]>((items, cacheItem, index) => {
                   if (cacheItem) {
@@ -348,10 +390,10 @@ export class IncrementalCache implements CacheHandler {
         }
 
         IncrementalCache.#cache = {
-            async get(key) {
+            async get(key, maxAgeSeconds) {
                 for await (const cacheItem of cacheList) {
                     try {
-                        const cacheValue = await cacheItem.get(key);
+                        const cacheValue = await cacheItem.get(key, maxAgeSeconds, IncrementalCache.#useGlobalTtl);
 
                         if (IncrementalCache.#debug) {
                             console.info(`get from "${cacheItem.name}"`, key, Boolean(cacheValue));
@@ -374,7 +416,7 @@ export class IncrementalCache implements CacheHandler {
                 await Promise.allSettled(
                     cacheList.map((cacheItem) => {
                         try {
-                            return cacheItem.set(key, value, maxAgeSeconds);
+                            return cacheItem.set(key, value, maxAgeSeconds, IncrementalCache.#useGlobalTtl);
                         } catch (error) {
                             if (IncrementalCache.#debug) {
                                 console.warn(
@@ -446,7 +488,7 @@ export class IncrementalCache implements CacheHandler {
                 buildId = undefined;
             }
 
-            IncrementalCache.configureIncrementalCache({
+            IncrementalCache.#configureIncrementalCache({
                 dev: context.dev,
                 serverDistDir: this.#serverDistDir,
                 buildId,
@@ -456,24 +498,32 @@ export class IncrementalCache implements CacheHandler {
         }
     }
 
-    async readCacheFromFileSystem(
+    async #readCacheFromFileSystem(
         cacheKey: string,
         kindHint?: IncrementalCacheKindHint,
         tags?: string[],
+        maxAgeSeconds?: number,
     ): Promise<CacheHandlerValue | null> {
         let cachedData: CacheHandlerValue | null = null;
 
         try {
             const bodyFilePath = this.#getFilePath(`${cacheKey}.body`, 'app');
 
-            const bodyFileData = await fsPromises.readFile(bodyFilePath);
             const { mtime } = await fsPromises.stat(bodyFilePath);
+
+            const lastModified = mtime.getTime();
+
+            if (checkIfAgeIsGreaterThatEvictionAge(lastModified, maxAgeSeconds, IncrementalCache.#useGlobalTtl)) {
+                return null;
+            }
+
+            const bodyFileData = fs.readFileSync(bodyFilePath);
 
             const metaFileData = await fsPromises.readFile(bodyFilePath.replace(/\.body$/, NEXT_META_SUFFIX), 'utf-8');
             const meta: NonNullableRouteMetadata = JSON.parse(metaFileData) as NonNullableRouteMetadata;
 
             const cacheEntry: CacheHandlerValue = {
-                lastModified: mtime.getTime(),
+                lastModified,
                 value: {
                     kind: 'ROUTE',
                     body: bodyFileData,
@@ -498,11 +548,26 @@ export class IncrementalCache implements CacheHandler {
             const isAppPath = kind === 'app';
             const pageFilePath = this.#getFilePath(kind === 'fetch' ? cacheKey : `${cacheKey}.html`, kind);
 
-            const pageFile = await fsPromises.readFile(pageFilePath, 'utf-8');
             const { mtime } = await fsPromises.stat(pageFilePath);
 
+            const lastModified = mtime.getTime();
+
+            const pageHasFallbackFalse = IncrementalCache.#prerenderedPagesWithFallbackFalse.has(cacheKey);
+            const pageShouldNotBeServed = checkIfAgeIsGreaterThatEvictionAge(
+                lastModified,
+                maxAgeSeconds,
+                IncrementalCache.#useGlobalTtl,
+            );
+
+            // if the page has `fallback: false` and is stale we don't return it
+            // as it would be a 404. See https://github.com/vercel/next.js/issues/58094
+            if (!pageHasFallbackFalse && pageShouldNotBeServed) {
+                return null;
+            }
+
+            const pageFile = fs.readFileSync(pageFilePath, 'utf-8');
+
             if (kind === 'fetch') {
-                const lastModified = mtime.getTime();
                 const parsedData = JSON.parse(pageFile) as CachedFetchValue;
 
                 cachedData = {
@@ -550,7 +615,7 @@ export class IncrementalCache implements CacheHandler {
                 }
 
                 cachedData = {
-                    lastModified: mtime.getTime(),
+                    lastModified,
                     value: {
                         kind: 'PAGE',
                         html: pageFile,
@@ -624,14 +689,20 @@ export class IncrementalCache implements CacheHandler {
     public async get(...args: CacheHandlerParametersGet): Promise<CacheHandlerValue | null> {
         const [cacheKey, ctx = {}] = args;
 
-        const { tags = [], softTags = [], kindHint } = ctx;
+        const { tags = [], softTags = [], kindHint, revalidate: ctxRevalidate } = ctx;
 
         await IncrementalCache.#creationPromise;
 
-        let cachedData: CacheHandlerValue | null = (await IncrementalCache.#cache.get(cacheKey)) ?? null;
+        const maxAgeSeconds =
+            (ctxRevalidate ??
+                IncrementalCache.#runtimeRevalidationTimes.get(cacheKey) ??
+                IncrementalCache.#initialRevalidationTimes.get(cacheKey)) ||
+            undefined;
+
+        let cachedData: CacheHandlerValue | null = (await IncrementalCache.#cache.get(cacheKey, maxAgeSeconds)) ?? null;
 
         if (!cachedData && IncrementalCache.#useFileSystem) {
-            cachedData = await this.readCacheFromFileSystem(cacheKey, kindHint, tags);
+            cachedData = await this.#readCacheFromFileSystem(cacheKey, kindHint, tags, maxAgeSeconds);
 
             if (IncrementalCache.#debug) {
                 console.info('get from file system', cacheKey, tags, kindHint, Boolean(cachedData));
@@ -655,7 +726,7 @@ export class IncrementalCache implements CacheHandler {
         return cachedData;
     }
 
-    async writeCacheToFileSystem(data: IncrementalCacheValue, cacheKey: string, tags: string[] = []): Promise<void> {
+    async #writeCacheToFileSystem(data: IncrementalCacheValue, cacheKey: string, tags: string[] = []): Promise<void> {
         // credits to Next.js for the following code
         if (data.kind === 'ROUTE') {
             const filePath = this.#getFilePath(`${cacheKey}.body`, 'app');
@@ -716,7 +787,7 @@ export class IncrementalCache implements CacheHandler {
     public async set(...args: CacheHandlerParametersSet): Promise<void> {
         const [cacheKey, data, ctx] = args;
 
-        const { revalidate, tags } = ctx;
+        const { revalidate: maxAgeSeconds, tags } = ctx;
 
         await IncrementalCache.#creationPromise;
 
@@ -726,15 +797,19 @@ export class IncrementalCache implements CacheHandler {
                 value: data,
                 lastModified: Date.now(),
             },
-            revalidate || undefined,
+            maxAgeSeconds || undefined,
         );
+
+        if (data?.kind === 'PAGE' && typeof maxAgeSeconds !== 'undefined') {
+            IncrementalCache.#runtimeRevalidationTimes.set(cacheKey, maxAgeSeconds);
+        }
 
         if (IncrementalCache.#debug) {
             console.info('set to external cache store', cacheKey);
         }
 
         if (data && IncrementalCache.#useFileSystem) {
-            await this.writeCacheToFileSystem(data, cacheKey, tags);
+            await this.#writeCacheToFileSystem(data, cacheKey, tags);
 
             if (IncrementalCache.#debug) {
                 console.info('set to file system', cacheKey);

@@ -6,6 +6,7 @@ import type { RouteMetadata as NextRouteMetadata } from 'next/dist/export/routes
 import type { CacheHandler } from 'next/dist/server/lib/incremental-cache';
 import type IncrementalCache from 'next/dist/server/lib/incremental-cache/file-system-cache';
 
+export type { PrerenderManifest } from 'next/dist/build';
 export type { CacheHandler, CacheHandlerContext, CacheHandlerValue } from 'next/dist/server/lib/incremental-cache';
 export type {
     CachedRedirectValue,

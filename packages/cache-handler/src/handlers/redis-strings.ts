@@ -39,7 +39,7 @@ export default function createCache<T extends RedisClientType>({
     client,
     keyPrefix = '',
     revalidatedTagsKey = '__sharedRevalidatedTags__',
-    useTtl = false,
+    useTtl,
     timeoutMs = 5000,
 }: RedisCacheHandlerOptions<T>): Cache {
     function assertClientIsReady(): void {
@@ -64,10 +64,12 @@ export default function createCache<T extends RedisClientType>({
             // use reviveFromBase64Representation to restore binary data from Base64
             return JSON.parse(result, reviveFromBase64Representation) as CacheHandlerValue | null;
         },
-        async set(key, value, maxAgeSeconds) {
+        async set(key, value, maxAgeSeconds, globalUseTtl) {
             assertClientIsReady();
 
-            const evictionDelay = calculateEvictionDelay(maxAgeSeconds, useTtl);
+            const currentUseTtl = typeof useTtl !== 'undefined' ? useTtl : globalUseTtl;
+
+            const evictionDelay = calculateEvictionDelay(maxAgeSeconds, currentUseTtl);
 
             // use replaceJsonWithBase64 to store binary data in Base64 and save space
             await client.set(

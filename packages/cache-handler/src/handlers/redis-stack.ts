@@ -59,7 +59,7 @@ export default async function createCache<T extends RedisClientType>({
     client,
     keyPrefix = '',
     revalidatedTagsKey = '__sharedRevalidatedTags__',
-    useTtl = false,
+    useTtl,
     timeoutMs = 5000,
 }: RedisCacheHandlerOptions<T>): Promise<Cache> {
     function assertClientIsReady(): void {
@@ -96,7 +96,7 @@ export default async function createCache<T extends RedisClientType>({
 
             return cacheValue;
         },
-        async set(key, cacheValue, maxAgeSeconds) {
+        async set(key, cacheValue, maxAgeSeconds, globalUseTtl) {
             assertClientIsReady();
 
             let preparedCacheValue = cacheValue;
@@ -118,7 +118,9 @@ export default async function createCache<T extends RedisClientType>({
 
             const commands: Promise<unknown>[] = [setCacheValue];
 
-            const evictionDelay = calculateEvictionDelay(maxAgeSeconds, useTtl);
+            const currentUseTtl = typeof useTtl !== 'undefined' ? useTtl : globalUseTtl;
+
+            const evictionDelay = calculateEvictionDelay(maxAgeSeconds, currentUseTtl);
 
             if (evictionDelay) {
                 commands.push(client.expire(options, keyPrefix + key, evictionDelay));
