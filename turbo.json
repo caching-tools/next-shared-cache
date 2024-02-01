@@ -31,8 +31,6 @@
             "cache": false
         },
         "e2e": {
-            "inputs": [".next/**", "!.next/cache/**", "tests/**"],
-            "outputs": ["test-results/**", "playwright-report/**"],
             "cache": false
         },
         "clean": {

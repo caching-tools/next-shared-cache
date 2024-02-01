@@ -13,6 +13,7 @@
         "e2e:ui": "playwright test --ui --config=./playwright.config.ts",
         "eslint:check": "next lint",
         "eslint:fix": "next lint --fix",
+        "playwright:install": "playwright install chromium",
         "start": "dotenv -e .env.local -v SERVER_STARTED=1 node .next/standalone/apps/cache-testing/server.js"
     },
     "dependencies": {
