@@ -6,8 +6,8 @@ You can use your file system to store the cache data alongside your shared cache
 
 The file system cache is enabled by default. You can disable it by setting `useFileSystem` to false in your `onCreation` hook:
 
-```js filename="cache-handler.js" copy
-const { IncrementalCache } = require('@neshca/cache-handler');
+```js filename="cache-handler.mjs" copy
+import { IncrementalCache } from '@neshca/cache-handler';
 
 IncrementalCache.onCreation(async () => {
   const cacheStore = new Map();
@@ -30,7 +30,7 @@ IncrementalCache.onCreation(async () => {
   };
 });
 
-module.exports = IncrementalCache;
+export default IncrementalCache;
 ```
 
 <Callout type="warning">
@@ -60,11 +60,7 @@ The `createLruCache` function initializes the LRU cache handler. It includes met
 
 #### Example Usage
 
-```js filename="cache-handler.js" copy
-const { IncrementalCache } = require('@neshca/cache-handler');
-const createRedisCache = require('@neshca/cache-handler/redis-stack').default;
-const createLruCache = require('@neshca/cache-handler/local-lru').default;
-
+```js filename="cache-handler.mjs" copy
 IncrementalCache.onCreation(async (context) => {
   const createRedisCache = await createRedisCache({
     /* ... */

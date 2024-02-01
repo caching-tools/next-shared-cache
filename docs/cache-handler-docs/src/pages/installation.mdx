@@ -43,42 +43,16 @@ pnpm create next-app --example cache-handler-redis cache-handler-redis-app
 ### Basic Custom Configuration
 
 1. **Create a Cache Handler File**:  
-   In your project root, create a file named `cache-handler.js` for your cache configuration.
+   In your project root, create a file named `cache-handler.mjs` for your cache configuration.
 
 2. **Configure the Cache Handler**:  
    Below is a basic setup example:
-
-   ```js filename="cache-handler.js" copy
-   const { IncrementalCache } = require('@neshca/cache-handler');
-
-   IncrementalCache.onCreation(async () => {
-     // Don't use Map in production. This is just an example.
-     const cacheStore = new Map();
-
-     const cache = {
-       async get(key) {
-         return cacheStore.get(key);
-       },
-       async set(key, value) {
-         cacheStore.set(key, value);
-       },
-     };
-
-     return {
-       cache,
-       useFileSystem: true,
-     };
-   });
-
-   module.exports = IncrementalCache;
-   ```
-
-   EcmaScript modules can be used by adding the `.mjs` extension to the file and using an `import` statement instead of a `require` call:
 
    ```js filename="cache-handler.mjs" copy
    import { IncrementalCache } from '@neshca/cache-handler';
 
    IncrementalCache.onCreation(async () => {
+     // Don't use Map in production. This is just an example.
      const cacheStore = new Map();
 
      const cache = {
@@ -105,11 +79,11 @@ pnpm create next-app --example cache-handler-redis cache-handler-redis-app
    ```js filename="next.config.js" copy
    const nextConfig = {
      // './cache-handler.mjs' in case you're using EcmaScript modules.
-     cacheHandler: process.env.NODE_ENV === 'production' ? require.resolve('./cache-handler.js') : undefined,
+     cacheHandler: process.env.NODE_ENV === 'production' ? require.resolve('./cache-handler.mjs') : undefined,
      // Use `experimental` option instead of the `cacheHandler` property when using Next.js versions from 13.5.1 to 14.0.4
      /* experimental: {
            incrementalCacheHandlerPath:
-               process.env.NODE_ENV === 'production' ? require.resolve('./cache-handler.js') : undefined,
+               process.env.NODE_ENV === 'production' ? require.resolve('./cache-handler.mjs') : undefined,
        }, */
    };
 
@@ -118,7 +92,7 @@ pnpm create next-app --example cache-handler-redis cache-handler-redis-app
 
 <Callout type="info">
   Do not import <code>@neshca/cache-handler</code> to your components or pages. It is only meant to be used in{' '}
-  <code>cache-handler.js</code> files.
+  <code>cache-handler.mjs</code> files.
 </Callout>
 
 ### Running Your Application

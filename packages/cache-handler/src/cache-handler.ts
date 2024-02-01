@@ -128,7 +128,7 @@ export type CacheCreationContext = {
      *
      * @example
      * ```js
-     * // cache-handler.js
+     * // cache-handler.mjs
      * IncrementalCache.onCreation(async ({ buildId }) => {
      *   let redisCache;
      *
@@ -193,7 +193,7 @@ export class IncrementalCache implements CacheHandler {
      *
      * @example
      * ```js
-     * // cache-handler.js
+     * // cache-handler.mjs
      * IncrementalCache.onCreation(async () => {
      *  const = redisCache = await createRedisCache({
      *    client,

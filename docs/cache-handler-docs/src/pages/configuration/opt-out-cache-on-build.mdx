@@ -4,9 +4,9 @@ There are scenarios, especially during deployment, where your Redis server may n
 
 ### Configuration Steps
 
-1. **Modify the `cache-handler.js` File**: Adjust the `onCreation` method in your `cache-handler.js` file to conditionally connect to the Redis cache. The modified code should look like this:
+1. **Modify the `cache-handler.mjs` File**: Adjust the `onCreation` method in your `cache-handler.mjs` file to conditionally connect to the Redis cache. The modified code should look like this:
 
-   ```js filename="cache-handler.js" copy
+   ```js filename="cache-handler.mjs" copy
    IncrementalCache.onCreation(async () => {
      let redisCache;
 

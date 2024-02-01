@@ -37,7 +37,7 @@ When implementing the `onCreationHook`, you can utilize the information provided
 
 Here's a simplified example of how the `onCreation` method might be used:
 
-```js filename="cache-handler.js"
+```js filename="cache-handler.mjs"
 IncrementalCache.onCreation(async (context) => {
   const customCacheLogic = {
     // Define custom get, set, and other cache methods
@@ -71,7 +71,7 @@ The `CacheConfig` object defines the configuration for the cache system. It typi
 
 Here is an example of how the `onCreation` hook might be implemented and what the return value looks like:
 
-```js filename="cache-handler.js"
+```js filename="cache-handler.mjs"
 IncrementalCache.onCreation(async (context) => {
   const customCache = {
     // Custom cache methods like get, set, etc.
