@@ -30,7 +30,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
       - name: Install Playwright Browsers
-        run: cd apps/cache-testing && npx playwright install --with-deps
+        run: npm run playwright:install -w apps/cache-testing
       - name: Build
         run: npm run build
       - name: Check code style
