@@ -18,9 +18,6 @@ updates:
         patterns:
           - 'next'
           - '@next/eslint-plugin-next'
-        update-types:
-          - 'major'
-          - 'minor'
       turbo:
         patterns:
           - 'turbo'
@@ -42,3 +39,9 @@ updates:
         patterns:
           - 'nextra'
           - 'nextra-theme-docs'
+      eslint:
+        patterns:
+          - 'eslint'
+          - '@types/eslint'
+          - '@typescript-eslint/eslint-plugin'
+          - '@typescript-eslint/parser'
