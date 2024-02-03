@@ -17,14 +17,14 @@
         "start": "dotenv -e .env.local -v SERVER_STARTED=1 node .next/standalone/apps/cache-testing/server.js"
     },
     "dependencies": {
-        "next": "14.1.1-canary.1",
+        "next": "14.1.1-canary.27",
         "react": "18.2.0",
         "react-dom": "18.2.0"
     },
     "devDependencies": {
         "@neshca/cache-handler": "*",
         "@neshca/json-replacer-reviver": "*",
-        "@next/eslint-plugin-next": "14.1.1-canary.1",
+        "@next/eslint-plugin-next": "14.1.1-canary.27",
         "@playwright/test": "1.41.2",
         "@repo/eslint-config": "*",
         "@repo/typescript-config": "*",
