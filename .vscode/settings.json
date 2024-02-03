@@ -1,13 +1,5 @@
 {
     "eslint.workingDirectories": [{ "pattern": "apps/*/" }, { "pattern": "docs/*/" }],
-    "editor.defaultFormatter": "biomejs.biome",
-    "[json]": {
-        "editor.defaultFormatter": "esbenp.prettier-vscode"
-    },
-    "[mdx]": {
-        "editor.defaultFormatter": "esbenp.prettier-vscode",
-        "editor.wordWrap": "on"
-    },
     "typescript.surveys.enabled": false,
     "explorer.fileNesting.enabled": true,
     "explorer.fileNesting.patterns": {
@@ -22,13 +14,15 @@
         }
     ],
     "typescript.tsdk": "node_modules/typescript/lib",
-    "[markdown]": {
+    "editor.defaultFormatter": "biomejs.biome",
+    "[javascript][javascriptreact][typescript][typescriptreact]": {
+        "editor.defaultFormatter": "biomejs.biome"
+    },
+    "[jsonc][json][github-actions-workflow][yaml]": {
         "editor.defaultFormatter": "esbenp.prettier-vscode"
     },
-    "[typescriptreact]": {
-        "editor.defaultFormatter": "biomejs.biome"
-    },
-    "[javascript]": {
-        "editor.defaultFormatter": "biomejs.biome"
+    "[markdown][mdx]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.wordWrap": "on"
     }
 }
