@@ -1,4 +1,4 @@
-import type { RedisClientType } from 'redis';
+import { SchemaFieldTypes, type RedisClientType } from 'redis';
 
 import type { Cache, CacheHandlerValue, RevalidatedTags } from '../cache-handler';
 import type { RedisJSON, UseTtlOptions } from '../common-types';
@@ -68,6 +68,10 @@ export default async function createCache<T extends RedisClientType>({
         }
     }
 
+    function sanitizeTag(str: string) {
+        return str.replace(/[^a-zA-Z0-9]/gi, '_');
+    }
+
     assertClientIsReady();
 
     await client.json.set(
@@ -79,6 +83,20 @@ export default async function createCache<T extends RedisClientType>({
             NX: true,
         },
     );
+
+    try {
+        await client.ft.create(
+            'idx:tags',
+            {
+                '$value.tags': { type: SchemaFieldTypes.TEXT, AS: 'tag' },
+            },
+            {
+                ON: 'JSON',
+            },
+        );
+    } catch (e) {
+        // Index already exists
+    }
 
     return {
         name: 'redis-stack',
@@ -105,6 +123,10 @@ export default async function createCache<T extends RedisClientType>({
                 preparedCacheValue = structuredClone(cacheValue);
                 // @ts-expect-error -- object must have the same shape as cacheValue
                 preparedCacheValue.value.body = cacheValue.value.body.toString('base64') as unknown as Buffer;
+            }
+
+            if (cacheValue.value?.kind === 'FETCH') {
+                cacheValue.value.tags = cacheValue.value.tags?.map(sanitizeTag);
             }
 
             const options = getTimeoutRedisCommandOptions(timeoutMs);
@@ -139,10 +161,15 @@ export default async function createCache<T extends RedisClientType>({
         async revalidateTag(tag, revalidatedAt) {
             assertClientIsReady();
 
+            let keys = await client.ft.search('idx:tags', `@tag:(${sanitizeTag(tag)})`);
+            for (let doc of keys.documents) {
+                await client.del(doc.id);
+            }
+
             await client.json.set(
                 getTimeoutRedisCommandOptions(timeoutMs),
                 keyPrefix + revalidatedTagsKey,
-                `.${tag}`,
+                `.${sanitizeTag(tag)}`,
                 revalidatedAt,
             );
         },
