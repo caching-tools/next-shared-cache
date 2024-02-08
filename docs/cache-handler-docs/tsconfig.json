@@ -2,15 +2,15 @@
     "extends": "@repo/typescript-config/nextjs.json",
     "compilerOptions": {
         "paths": {
-            "cache-handler-docs/*": ["./src/*"],
+            "cache-handler-docs/*": ["./src/*"]
         },
         "plugins": [
             {
-                "name": "next",
-            },
-        ],
+                "name": "next"
+            }
+        ]
     },
     "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "run-app-instances.ts"],
 
-    "exclude": ["node_modules"],
+    "exclude": ["node_modules"]
 }
