@@ -10,7 +10,7 @@
         "@typescript-eslint/parser": "6.20.0",
         "@vercel/style-guide": "5.2.0",
         "eslint-config-prettier": "9.1.0",
-        "eslint-config-turbo": "1.12.2",
+        "eslint-config-turbo": "1.12.3",
         "eslint-plugin-only-warn": "1.1.0",
         "typescript": "5.3.3"
     }
