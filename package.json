@@ -43,7 +43,7 @@
         "@repo/typescript-config": "*",
         "diffscribe": "*",
         "glob": "10.3.10",
-        "prettier": "3.2.4",
+        "prettier": "3.2.5",
         "turbo": "1.12.3"
     },
     "engines": {
