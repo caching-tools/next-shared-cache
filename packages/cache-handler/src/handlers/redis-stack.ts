@@ -125,8 +125,8 @@ export default async function createCache<T extends RedisClientType>({
                 preparedCacheValue.value.body = cacheValue.value.body.toString('base64') as unknown as Buffer;
             }
 
-            if (cacheValue.value?.kind === 'FETCH') {
-                cacheValue.value.tags = cacheValue.value.tags?.map(sanitizeTag);
+            if (preparedCacheValue.value?.kind === 'FETCH') {
+                preparedCacheValue.value.tags = preparedCacheValue.value.tags?.map(sanitizeTag);
             }
 
             const options = getTimeoutRedisCommandOptions(timeoutMs);
