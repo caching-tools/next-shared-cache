@@ -32,7 +32,7 @@ IncrementalCache.onCreation(async () => {
     client,
     useTtl,
     // timeout for the Redis client operations like `get` and `set`
-    // afeter this timeout, the operation will be considered failed and the `localCache` will be used
+    // after this timeout, the operation will be considered failed and the `localCache` will be used
     timeoutMs: 5000,
   });
 
