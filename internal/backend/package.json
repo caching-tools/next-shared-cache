@@ -15,7 +15,7 @@
     },
     "devDependencies": {
         "@repo/typescript-config": "*",
-        "@types/node": "20.11.16",
+        "@types/node": "20.11.17",
         "pino-pretty": "10.3.1",
         "rimraf": "5.0.5",
         "tsx": "4.7.0",
