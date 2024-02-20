@@ -10,15 +10,15 @@
         "start": "node --import tsx/esm ./src/backend.ts"
     },
     "dependencies": {
-        "fastify": "4.26.0",
-        "pino": "8.18.0"
+        "fastify": "4.26.1",
+        "pino": "8.19.0"
     },
     "devDependencies": {
         "@repo/typescript-config": "*",
-        "@types/node": "20.11.16",
+        "@types/node": "20.11.19",
         "pino-pretty": "10.3.1",
         "rimraf": "5.0.5",
-        "tsx": "4.7.0",
+        "tsx": "4.7.1",
         "typescript": "5.3.3"
     }
 }

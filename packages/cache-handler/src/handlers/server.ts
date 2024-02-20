@@ -1,6 +1,6 @@
 import { replaceJsonWithBase64, reviveFromBase64Representation } from '@neshca/json-replacer-reviver';
 
-import type { Cache, CacheHandlerValue, RevalidatedTags } from '../cache-handler';
+import type { CacheHandlerValue, Handler } from '../cache-handler';
 
 export type ServerCacheHandlerOptions = {
     /**
@@ -32,12 +32,11 @@ export type ServerCacheHandlerOptions = {
  * ```
  *
  * @remarks
- * - the `get` method retrieves a value from the server cache. If the server response is not OK, it returns `null`.
+ * - the `get` method retrieves a value from the server cache. If the server response has status 404, it returns `null`.
  * - the `set` method allows setting a value in the server cache.
- * - the `getRevalidatedTags` method retrieves revalidated tags from the server.
- * - the `revalidateTag` method updates the revalidation time for a specific tag in the server cache.
+ * - the `revalidateTag` methods are used for handling tag-based cache revalidation.
  */
-export default function createCache({ baseUrl, timeoutMs }: ServerCacheHandlerOptions): Cache {
+export default function createCache({ baseUrl, timeoutMs }: ServerCacheHandlerOptions): Handler {
     return {
         name: 'server',
         async get(key) {
@@ -58,19 +57,24 @@ export default function createCache({ baseUrl, timeoutMs }: ServerCacheHandlerOp
             }
 
             if (!response.ok) {
-                throw new Error(`Server error: ${response.status}`);
+                throw new Error(`get error: ${response.status}`);
             }
 
             const string = await response.text();
 
             return JSON.parse(string, reviveFromBase64Representation) as CacheHandlerValue;
         },
-        async set(key, value, ttl) {
+        async set(key, cacheHandlerValue) {
             const url = new URL('/set', baseUrl);
+
+            const isRouteKind = cacheHandlerValue.value?.kind === 'ROUTE';
 
             const response = await fetch(url, {
                 method: 'POST',
-                body: JSON.stringify([key, JSON.stringify(value, replaceJsonWithBase64), ttl]),
+                body: JSON.stringify([
+                    key,
+                    JSON.stringify(cacheHandlerValue, isRouteKind ? replaceJsonWithBase64 : undefined),
+                ]),
                 headers: {
                     'Content-Type': 'application/json',
                 },
@@ -82,35 +86,15 @@ export default function createCache({ baseUrl, timeoutMs }: ServerCacheHandlerOp
             });
 
             if (!response.ok) {
-                throw new Error(`Server error: ${response.status}`);
+                throw new Error(`set error: ${response.status}`);
             }
         },
-
-        async getRevalidatedTags() {
-            const url = new URL('/getRevalidatedTags', baseUrl);
-
-            const response = await fetch(url, {
-                signal: timeoutMs ? AbortSignal.timeout(timeoutMs) : undefined,
-                // @ts-expect-error -- act as an internal fetch call
-                next: {
-                    internal: true,
-                },
-            });
-
-            if (!response.ok) {
-                throw new Error('Server error.', { cause: response });
-            }
-
-            const json = (await response.json()) as RevalidatedTags;
-
-            return json;
-        },
-        async revalidateTag(tag, revalidatedAt) {
+        async revalidateTag(tag) {
             const url = new URL('/revalidateTag', baseUrl);
 
             const response = await fetch(url, {
                 method: 'POST',
-                body: JSON.stringify([tag, revalidatedAt]),
+                body: JSON.stringify([tag]),
                 headers: {
                     'Content-Type': 'application/json',
                 },
@@ -121,8 +105,8 @@ export default function createCache({ baseUrl, timeoutMs }: ServerCacheHandlerOp
                 },
             });
 
-            if (response.status > 500 && response.status < 600) {
-                throw new Error(`Server error: ${response.status}`);
+            if (!response.ok) {
+                throw new Error(`revalidateTag error: ${response.status}`);
             }
         },
     };

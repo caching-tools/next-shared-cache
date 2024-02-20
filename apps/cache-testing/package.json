@@ -29,16 +29,16 @@
         "@repo/eslint-config": "*",
         "@repo/typescript-config": "*",
         "@types/eslint": "8.56.2",
-        "@types/node": "20.11.16",
-        "@types/react": "18.2.55",
+        "@types/node": "20.11.19",
+        "@types/react": "18.2.56",
         "@types/react-dom": "18.2.19",
         "dotenv-cli": "7.3.0",
         "eslint": "8.56.0",
-        "fastify": "4.26.0",
+        "fastify": "4.26.1",
         "pm2": "5.3.1",
         "redis": "4.6.13",
         "rimraf": "5.0.5",
-        "tsx": "4.7.0",
+        "tsx": "4.7.1",
         "typescript": "5.3.3"
     }
 }
