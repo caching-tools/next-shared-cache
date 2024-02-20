@@ -1,11 +1,9 @@
 import type { LruCacheOptions } from '@neshca/next-lru-cache/next-cache-handler-value';
 import { createCache } from '@neshca/next-lru-cache/next-cache-handler-value';
 
-import type { Cache, CacheHandlerValue } from '../cache-handler';
-import type { UseTtlOptions } from '../common-types';
-import { calculateEvictionDelay } from '../helpers/calculate-eviction-delay';
+import type { Handler } from '../cache-handler';
 
-export type LruCacheHandlerOptions = LruCacheOptions & UseTtlOptions;
+export type LruCacheHandlerOptions = LruCacheOptions;
 
 /**
  * Creates an LRU (Least Recently Used) cache handler.
@@ -13,7 +11,7 @@ export type LruCacheHandlerOptions = LruCacheOptions & UseTtlOptions;
  * This function initializes an LRU cache handler for managing cache operations.
  * It allows setting a maximum number of items and maximum item size in bytes.
  * The handler includes methods to get and set cache values.
- * Revalidation is handled by the `IncrementalCache` class.
+ * Revalidation is handled by the `CacheHandler` class.
  *
  * @param options - The configuration options for the LRU cache handler. See {@link LruCacheHandlerOptions}.
  *
@@ -24,48 +22,44 @@ export type LruCacheHandlerOptions = LruCacheOptions & UseTtlOptions;
  * const lruCache = createLruCache({
  *   maxItemsNumber: 10000, // 10000 items
  *   maxItemSizeBytes: 1024 * 1024 * 500, // 500 MB
- *   useTtl: (maxAge) => maxAge * 1.5
  * });
  * ```
  *
  * @remarks
  * - Use this Handler as a fallback for any remote store Handler instead of the filesystem when you use only the App router.
  */
-export default function createLruCache({ useTtl = false, ...lruOptions }: LruCacheHandlerOptions = {}): Cache {
-    const lruCache = createCache(lruOptions);
+export default function createLruCache({ ...lruOptions }: LruCacheHandlerOptions = {}): Handler {
+    const lruCacheStore = createCache(lruOptions);
 
     return {
         name: 'local-lru',
         get(key) {
-            const cacheValue = lruCache.get(key);
+            const cacheValue = lruCacheStore.get(key);
 
             if (!cacheValue) {
                 return Promise.resolve(null);
             }
 
-            const { lastModified, maxAgeSeconds } = cacheValue;
-
-            if (!useTtl || !maxAgeSeconds) {
-                return Promise.resolve(cacheValue as CacheHandlerValue);
-            }
-
-            const ageSeconds = lastModified ? Math.floor((Date.now() - lastModified) / 1000) : 0;
-
-            const evictionAge = calculateEvictionDelay(maxAgeSeconds, useTtl);
-
-            if (!evictionAge || evictionAge > ageSeconds) {
-                return Promise.resolve(cacheValue as CacheHandlerValue);
-            }
-
-            lruCache.delete(key);
-
-            return Promise.resolve(null);
+            return Promise.resolve(cacheValue);
         },
-        set(key, value, maxAgeSeconds) {
-            lruCache.set(key, {
-                ...value,
-                maxAgeSeconds,
-            });
+        set(key, cacheHandlerValue) {
+            lruCacheStore.set(key, cacheHandlerValue);
+
+            return Promise.resolve();
+        },
+        revalidateTag(tag) {
+            // Iterate over all entries in the cache
+            for (const [key, { tags }] of lruCacheStore.entries()) {
+                // If the value's tags include the specified tag, delete this entry
+                if (tags.includes(tag)) {
+                    lruCacheStore.delete(key);
+                }
+            }
+
+            return Promise.resolve();
+        },
+        delete(key) {
+            lruCacheStore.delete(key);
 
             return Promise.resolve();
         },

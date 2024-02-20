@@ -9,7 +9,7 @@ const { default: pm2 } = pm2Default as unknown as { default: typeof import('pm2'
 const args = process.argv.slice(2).reduce<Record<string, string>>((acc, arg) => {
     const [key, value] = arg.split('=');
 
-    if (!key || !value) {
+    if (!(key && value)) {
         throw new Error(`Invalid argument: ${arg}`);
     }
 

@@ -1,13 +1,12 @@
-import { IncrementalCache } from '@neshca/cache-handler';
+import { CacheHandler } from '@neshca/cache-handler';
 import createLruCache from '@neshca/cache-handler/local-lru';
 
-IncrementalCache.onCreation(async () => {
+CacheHandler.onCreation(() => {
     const localCache = createLruCache();
 
     return {
-        cache: localCache,
-        useFileSystem: true,
+        handlers: [localCache],
     };
 });
 
-export default IncrementalCache;
+export default CacheHandler;

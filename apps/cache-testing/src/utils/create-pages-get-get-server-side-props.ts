@@ -20,7 +20,7 @@ export function createPagesGetServerSideProps(path: string): GetServerSideProps<
             props: {
                 count: parsedResult.count,
                 time: parsedResult.unixTimeMs,
-                revalidateAfter: Infinity,
+                revalidateAfter: Number.POSITIVE_INFINITY,
                 path,
             },
         };
