@@ -48,7 +48,7 @@ const {
 } = args;
 
 // Validations
-const commitLengthNumber = parseInt(commitLength, 10);
+const commitLengthNumber = Number.parseInt(commitLength, 10);
 if (
     Number.isNaN(commitLengthNumber) ||
     commitLengthNumber < COMMIT_LENGTH_MIN ||
@@ -57,7 +57,7 @@ if (
     throw new Error(`Invalid commit length ${commitLength}`);
 }
 
-const temperature = parseFloat(modelTemperature);
+const temperature = Number.parseFloat(modelTemperature);
 if (Number.isNaN(temperature)) {
     throw new Error(`Invalid temperature ${modelTemperature}`);
 }

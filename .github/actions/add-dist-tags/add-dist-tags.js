@@ -43,7 +43,7 @@ function run() {
                 continue;
             }
 
-            if (!name || !version) {
+            if (!(name && version)) {
                 continue;
             }
 

@@ -35,7 +35,7 @@ export default async function Page({ params: { length } }: PageParams): Promise<
             <div data-pw="random-hex">{props.randomHex}</div>
             <PreRenderedAt time={props.unixTimeMs} />
             <Suspense fallback={null}>
-                <CacheStateWatcher revalidateAfter={Infinity} time={props.unixTimeMs} />
+                <CacheStateWatcher revalidateAfter={Number.POSITIVE_INFINITY} time={props.unixTimeMs} />
             </Suspense>
         </div>
     );

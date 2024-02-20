@@ -1,10 +1,10 @@
-import { IncrementalCache } from '@neshca/cache-handler';
+import { CacheHandler } from '@neshca/cache-handler';
 import createLruCache from '@neshca/cache-handler/local-lru';
 import createRedisCache from '@neshca/cache-handler/redis-stack';
 import createRedisStringsCache from '@neshca/cache-handler/redis-strings';
 import { createClient } from 'redis';
 
-IncrementalCache.onCreation(async () => {
+CacheHandler.onCreation(async () => {
     if (!process.env.REDIS_URL) {
         console.warn('Make sure that REDIS_URL is added to the .env.local file and loaded properly.');
     }
@@ -31,9 +31,9 @@ IncrementalCache.onCreation(async () => {
     const localCache = createLruCache();
 
     return {
-        cache: [redisCache, redisStringsCache, localCache],
-        useFileSystem: true,
+        handlers: [redisCache, redisStringsCache, localCache],
+        ttl: { defaultStaleAge: 60, estimateExpireAge: (staleAge) => staleAge * 2 },
     };
 });
 
-export default IncrementalCache;
+export default CacheHandler;
