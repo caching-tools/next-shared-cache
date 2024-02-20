@@ -44,7 +44,7 @@
         "diffscribe": "*",
         "glob": "10.3.10",
         "prettier": "3.2.5",
-        "turbo": "1.12.3"
+        "turbo": "1.12.4"
     },
     "engines": {
         "node": ">=20.9.0",
