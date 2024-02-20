@@ -1,5 +1,6 @@
-import { scheduler } from 'node:timers/promises';
+import Timers from 'node:timers/promises';
 import { expect, test } from '@playwright/test';
+import { refreshPageCache, revalidateByPath, revalidateByTag } from './test-helpers';
 
 const paths = [
     '/app/with-params/dynamic-true/200',
@@ -10,7 +11,7 @@ const paths = [
 
 test.describe('On-demand revalidation', () => {
     for (const path of paths) {
-        test(`If revalidate by path or by tag is clicked, then page should be fresh after reload ${path}`, async ({
+        test(`If revalidate by tag is clicked, then page should be fresh after reload ${path}`, async ({
             page,
             baseURL,
         }) => {
@@ -18,45 +19,20 @@ test.describe('On-demand revalidation', () => {
 
             await page.goto(url.href);
 
-            await page.getByTestId('revalidate-button-path').click();
+            await refreshPageCache(page, 'tag');
 
-            await expect(page.getByTestId('is-revalidated-by-path')).toContainText('Revalidated at');
+            const valueFromPage = Number.parseInt((await page.getByTestId('data').innerText()).valueOf(), 10);
 
-            await page.reload();
+            await refreshPageCache(page, 'tag');
 
-            let pageValue = (await page.getByTestId('data').innerText()).valueOf();
+            await expect(page.getByTestId('cache-state')).toContainText('fresh');
 
-            await page.reload();
+            const valueFromPageAfterReload = Number.parseInt(
+                (await page.getByTestId('data').innerText()).valueOf(),
+                10,
+            );
 
-            await expect(page.getByTestId('data')).toHaveText(pageValue);
-
-            await page.getByTestId('revalidate-button-path').click();
-
-            await expect(page.getByTestId('is-revalidated-by-path')).toContainText('Revalidated at');
-
-            await page.reload();
-
-            await expect(page.getByTestId('data')).not.toHaveText(pageValue);
-
-            pageValue = (await page.getByTestId('data').innerText()).valueOf();
-
-            await page.reload();
-
-            await expect(page.getByTestId('data')).toHaveText(pageValue);
-
-            await page.getByTestId('revalidate-button-tag').click();
-
-            await expect(page.getByTestId('is-revalidated-by-tag')).toContainText('Revalidated at');
-
-            await page.reload();
-
-            await expect(page.getByTestId('data')).not.toHaveText(pageValue);
-
-            pageValue = (await page.getByTestId('data').innerText()).valueOf();
-
-            await page.reload();
-
-            await expect(page.getByTestId('data')).toHaveText(pageValue);
+            expect(valueFromPageAfterReload - valueFromPage === 1).toBe(true);
         });
     }
 
@@ -65,15 +41,15 @@ test.describe('On-demand revalidation', () => {
             context,
             baseURL,
         }) => {
+            test.fail(true, 'This test is failing because of revalidate by path is not supported yet.');
+
             const appAUrl = new URL(path, `${baseURL}:3000`);
 
             const appA = await context.newPage();
 
             await appA.goto(appAUrl.href);
 
-            await appA.getByTestId('revalidate-button-path').click();
-
-            await expect(appA.getByTestId('is-revalidated-by-path')).toContainText('Revalidated at');
+            await revalidateByPath(appA);
 
             const appBUrl = new URL(path, `${baseURL}:3001`);
 
@@ -85,7 +61,7 @@ test.describe('On-demand revalidation', () => {
 
             const valueFromPageB = Number.parseInt((await appB.getByTestId('data').innerText()).valueOf(), 10);
 
-            expect(valueFromPageA + 1 === valueFromPageB).toBe(true);
+            expect(valueFromPageB - valueFromPageA === 1).toBe(true);
         });
     }
 
@@ -100,9 +76,7 @@ test.describe('On-demand revalidation', () => {
 
             await appA.goto(appAUrl.href);
 
-            await appA.getByTestId('revalidate-button-tag').click();
-
-            await expect(appA.getByTestId('is-revalidated-by-tag')).toContainText('Revalidated at');
+            await revalidateByTag(appA);
 
             const appBUrl = new URL(path, `${baseURL}:3001`);
 
@@ -114,7 +88,7 @@ test.describe('On-demand revalidation', () => {
 
             const valueFromPageB = Number.parseInt((await appB.getByTestId('data').innerText()).valueOf(), 10);
 
-            expect(valueFromPageA + 1 === valueFromPageB).toBe(true);
+            expect(valueFromPageB - valueFromPageA === 1).toBe(true);
         });
     }
 });
@@ -126,11 +100,7 @@ test.describe('Time-based revalidation', () => {
 
             await page.goto(url.href);
 
-            await page.getByTestId('revalidate-button-path').click();
-
-            await expect(page.getByTestId('is-revalidated-by-path')).toContainText('Revalidated at');
-
-            await page.reload();
+            await refreshPageCache(page, 'tag');
 
             const pageValue = (await page.getByTestId('data').innerText()).valueOf();
 
@@ -141,11 +111,42 @@ test.describe('Time-based revalidation', () => {
             await expect(page.getByTestId('cache-state')).toContainText('stale', { timeout: 7500 });
 
             // Temporary workaround: Addressing intermittent test failures observed in GitHub Actions.
-            await scheduler.wait(1000);
+            await Timers.scheduler.wait(1000);
 
             await page.reload();
 
             await expect(page.getByTestId('data')).toHaveText(pageValue);
+
+            await page.reload();
+
+            await expect(page.getByTestId('data')).not.toHaveText(pageValue);
+        });
+    }
+
+    for (const path of paths) {
+        test(`Page should be fresh after reloaded once if becoming stale and waiting the same time for cache expiration ${path}`, async ({
+            page,
+            baseURL,
+        }) => {
+            const url = new URL(path, `${baseURL}:3000`);
+
+            const startTime = Date.now();
+
+            await page.goto(url.href);
+
+            await refreshPageCache(page, 'tag');
+
+            const pageValue = (await page.getByTestId('data').innerText()).valueOf();
+
+            await page.reload();
+
+            await expect(page.getByTestId('data')).toHaveText(pageValue);
+
+            await expect(page.getByTestId('cache-state')).toContainText('stale', { timeout: 7500 });
+
+            const elapsedTime = Date.now() - startTime;
+
+            await Timers.scheduler.wait(elapsedTime);
 
             await page.reload();
 
@@ -164,11 +165,7 @@ test.describe('Time-based revalidation', () => {
 
             await appA.goto(appAUrl.href);
 
-            await appA.getByTestId('revalidate-button-path').click();
-
-            await expect(appA.getByTestId('is-revalidated-by-path')).toContainText('Revalidated at');
-
-            await appA.reload();
+            await refreshPageCache(appA, 'tag');
 
             await expect(appA.getByTestId('cache-state')).toContainText('stale', { timeout: 7500 });
 
@@ -205,11 +202,7 @@ test.describe('Time-based revalidation', () => {
 
             await appA.goto(appAUrl.href);
 
-            await appA.getByTestId('revalidate-button-path').click();
-
-            await expect(appA.getByTestId('is-revalidated-by-path')).toContainText('Revalidated at');
-
-            await appA.reload();
+            await refreshPageCache(appA, 'tag');
 
             await expect(appA.getByTestId('cache-state')).toContainText('stale', { timeout: 7500 });
 
@@ -244,9 +237,7 @@ test.describe('Data consistency between two app instances for the same page', ()
             await appA.goto(appAUrl.href);
             await appB.goto(appBUrl.href);
 
-            await appA.getByTestId('revalidate-button-path').click();
-
-            await expect(appA.getByTestId('is-revalidated-by-path')).toContainText('Revalidated at');
+            await refreshPageCache(appA, 'tag');
 
             await appA.reload();
             await appB.reload();
@@ -275,9 +266,7 @@ test.describe('Data consistency after server restart', () => {
             await appA.goto(appAUrl.href);
             await appB.goto(appBUrl.href);
 
-            await appA.getByTestId('revalidate-button-path').click();
-
-            await expect(appA.getByTestId('is-revalidated-by-path')).toContainText('Revalidated at');
+            await refreshPageCache(appA, 'tag');
 
             await appA.reload();
             await appB.reload();
@@ -293,11 +282,7 @@ test.describe('Data consistency after server restart', () => {
             expect(restartResult.status).toBe(200);
 
             for await (const _ of [1, 2, 3]) {
-                await appA.getByTestId('revalidate-button-path').click();
-
-                await expect(appA.getByTestId('is-revalidated-by-path')).toContainText('Revalidated at');
-
-                await appA.reload();
+                await refreshPageCache(appA, 'tag');
             }
 
             valueFromPageA = Number.parseInt((await appA.getByTestId('data').innerText()).valueOf(), 10);

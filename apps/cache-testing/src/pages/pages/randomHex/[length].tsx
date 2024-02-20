@@ -46,7 +46,7 @@ export default function Page({ randomHex, unixTimeMs }: RandomHexPageProps): JSX
         <div>
             <div data-pw="random-hex">{randomHex}</div>
             <PreRenderedAt time={unixTimeMs} />
-            <CacheStateWatcher revalidateAfter={Infinity} time={unixTimeMs} />
+            <CacheStateWatcher revalidateAfter={Number.POSITIVE_INFINITY} time={unixTimeMs} />
         </div>
     );
 }

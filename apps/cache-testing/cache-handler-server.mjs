@@ -1,8 +1,8 @@
-import { IncrementalCache } from '@neshca/cache-handler';
+import { CacheHandler } from '@neshca/cache-handler';
 import createLruCache from '@neshca/cache-handler/local-lru';
 import createServerCache from '@neshca/cache-handler/server';
 
-IncrementalCache.onCreation(async () => {
+CacheHandler.onCreation(() => {
     const baseUrl = process.env.REMOTE_CACHE_SERVER_BASE_URL ?? 'http://localhost:8080';
 
     const httpCache = createServerCache({
@@ -12,9 +12,8 @@ IncrementalCache.onCreation(async () => {
     const localCache = createLruCache();
 
     return {
-        cache: [httpCache, localCache],
-        useFileSystem: true,
+        handlers: [httpCache, localCache],
     };
 });
 
-export default IncrementalCache;
+export default CacheHandler;
