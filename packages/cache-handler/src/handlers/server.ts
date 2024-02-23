@@ -24,7 +24,7 @@ export type ServerCacheHandlerOptions = {
  *
  * @example
  * ```js
- * const serverCache = createCache({
+ * const serverHandler = createHandler({
  *   baseUrl: 'http://localhost:8080/',
  * });
  * ```
@@ -34,7 +34,7 @@ export type ServerCacheHandlerOptions = {
  * - the `set` method allows setting a value in the server cache.
  * - the `revalidateTag` methods are used for handling tag-based cache revalidation.
  */
-export default function createCache({ baseUrl, timeoutMs }: ServerCacheHandlerOptions): Handler {
+export default function createHandler({ baseUrl, timeoutMs }: ServerCacheHandlerOptions): Handler {
     return {
         name: 'server',
         async get(key) {

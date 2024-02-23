@@ -1,18 +1,18 @@
 import { CacheHandler } from '@neshca/cache-handler';
-import createLruCache from '@neshca/cache-handler/local-lru';
-import createServerCache from '@neshca/cache-handler/server';
+import createLruHandler from '@neshca/cache-handler/local-lru';
+import createServerHandler from '@neshca/cache-handler/server';
 
 CacheHandler.onCreation(() => {
     const baseUrl = process.env.REMOTE_CACHE_SERVER_BASE_URL ?? 'http://localhost:8080';
 
-    const httpCache = createServerCache({
+    const httpHandler = createServerHandler({
         baseUrl,
     });
 
-    const localCache = createLruCache();
+    const localHandler = createLruHandler();
 
     return {
-        handlers: [httpCache, localCache],
+        handlers: [httpHandler, localHandler],
     };
 });
 

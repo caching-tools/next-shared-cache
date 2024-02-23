@@ -1,0 +1,17 @@
+# On-demand revalidation
+
+Next.js provides a way to revalidate a page or a result of a `fetch` call on-demand. `@neshca/cache-handler` supports this feature with one limitation: `revalidatePath` only works for the Pages Router.
+
+## Usage
+
+### Pages Router
+
+The Pages Router naturally supports only the `revalidatePath` option.
+
+See [Using On-Demand Revalidation](https://nextjs.org/docs/pages/building-your-application/data-fetching/incremental-static-regeneration#using-on-demand-revalidation) in the Next.js documentation.
+
+### App Router
+
+The App Router supports both `revalidatePath` and `revalidateTag` functions. However due to current limitations, `revalidatePath` is disabled for the App Router.
+
+See [On-demand Revalidation](https://nextjs.org/docs/app/building-your-application/data-fetching/fetching-caching-and-revalidating#on-demand-revalidation) in the Next.js documentation.

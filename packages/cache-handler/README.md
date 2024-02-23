@@ -2,7 +2,7 @@
 
 **Flexible API to replace the default Next.js cache, accommodating custom cache solutions for multi-instance self-hosted deployments**
 
-🎉 Next.js stabilized the API, and we are almost there, just a few steps before version 1.0.0!
+🎉 1.0.0 is out!
 
 Check out the [changelog](https://github.com/caching-tools/next-shared-cache/blob/canary/packages/cache-handler/CHANGELOG.md)
 
@@ -17,10 +17,9 @@ Check out the [changelog](https://github.com/caching-tools/next-shared-cache/blo
 3. [Examples and Practical Implementations](#examples-and-practical-implementations)
 4. [Requirements](#requirements)
 5. [Documentation](#documentation)
-6. [Project Status](#project-status)
-7. [Roadmap](#roadmap)
-8. [Developing and Contributing](#developing-and-contributing)
-9. [License](#license)
+6. [Roadmap](#roadmap)
+7. [Developing and Contributing](#developing-and-contributing)
+8. [License](#license)
 
 ## Overview
 
@@ -45,11 +44,9 @@ Begin enhancing your application's caching system with our [Installation and the
 Discover the versatility of `@neshca/cache-handler` in the examples section, where real-world scenarios are illustrated.
 
 - [Official Next.js template ↗](https://github.com/vercel/next.js/tree/canary/examples/cache-handler-redis)
-- [Redis Stack ↗](https://caching-tools.github.io/next-shared-cache/redis-stack)
-- [Redis String ↗](https://caching-tools.github.io/next-shared-cache/redis-strings)
-- [HTTP server ↗](https://caching-tools.github.io/next-shared-cache/server)
-- [Custom Redis Stack ↗](https://caching-tools.github.io/next-shared-cache/redis-stack-custom)
-- [Custom Redis String ↗](https://caching-tools.github.io/next-shared-cache/redis-strings-custom)
+- [Redis Handler ↗](https://caching-tools.github.io/next-shared-cache/redis)
+- [Custom Redis String Handler ↗](https://caching-tools.github.io/next-shared-cache/redis-strings-custom)
+- [HTTP server Handler ↗](https://caching-tools.github.io/next-shared-cache/server)
 
 ## Requirements
 
@@ -60,14 +57,11 @@ Discover the versatility of `@neshca/cache-handler` in the examples section, whe
 
 [Documentation ↗](https://caching-tools.github.io/next-shared-cache)
 
-## Project Status
-
-Next.js stabilized the API, and we are almost there. Any **breaking changes** made to the library will result in a **major** version increase of the package. You are welcome to try it out and provide feedback.
-
 ### Roadmap
 
 - [x] Support for App routes;
 - [x] Support for Pages routes;
+- [x] TTL by default for cache values;
 - [x] Happy path tests;
 - [x] Examples;
 - [x] Documentation;

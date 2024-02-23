@@ -1,7 +1,7 @@
 {
     "name": "@neshca/cache-handler",
     "version": "0.6.10",
-    "description": "Flexible API to replace the default Next.js cache, accommodating custom cache solutions for multi-instance deployments.",
+    "description": "Next.js self-hosting simplified.",
     "keywords": [
         "cache",
         "isr",

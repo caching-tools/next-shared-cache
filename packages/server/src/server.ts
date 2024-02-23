@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { createCache } from '@neshca/next-lru-cache/next-cache-handler-value';
+import createCacheStore from '@neshca/next-lru-cache/next-cache-handler-value';
 import Fastify from 'fastify';
 import { pino } from 'pino';
 
@@ -13,7 +13,7 @@ const logger = pino({
 
 const server = Fastify();
 
-const lruCacheStore = createCache();
+const lruCacheStore = createCacheStore();
 
 const host = process.env.HOST ?? 'localhost';
 const port = Number.parseInt(process.env.PORT ?? '8080', 10);

@@ -7,24 +7,23 @@ There are scenarios, especially during deployment, where your Redis server may n
 1. **Modify the `cache-handler.mjs` File**: Adjust the `onCreation` method in your `cache-handler.mjs` file to conditionally connect to the Redis cache. The modified code should look like this:
 
    ```js filename="cache-handler.mjs" copy
-   IncrementalCache.onCreation(async () => {
-     let redisCache;
+   CacheHandler.onCreation(async () => {
+     let redisHandler;
 
      if (process.env.REDIS_AVAILABLE) {
        await client.connect();
 
-       redisCache = await createRedisCache({
+       redisHandler = await createRedisHandler({
          client,
        });
      }
 
-     // The cache array can contain undefined values. The will be filtered out by IncrementalCache.
-     const cache = [redisCache];
+     const localHandler = {
+       // ...
+     };
 
      return {
-       cache,
-       // Always use the file system cache when building the app without any cache.
-       useFileSystem: !cache.some(Boolean),
+       handlers: [redisHandler, localHandler],
      };
    });
    ```

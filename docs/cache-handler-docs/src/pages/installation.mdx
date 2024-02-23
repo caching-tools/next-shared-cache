@@ -46,31 +46,42 @@ pnpm create next-app --example cache-handler-redis cache-handler-redis-app
    In your project root, create a file named `cache-handler.mjs` for your cache configuration.
 
 2. **Configure the Cache Handler**:  
-   Below is a basic setup example:
+    Below is a basic setup example:
 
    ```js filename="cache-handler.mjs" copy
-   import { IncrementalCache } from '@neshca/cache-handler';
+   import { CacheHandler } from '@neshca/cache-handler';
 
-   IncrementalCache.onCreation(async () => {
+   CacheHandler.onCreation(async () => {
      // Don't use Map in production. This is just an example.
      const cacheStore = new Map();
 
-     const cache = {
+     const handler = {
        async get(key) {
          return cacheStore.get(key);
        },
        async set(key, value) {
          cacheStore.set(key, value);
        },
+       async revalidateTag(tag) {
+         // Iterate over all entries in the cache
+         for (const [key, { tags }] of cacheStore) {
+           // If the value's tags include the specified tag, delete this entry
+           if (tags.includes(tag)) {
+             cacheStore.delete(key);
+           }
+         }
+       },
+       async delete(key) {
+         cacheStore.delete(key);
+       },
      };
 
      return {
-       cache,
-       useFileSystem: true,
+       handlers: [handler],
      };
    });
 
-   export default IncrementalCache;
+   export default CacheHandler;
    ```
 
 3. **Integrate with Next.js**:  
@@ -78,7 +89,6 @@ pnpm create next-app --example cache-handler-redis cache-handler-redis-app
 
    ```js filename="next.config.js" copy
    const nextConfig = {
-     // './cache-handler.mjs' in case you're using EcmaScript modules.
      cacheHandler: process.env.NODE_ENV === 'production' ? require.resolve('./cache-handler.mjs') : undefined,
      // Use `experimental` option instead of the `cacheHandler` property when using Next.js versions from 13.5.1 to 14.0.4
      /* experimental: {
@@ -109,7 +119,6 @@ pnpm create next-app --example cache-handler-redis cache-handler-redis-app
 
 With the setup complete, explore `@neshca/cache-handler`'s advanced features:
 
-- Check out the [Redis Integration Example](/redis-stack);
-- Learn [how to use the API](/configuration/on-creation) and craft your own cache handler configuration;
-- Learn [how to use TTL](/configuration/ttl) for cache eviction.
+- Check out the [Redis Integration Example](/redis);
+- Learn [how to use the API](/configuration/on-creation) and craft your own custom Handler;
 - See how to [debug and troubleshoot](/troubleshooting) your cache handler configuration.

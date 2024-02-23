@@ -2,11 +2,7 @@ import { Callout } from 'nextra/components';
 
 ## Custom Redis strings example
 
-Install `@neshca/json-replacer-reviver` to efficiently store Buffers in Redis strings
-
-```sh npm2yarn copy
-npm i -D @neshca/json-replacer-reviver
-```
+This example demonstrates how to create a custom cache handler for Redis strings.
 
 <Callout type="info">
   In this example, we assume that in your deployment, you have `REDIS_URL` environment variable set to the URL of your
@@ -16,87 +12,145 @@ npm i -D @neshca/json-replacer-reviver
 Create a file called `cache-handler.mjs` next to your `next.config.js` with the following contents:
 
 ```js filename="cache-handler.mjs" copy
-import { IncrementalCache } from '@neshca/cache-handler';
-import createLruCache from '@neshca/cache-handler/local-lru';
-import { reviveFromBase64Representation, replaceJsonWithBase64 } from '@neshca/json-replacer-reviver';
-import { createClient } from 'redis';
+import { CacheHandler } from '@neshca/cache-handler';
+import createLruHandler from '@neshca/cache-handler/local-lru';
+import { createClient, commandOptions } from 'redis';
 
-const REVALIDATED_TAGS_KEY = 'sharedRevalidatedTags';
-
-IncrementalCache.onCreation(async () => {
+CacheHandler.onCreation(async () => {
   // always create a Redis client inside the `onCreation` callback
   const client = createClient({
     url: process.env.REDIS_URL ?? 'redis://localhost:6379',
   });
 
+  // ignore Redis errors: https://github.com/redis/node-redis?tab=readme-ov-file#events
   client.on('error', () => {});
 
-  // read more about TTL limitations https://caching-tools.github.io/next-shared-cache/configuration/ttl
-  const useTtl = false;
+  // define a timeout for Redis operations
+  const timeoutMs = 1000;
 
-  await client.connect();
+  // define a key prefix for the cache
+  const keyPrefix = 'cache:';
 
-  const localCache = createLruCache({
-    useTtl,
-  });
+  // define a key for shared tags
+  const sharedTagsKey = 'sharedTags';
 
+  // create a function to ensure that the client is ready before using it
   function assertClientIsReady() {
     if (!client.isReady) {
-      throw new Error('Redis client is not ready');
+      throw new Error('Redis client is not ready yet or connection is lost. Keep trying...');
     }
   }
-  const redisCache = {
-    name: 'custom-redis-strings',
+
+  // create a custom Redis Handler
+  const customRedisHandler = {
+    // give the handler a name
+    name: 'redis-strings-custom',
     async get(key) {
+      // ensure that the client is ready before using it
       assertClientIsReady();
 
-      const result = await client.get(key);
+      // create a new AbortSignal with a timeout for the Redis operation
+      const options = commandOptions({ signal: AbortSignal.timeout(timeoutMs) });
 
+      // get the value from Redis
+      const result = await client.get(options, keyPrefix + key);
+
+      // if the key does not exist, return null
       if (!result) {
         return null;
       }
 
-      return JSON.parse(result, reviveFromBase64Representation);
+      // Redis stores strings, so we need to parse the JSON
+      return JSON.parse(result);
     },
-    async set(key, value, ttl) {
+    async set(key, cacheHandlerValue) {
+      // ensure that the client is ready before using it
       assertClientIsReady();
 
-      await client.set(
-        key,
-        JSON.stringify(value, replaceJsonWithBase64),
-        useTtl && typeof ttl === 'number' ? { EX: ttl } : undefined,
+      // create a new AbortSignal with a timeout for the Redis operation
+      const options = commandOptions({ signal: AbortSignal.timeout(timeoutMs) });
+
+      // set the value in Redis with a stringified JSON
+      const setOperation = client.set(options, keyPrefix + key, JSON.stringify(cacheHandlerValue));
+
+      // if the cache handler value has a lifespan, set the expiration
+      // cacheHandlerValue.lifespan can be undefined if the cacheHandlerValue page from the Pages Router without getStaticPaths or with fallback: false
+      // so, we need to check if it exists before using it
+      const expireOperation = cacheHandlerValue.lifespan
+        ? client.expireAt(options, keyPrefix + key, cacheHandlerValue.lifespan.expireAt)
+        : undefined;
+
+      // if the cache handler value has tags, set the tags
+      // it is necessary for revalidation via revalidateTag
+      const setTagsOperation = cacheHandlerValue.tags.length
+        ? client.hSet(options, `${keyPrefix}${sharedTagsKey}`, {
+            [key]: JSON.stringify(cacheHandlerValue.tags),
+          })
+        : undefined;
+
+      // wait for all operations to complete
+      await Promise.all([setOperation, expireOperation, setTagsOperation]);
+    },
+    async revalidateTag(tag) {
+      // ensure that the client is ready before using it
+      assertClientIsReady();
+
+      // create a new AbortSignal with a timeout for the Redis operation
+      const getOptions = commandOptions({ signal: AbortSignal.timeout(timeoutMs) });
+
+      // get all keys and their tags from Redis
+      const remoteTags = await client.hGetAll(getOptions, `${keyPrefix}${sharedTagsKey}`);
+
+      // create a map from the remote tags
+      const tagsMap = new Map(Object.entries(remoteTags));
+
+      // create an array of keys to delete
+      const keysToDelete = [];
+
+      // store the revalidated tags
+      const revalidatedTags = new Map();
+
+      // iterate over all keys and their tags
+      for (const [key, tagsString] of tagsMap) {
+        // tags are stored as JSON array, so we need to parse them
+        const tags = JSON.parse(tagsString);
+
+        // if the tags include the specified tag, add the key to the delete list
+        if (tags.includes(tag)) {
+          keysToDelete.push(keyPrefix + key);
+          // set an empty string as the value for the revalidated tag
+          revalidatedTags.set(key, '');
+        }
+      }
+
+      // create a new AbortSignal with a timeout for the Redis operation
+      const options = commandOptions({ signal: AbortSignal.timeout(timeoutMs) });
+
+      // delete the keys from Redis
+      const deleteKeysOperation = client.del(options, keysToDelete);
+
+      // update the tags in Redis by setting an empty string for the revalidated tags
+      const updateTagsOperation = client.hSet(
+        options,
+        `${keyPrefix}${sharedTagsKey}`,
+        Object.fromEntries(revalidatedTags),
       );
-    },
-    async getRevalidatedTags() {
-      assertClientIsReady();
 
-      const sharedRevalidatedTags = await client.hGetAll(REVALIDATED_TAGS_KEY);
-
-      const entries = Object.entries(sharedRevalidatedTags);
-
-      const revalidatedTags = entries.reduce((acc, [tag, revalidatedAt]) => {
-        acc[tag] = Number(revalidatedAt);
-        return acc;
-      }, {});
-
-      return revalidatedTags;
-    },
-    async revalidateTag(tag, revalidatedAt) {
-      assertClientIsReady();
-
-      await client.hSet(REVALIDATED_TAGS_KEY, {
-        [tag]: revalidatedAt,
-      });
+      // wait for all operations to complete
+      await Promise.all([deleteKeysOperation, updateTagsOperation]);
     },
   };
 
+  // create a local LRU handler
+  // this handler is used as a fallback for the Redis handler
+  const localHandler = createLruHandler();
+
   return {
-    cache: [redisCache, localCache],
-    useFileSystem: !useTtl,
+    handlers: [customRedisHandler, localHandler],
   };
 });
 
-export default IncrementalCache;
+export default CacheHandler;
 ```
 
-<Callout type="info">Ensure that the Redis instance is running when you build your Next.js app.</Callout>
+Ensure that the Redis instance is running when you build your Next.js app. If you can not ensure that, see how to disable the Handler during a build stage in the [Building the App Without Redis Cache Connection](/configuration/opt-out-cache-on-build) section.

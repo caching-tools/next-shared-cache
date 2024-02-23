@@ -1,9 +1,9 @@
 name: Tests
 on:
   push:
-    branches: [canary]
+    branches: [canary, canary-1.0.0-rc]
   pull_request:
-    branches: [canary]
+    branches: [canary, canary-1.0.0-rc]
 jobs:
   test:
     name: 'redis-stack'

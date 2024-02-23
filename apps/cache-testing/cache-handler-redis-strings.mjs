@@ -1,6 +1,6 @@
 import { CacheHandler } from '@neshca/cache-handler';
-import createLruCache from '@neshca/cache-handler/local-lru';
-import createRedisCache from '@neshca/cache-handler/redis-strings';
+import createLruHandler from '@neshca/cache-handler/local-lru';
+import createRedisHandler from '@neshca/cache-handler/redis-strings';
 import { createClient } from 'redis';
 
 CacheHandler.onCreation(async () => {
@@ -21,15 +21,15 @@ CacheHandler.onCreation(async () => {
     await client.connect();
     console.info('Redis client connected.');
 
-    const redisCache = createRedisCache({
+    const redisHandler = createRedisHandler({
         client,
         keyPrefix: PREFIX,
     });
 
-    const localCache = createLruCache();
+    const localHandler = createLruHandler();
 
     return {
-        handlers: [redisCache, localCache],
+        handlers: [redisHandler, localHandler],
     };
 });
 

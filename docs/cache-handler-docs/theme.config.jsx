@@ -50,11 +50,7 @@ export default {
         ),
     },
     banner: {
-        key: '0.6.0-release',
-        text: (
-            <a href="https://nextjs.org/blog/next-14-1">
-                🎉 Next.js stabilized the API, and we are almost there, just a few steps before version 1.0.0!
-            </a>
-        ),
+        key: 'version-1.0.0',
+        text: <a href="https://nextjs.org/blog/next-14-1">🎉 1.0.0 is out!</a>,
     },
 };
