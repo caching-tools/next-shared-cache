@@ -40,7 +40,7 @@ export type RedisCacheHandlerOptions<T> = {
  * @example
  * ```js
  * const redisClient = createRedisClient(...);
- * const cache = await createCache({
+ * const cache = await createHandler({
  *   client: redisClient,
  *   keyPrefix: 'myApp:',
  *   sharedTagsKey: 'myTags'
@@ -52,7 +52,7 @@ export type RedisCacheHandlerOptions<T> = {
  * - the `set` method allows setting a value in the cache.
  * - the `revalidateTag` methods are used for handling tag-based cache revalidation.
  */
-export default async function createCache<T extends RedisClientType>({
+export default async function createHandler<T extends RedisClientType>({
     client,
     keyPrefix = '',
     sharedTagsKey = '__sharedTags__',

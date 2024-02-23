@@ -121,7 +121,7 @@ export type Handler = {
  */
 export type TTLParameters = {
     /**
-     * The time period in seconds for when the cache entry becomes stale. Defaults to 1 year.
+     * The time in seconds for when the cache entry becomes stale. Defaults to 1 year.
      */
     defaultStaleAge: number;
     /**
@@ -141,7 +141,7 @@ export type TTLParameters = {
  */
 export type CacheHandlerConfig = {
     /**
-     * A custom cache instance or an array of cache instances that conform to the Cache interface.
+     * An array of cache instances that conform to the Handler interface.
      * Multiple caches can be used to implement various caching strategies or layers.
      */
     handlers: (Handler | undefined | null)[];
@@ -205,11 +205,7 @@ export type CacheCreationContext = {
 };
 
 /**
- * Represents a hook function that is called during the creation of the cache. This function allows for custom logic
- * to be executed at the time of cache instantiation, enabling dynamic configuration or initialization tasks.
- *
- * The function can either return a {@link CacheHandlerConfig} object directly or a Promise that resolves to a {@link CacheHandlerConfig},
- * allowing for asynchronous operations if needed.
+ * Represents a hook function that is called during the build and on start of the application.
  *
  * @param context - The {@link CacheCreationContext} object, providing contextual information about the cache creation environment,
  * such as server directory paths and whether the application is running in development mode.
@@ -235,14 +231,14 @@ export class CacheHandler implements NextCacheHandler {
      * ```js
      * // cache-handler.mjs
      * CacheHandler.onCreation(async () => {
-     *   const redisCache = await createRedisCache({
+     *   const redisHandler = await createRedisHandler({
      *    client,
      *   });
      *
-     *   const localCache = createLruCache();
+     *   const localHandler = createLruHandler();
      *
      *   return {
-     *     cache: [redisCache, localCache],
+     *     handlers: [redisHandler, localHandler],
      *   };
      * });
      *
@@ -356,9 +352,9 @@ export class CacheHandler implements NextCacheHandler {
      *
      * @remarks
      * - `lastModifiedAt` is the Unix timestamp (in seconds) for when the cache entry was last modified.
-     * - `staleAge` is the time period in seconds which equals to the `revalidate` option from Next.js pages.
+     * - `staleAge` is the time in seconds which equals to the `revalidate` option from Next.js pages.
      * If page has no `revalidate` option, it will be set to 1 year.
-     * - `expireAge` is the time period in seconds for when the cache entry becomes expired.
+     * - `expireAge` is the time in seconds for when the cache entry becomes expired.
      * - `staleAt` is the Unix timestamp (in seconds) for when the cache entry becomes stale.
      * - `expireAt` is the Unix timestamp (in seconds) for when the cache entry must be removed from the cache.
      * - `revalidate` is the value from Next.js revalidate option.
@@ -455,10 +451,7 @@ export class CacheHandler implements NextCacheHandler {
                         return cacheValue;
                     } catch (error) {
                         if (CacheHandler.#debug) {
-                            console.warn(
-                                `Cache handler "${handler.name}" failed to get value for key "${key}".`,
-                                error,
-                            );
+                            console.warn(`Handler "${handler.name}" failed to get value for key "${key}".`, error);
                         }
                     }
                 }
@@ -473,7 +466,7 @@ export class CacheHandler implements NextCacheHandler {
                         } catch (error) {
                             if (CacheHandler.#debug) {
                                 console.warn(
-                                    `Cache handler "${cacheItem.name}" failed to set value for key "${key}".`,
+                                    `Handler "${cacheItem.name}" failed to set value for key "${key}".`,
                                     error,
                                 );
                             }
@@ -490,10 +483,7 @@ export class CacheHandler implements NextCacheHandler {
                             return cacheItem.revalidateTag(tag);
                         } catch (error) {
                             if (CacheHandler.#debug) {
-                                console.warn(
-                                    `Cache handler "${cacheItem.name}" failed to revalidate tag "${tag}".`,
-                                    error,
-                                );
+                                console.warn(`Handler "${cacheItem.name}" failed to revalidate tag "${tag}".`, error);
                             }
                         }
 

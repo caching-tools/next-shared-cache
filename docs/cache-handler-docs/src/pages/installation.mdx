@@ -34,7 +34,7 @@ pnpm create next-app --example cache-handler-redis cache-handler-redis-app
    ```
 
 2. **Optional Redis Installation**:  
-   Install Redis if you plan to use distributed caching across multiple server instances:
+   Install Redis if you plan to use it as your cache store:
 
    ```sh npm2yarn copy
    npm install -D redis
@@ -46,31 +46,47 @@ pnpm create next-app --example cache-handler-redis cache-handler-redis-app
    In your project root, create a file named `cache-handler.mjs` for your cache configuration.
 
 2. **Configure the Cache Handler**:  
-   Below is a basic setup example:
+    Below is a basic setup example:
 
    ```js filename="cache-handler.mjs" copy
-   import { IncrementalCache } from '@neshca/cache-handler';
+   import { CacheHandler } from '@neshca/cache-handler';
 
-   IncrementalCache.onCreation(async () => {
-     // Don't use Map in production. This is just an example.
-     const cacheStore = new Map();
+   CacheHandler.onCreation(async () => {
+     // Let's imagine we're using a map
+     // in which values are shared via the network
+     // between all your Next.js app instances.
+     const cacheStore = new MagicMap();
 
-     const cache = {
+     const handler = {
        async get(key) {
-         return cacheStore.get(key);
+         return await cacheStore.get(key);
        },
        async set(key, value) {
-         cacheStore.set(key, value);
+         await cacheStore.set(key, value);
+       },
+       async revalidateTag(tag) {
+         // Iterate over all entries in the cache
+         for (const [key, { tags }] of cacheStore) {
+           // If the value's tags include the specified tag, delete this entry
+           if (tags.includes(tag)) {
+             await cacheStore.delete(key);
+           }
+         }
+       },
+       // Optional: Implement the delete method
+       // if your cache store doesn't support automatic time-based key expiration.
+       // It will be called when the get method returns expired data.
+       async delete(key) {
+         await cacheStore.delete(key);
        },
      };
 
      return {
-       cache,
-       useFileSystem: true,
+       handlers: [handler],
      };
    });
 
-   export default IncrementalCache;
+   export default CacheHandler;
    ```
 
 3. **Integrate with Next.js**:  
@@ -78,7 +94,6 @@ pnpm create next-app --example cache-handler-redis cache-handler-redis-app
 
    ```js filename="next.config.js" copy
    const nextConfig = {
-     // './cache-handler.mjs' in case you're using EcmaScript modules.
      cacheHandler: process.env.NODE_ENV === 'production' ? require.resolve('./cache-handler.mjs') : undefined,
      // Use `experimental` option instead of the `cacheHandler` property when using Next.js versions from 13.5.1 to 14.0.4
      /* experimental: {
@@ -97,19 +112,19 @@ pnpm create next-app --example cache-handler-redis cache-handler-redis-app
 
 ### Running Your Application
 
-**Start Your Next.js Application**:  
- Run your app as usual. `@neshca/cache-handler` will now manage your application's caching:
+**Start Your Next.js Application**:
 
-    ```sh npm2yarn copy
-    npm run build
-    npm run start
-    ```
+Build and start your application in production mode to see the cache handler in action:
+
+```sh npm2yarn copy
+npm run build
+npm run start
+```
 
 ### Next Steps
 
 With the setup complete, explore `@neshca/cache-handler`'s advanced features:
 
-- Check out the [Redis Integration Example](/redis-stack);
-- Learn [how to use the API](/configuration/on-creation) and craft your own cache handler configuration;
-- Learn [how to use TTL](/configuration/ttl) for cache eviction.
+- Check out the [Redis Integration Example](/redis).
+- Learn [how to use the API](/configuration/on-creation).
 - See how to [debug and troubleshoot](/troubleshooting) your cache handler configuration.

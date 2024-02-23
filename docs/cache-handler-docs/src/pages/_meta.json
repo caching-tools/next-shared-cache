@@ -10,6 +10,12 @@
         "title": "@neshca/cache-handler API"
     },
     "configuration": "Configuration",
+    "api-reference": "API reference",
+    "-- Usage": {
+        "type": "separator",
+        "title": "Usage"
+    },
+    "usage": "Usage guides",
     "-- Troubleshooting": {
         "type": "separator",
         "title": "Troubleshooting"
@@ -19,10 +25,7 @@
         "type": "separator",
         "title": "Examples"
     },
-    "redis-stack": "",
-    "redis-strings": "",
-    "redis-stack-custom": "",
-    "redis-strings-custom": "",
+    "redis": "Redis Handler",
     "server": "Remote HTTP server with LRU cache",
     "-- More": {
         "type": "separator",

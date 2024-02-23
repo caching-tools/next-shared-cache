@@ -1,11 +1,11 @@
 import { CacheHandler } from '@neshca/cache-handler';
-import createLruCache from '@neshca/cache-handler/local-lru';
+import createLruHandler from '@neshca/cache-handler/local-lru';
 
 CacheHandler.onCreation(() => {
-    const localCache = createLruCache();
+    const localHandler = createLruHandler();
 
     return {
-        handlers: [localCache],
+        handlers: [localHandler],
     };
 });
 

@@ -12,11 +12,11 @@ Firstly, thank you for considering contributing to our project! Your time and ex
 
    I've structured our project as a monorepo. For a detailed understanding of our development practices and how to contribute within this structure, please refer to:
 
-   - [Developing and Contributing in This Monorepo](./docs/contributing/monorepo.md)
+   - [Developing and Contributing to This Monorepo](./docs/contributing/monorepo.md)
 
 ## Tips for a Successful Contribution
 
-- **Open Communication**: Before diving deep into coding, discussing your ideas or the changes you wish to make might. [Create an Issue](https://github.com/caching-tools/next-shared-cache/issues).
+- **Open Communication**: Before diving deep into coding, discuss your ideas or the changes you wish to make might. [Create an Issue](https://github.com/caching-tools/next-shared-cache/issues).
 
 - **Follow Coding Standards**: Consistency is key. Ensure your code follows the coding conventions and styles of the project.
 

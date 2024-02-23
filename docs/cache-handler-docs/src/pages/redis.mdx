@@ -1,0 +1,47 @@
+import { Callout } from 'nextra/components';
+
+## Redis Stack example
+
+<Callout type="info">
+  In this example, we assume that in your deployment, you have `REDIS_URL` environment variable set to the URL of your
+  Redis instance. You can use any other way to set the URL.
+</Callout>
+
+Create a file called `cache-handler.mjs` next to your `next.config.js` with the following contents:
+
+```js filename="cache-handler.mjs" copy
+import { CacheHandler } from '@neshca/cache-handler';
+import createLruHandler from '@neshca/cache-handler/local-lru';
+import createRedisHandler from '@neshca/cache-handler/redis-stack';
+// or if you are using Redis without the RedisJSON module
+// import createRedisHandler from '@neshca/cache-handler/redis-strings';
+import { createClient } from 'redis';
+
+CacheHandler.onCreation(async () => {
+  // always create a Redis client inside the `onCreation` callback
+  const client = createClient({
+    url: process.env.REDIS_URL ?? 'redis://localhost:6379',
+  });
+
+  client.on('error', () => {});
+
+  await client.connect();
+
+  const redisHandler = await createRedisHandler({
+    client,
+    // timeout for the Redis client operations like `get` and `set`
+    // after this timeout, the operation will be considered failed and the `localHandler` will be used
+    timeoutMs: 5000,
+  });
+
+  const localHandler = createLruHandler();
+
+  return {
+    handlers: [redisHandler, localHandler],
+  };
+});
+
+export default CacheHandler;
+```
+
+Ensure that the Redis instance is running when you build your Next.js app. If you can not ensure that, see how to disable the Handler during a build stage in the [Building the App Without Redis Cache Connection](/configuration/opt-out-cache-on-build) section.
