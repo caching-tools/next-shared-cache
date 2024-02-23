@@ -38,7 +38,7 @@ console.log(parsed); // <Buffer 68 65 6c 6c 6f>
 
 ## Developing and contributing
 
-[Developing and contributing in this monorepo](../../docs/contributing/monorepo.md)
+[Developing and contributing to this monorepo](../../docs/contributing/monorepo.md)
 
 ### Running tests locally
 

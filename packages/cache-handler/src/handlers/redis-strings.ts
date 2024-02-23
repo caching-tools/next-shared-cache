@@ -1,4 +1,3 @@
-import { replaceJsonWithBase64, reviveFromBase64Representation } from '@neshca/json-replacer-reviver';
 import type { RedisClientType } from 'redis';
 
 import type { CacheHandlerValue, Handler } from '../cache-handler';
@@ -55,23 +54,18 @@ export default function createCache<T extends RedisClientType>({
                 return null;
             }
 
-            // use reviveFromBase64Representation to restore binary data from Base64
-            const data = JSON.parse(result, reviveFromBase64Representation) as CacheHandlerValue | null;
-
-            return data;
+            return JSON.parse(result) as CacheHandlerValue | null;
         },
         async set(key, cacheHandlerValue) {
             assertClientIsReady();
 
             const options = getTimeoutRedisCommandOptions(timeoutMs);
 
-            const isRouteKind = cacheHandlerValue.value?.kind === 'ROUTE';
-
             const setOperation = client.set(
                 options,
                 keyPrefix + key,
                 // use replaceJsonWithBase64 to store binary data in Base64 and save space for ROUTE kind
-                JSON.stringify(cacheHandlerValue, isRouteKind ? replaceJsonWithBase64 : undefined),
+                JSON.stringify(cacheHandlerValue),
             );
 
             const expireOperation = cacheHandlerValue.lifespan
