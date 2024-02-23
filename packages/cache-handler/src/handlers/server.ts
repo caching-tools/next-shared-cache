@@ -1,5 +1,3 @@
-import { replaceJsonWithBase64, reviveFromBase64Representation } from '@neshca/json-replacer-reviver';
-
 import type { CacheHandlerValue, Handler } from '../cache-handler';
 
 export type ServerCacheHandlerOptions = {
@@ -62,19 +60,14 @@ export default function createCache({ baseUrl, timeoutMs }: ServerCacheHandlerOp
 
             const string = await response.text();
 
-            return JSON.parse(string, reviveFromBase64Representation) as CacheHandlerValue;
+            return JSON.parse(string) as CacheHandlerValue;
         },
         async set(key, cacheHandlerValue) {
             const url = new URL('/set', baseUrl);
 
-            const isRouteKind = cacheHandlerValue.value?.kind === 'ROUTE';
-
             const response = await fetch(url, {
                 method: 'POST',
-                body: JSON.stringify([
-                    key,
-                    JSON.stringify(cacheHandlerValue, isRouteKind ? replaceJsonWithBase64 : undefined),
-                ]),
+                body: JSON.stringify([key, JSON.stringify(cacheHandlerValue)]),
                 headers: {
                     'Content-Type': 'application/json',
                 },

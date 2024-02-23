@@ -86,22 +86,10 @@ export default async function createCache<T extends RedisClientType>({
                 keyPrefix + key,
             )) as CacheHandlerValue | null;
 
-            if (cacheValue?.value?.kind === 'ROUTE') {
-                cacheValue.value.body = Buffer.from(cacheValue.value.body as unknown as string, 'base64');
-            }
-
             return cacheValue;
         },
         async set(key, cacheHandlerValue) {
             assertClientIsReady();
-
-            let preparedCacheValue = cacheHandlerValue;
-
-            if (cacheHandlerValue.value?.kind === 'ROUTE') {
-                preparedCacheValue = structuredClone(cacheHandlerValue);
-                // @ts-expect-error -- object must have the same shape as cacheValue
-                preparedCacheValue.value.body = cacheHandlerValue.value.body.toString('base64') as unknown as Buffer;
-            }
 
             const options = getTimeoutRedisCommandOptions(timeoutMs);
 
@@ -111,7 +99,7 @@ export default async function createCache<T extends RedisClientType>({
                 options,
                 keyPrefix + key,
                 '.',
-                preparedCacheValue as unknown as RedisJSON,
+                cacheHandlerValue as unknown as RedisJSON,
             );
 
             const expireCacheValue = cacheHandlerValue.lifespan

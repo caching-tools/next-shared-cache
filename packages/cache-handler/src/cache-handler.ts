@@ -19,17 +19,6 @@ import { getTagsFromPageData } from './helpers/get-tags-from-page-data';
 
 export type { CacheHandlerValue };
 
-function filterNullable(handler: unknown): handler is Handler {
-    return Boolean(handler);
-}
-
-const NEXT_DATA_SUFFIX = '.json';
-
-/**
- * The number of seconds in a year.
- */
-const ONE_YEAR = 60 * 60 * 24 * 365;
-
 /**
  * Represents a cache Handler.
  */
@@ -291,13 +280,70 @@ export class CacheHandler implements NextCacheHandler {
 
     static #debug = typeof process.env.NEXT_PRIVATE_DEBUG_CACHE !== 'undefined';
 
-    static #defaultStaleAge = ONE_YEAR;
+    // Default stale age is 1 year in seconds
+    static #defaultStaleAge = 60 * 60 * 24 * 365;
 
     static #estimateExpireAge: (staleAge: number) => number;
 
     static #fallbackFalseRoutes = new Set<string>();
 
     static #onCreationHook: OnCreationHook;
+
+    static #serverDistDir: string;
+
+    static async #readPagesRouterPage(cacheKey: string): Promise<CacheHandlerValue | null> {
+        try {
+            const pageHtmlPath = path.join(CacheHandler.#serverDistDir, 'pages', `${cacheKey}.html`);
+            const pageDataPath = path.join(CacheHandler.#serverDistDir, 'pages', `${cacheKey}.json`);
+
+            const [pageHtmlFile, pageDataFile] = await Promise.all([
+                fsPromises.readFile(pageHtmlPath, 'utf-8'),
+                fsPromises.readFile(pageDataPath, 'utf-8'),
+            ]);
+
+            const { mtimeMs } = await fsPromises.stat(pageHtmlPath);
+
+            const pageData = JSON.parse(pageDataFile) as object;
+
+            const cacheHandlerValue: CacheHandlerValue = {
+                lastModified: mtimeMs,
+                lifespan: null,
+                tags: [],
+                value: {
+                    kind: 'PAGE',
+                    html: pageHtmlFile,
+                    pageData,
+                    postponed: undefined,
+                    headers: undefined,
+                    status: undefined,
+                },
+            };
+
+            return cacheHandlerValue;
+        } catch (_) {
+            // unable to get data from the file system
+        }
+
+        return null;
+    }
+
+    static async #writePagesRouterPage(cacheKey: string, pageData: IncrementalCachedPageValue): Promise<boolean> {
+        try {
+            const pageHtmlPath = path.join(CacheHandler.#serverDistDir, 'pages', `${cacheKey}.html`);
+            const pageDataPath = path.join(CacheHandler.#serverDistDir, 'pages', `${cacheKey}.json`);
+
+            await fsPromises.mkdir(path.dirname(pageHtmlPath), { recursive: true });
+
+            await Promise.all([
+                fsPromises.writeFile(pageHtmlPath, pageData.html),
+                fsPromises.writeFile(pageDataPath, JSON.stringify(pageData.pageData)),
+            ]);
+
+            return true;
+        } catch (_error) {
+            return false;
+        }
+    }
 
     /**
      * Returns the cache control parameters based on the last modified timestamp and revalidate option.
@@ -352,14 +398,18 @@ export class CacheHandler implements NextCacheHandler {
         // Wait for the cache configuration to be resolved
         const { handlers, ttl = {} } = await config;
 
-        const { defaultStaleAge = ONE_YEAR, estimateExpireAge } = ttl;
+        const { defaultStaleAge, estimateExpireAge } = ttl;
 
-        CacheHandler.#defaultStaleAge = defaultStaleAge;
+        if (typeof defaultStaleAge === 'number') {
+            CacheHandler.#defaultStaleAge = Math.floor(defaultStaleAge);
+        }
 
         CacheHandler.#estimateExpireAge = createValidatedAgeEstimationFunction(estimateExpireAge);
 
         // Extract the server distribution directory from the cache creation context
         const { serverDistDir, dev } = cacheCreationContext;
+
+        CacheHandler.#serverDistDir = serverDistDir;
 
         // Notify the user that the cache is not used in development mode
         if (dev) {
@@ -375,7 +425,7 @@ export class CacheHandler implements NextCacheHandler {
             const prerenderManifest = JSON.parse(prerenderManifestData) as PrerenderManifest;
 
             for (const [route, { srcRoute, dataRoute }] of Object.entries(prerenderManifest.routes)) {
-                const isPagesRouter = dataRoute?.endsWith(NEXT_DATA_SUFFIX);
+                const isPagesRouter = dataRoute?.endsWith('.json');
 
                 if (isPagesRouter && prerenderManifest.dynamicRoutes[srcRoute || '']?.fallback === false) {
                     CacheHandler.#fallbackFalseRoutes.add(route);
@@ -383,7 +433,7 @@ export class CacheHandler implements NextCacheHandler {
             }
         } catch (_error) {}
 
-        const handlersList: Handler[] = handlers.filter(filterNullable);
+        const handlersList: Handler[] = handlers.filter((handler): handler is Handler => Boolean(handler));
 
         CacheHandler.#cacheListLength = handlersList.length;
 
@@ -395,7 +445,7 @@ export class CacheHandler implements NextCacheHandler {
 
                         if (cacheValue?.lifespan && cacheValue.lifespan.expireAt < Math.floor(Date.now() / 1000)) {
                             cacheValue = null;
-                            handler.delete?.(key);
+                            await handler.delete?.(key);
                         }
 
                         if (CacheHandler.#debug) {
@@ -454,65 +504,32 @@ export class CacheHandler implements NextCacheHandler {
         };
     }
 
-    readonly #serverDistDir: string;
+    static #constructorWasCalled = false;
 
     private constructor(context: FileSystemCacheContext) {
-        this.#serverDistDir = context.serverDistDir;
-
-        if (!CacheHandler.#mergedHandler) {
-            const { dev } = context;
-
-            let buildId: string | undefined;
-
-            try {
-                buildId = fs.readFileSync(path.join(this.#serverDistDir, '..', 'BUILD_ID'), 'utf-8');
-            } catch (_error) {
-                buildId = undefined;
-            }
-
-            CacheHandler.#configureCacheHandler({
-                dev,
-                serverDistDir: this.#serverDistDir,
-                buildId,
-            })
-                .then(CacheHandler.#resolveCreationPromise)
-                .catch(CacheHandler.#rejectCreationPromise);
+        if (CacheHandler.#constructorWasCalled) {
+            return;
         }
-    }
 
-    async #readPageWithFallbackFalse(cacheKey: string): Promise<CacheHandlerValue | null> {
+        CacheHandler.#constructorWasCalled = true;
+
+        const { dev, serverDistDir } = context;
+
+        let buildId: string | undefined;
+
         try {
-            const pageFilePath = this.#getFilePath(`${cacheKey}.html`);
-            const pageDataFilePath = this.#getFilePath(`${cacheKey}${NEXT_DATA_SUFFIX}`);
-
-            const [pageFile, pageDataFile] = await Promise.all([
-                fsPromises.readFile(pageFilePath, 'utf-8'),
-                fsPromises.readFile(pageDataFilePath, 'utf-8'),
-            ]);
-            const { mtime } = await fsPromises.stat(pageFilePath);
-
-            const lastModified = mtime.getTime();
-
-            const pageData = JSON.parse(pageDataFile) as object;
-
-            return {
-                lastModified,
-                lifespan: null,
-                tags: [],
-                value: {
-                    kind: 'PAGE',
-                    html: pageFile,
-                    pageData,
-                    postponed: undefined,
-                    headers: undefined,
-                    status: undefined,
-                },
-            };
-        } catch (_) {
-            // unable to get data from the file system
+            buildId = fs.readFileSync(path.join(serverDistDir, '..', 'BUILD_ID'), 'utf-8');
+        } catch (_error) {
+            buildId = undefined;
         }
 
-        return null;
+        CacheHandler.#configureCacheHandler({
+            dev,
+            serverDistDir,
+            buildId,
+        })
+            .then(CacheHandler.#resolveCreationPromise)
+            .catch(CacheHandler.#rejectCreationPromise);
     }
 
     async get(...args: CacheHandlerParametersGet): Promise<CacheHandlerValue | null> {
@@ -524,82 +541,77 @@ export class CacheHandler implements NextCacheHandler {
 
         let cachedData: CacheHandlerValue | null | undefined = await CacheHandler.#mergedHandler.get(cacheKey);
 
-        const hasFallbackFalse = CacheHandler.#fallbackFalseRoutes.has(cacheKey);
+        if (cachedData?.value?.kind === 'ROUTE') {
+            cachedData.value.body = Buffer.from(cachedData.value.body as unknown as string, 'base64');
+        }
 
-        if (!cachedData && hasFallbackFalse) {
-            cachedData = await this.#readPageWithFallbackFalse(cacheKey);
+        if (!cachedData && CacheHandler.#fallbackFalseRoutes.has(cacheKey)) {
+            cachedData = await CacheHandler.#readPagesRouterPage(cacheKey);
 
             if (CacheHandler.#debug) {
                 console.info('get from file system', cacheKey, tags, kindHint, 'got any value', Boolean(cachedData));
             }
 
+            // if we have a value from the file system, we should set it to the cache store
             if (cachedData) {
                 await CacheHandler.#mergedHandler.set(cacheKey, cachedData);
             }
         }
 
-        if (!cachedData) {
-            return null;
-        }
-
-        return cachedData;
-    }
-
-    async #writePageWithFallbackFalse(cacheKey: string, pageData: IncrementalCachedPageValue): Promise<void> {
-        try {
-            const htmlPath = this.#getFilePath(`${cacheKey}.html`);
-
-            await fsPromises.mkdir(path.dirname(htmlPath), { recursive: true });
-
-            await Promise.all([
-                fsPromises.writeFile(htmlPath, pageData.html),
-                fsPromises.writeFile(
-                    this.#getFilePath(`${cacheKey}${NEXT_DATA_SUFFIX}`),
-                    JSON.stringify(pageData.pageData),
-                ),
-            ]);
-        } catch (_error) {
-            if (CacheHandler.#debug) {
-                console.warn('Unable to write to the file system', cacheKey);
-            }
-        }
+        return cachedData ?? null;
     }
 
     async set(...args: CacheHandlerParametersSet): Promise<void> {
         await CacheHandler.#creationPromise;
 
-        const [cacheKey, data, ctx] = args;
+        const [cacheKey, value, ctx] = args;
 
         const { revalidate, tags = [] } = ctx;
 
         const lastModified = Date.now();
 
-        // enrich the data with the tags
-        if (data?.kind === 'FETCH') {
-            data.tags = tags;
-        }
-
         const hasFallbackFalse = CacheHandler.#fallbackFalseRoutes.has(cacheKey);
 
         const lifespan = hasFallbackFalse ? null : CacheHandler.#getLifespanParameters(lastModified, revalidate);
 
-        const cacheValue: CacheHandlerValue = {
+        let cacheHandlerValueTags = tags;
+
+        switch (value?.kind) {
+            case 'PAGE': {
+                cacheHandlerValueTags = getTagsFromPageData(value);
+                break;
+            }
+            case 'ROUTE': {
+                // replace the body with a base64 encoded string to save space
+                value.body = value.body.toString('base64') as unknown as Buffer;
+                break;
+            }
+            default: {
+                break;
+            }
+        }
+
+        const cacheHandlerValue: CacheHandlerValue = {
             lastModified,
             lifespan,
-            tags: data?.kind === 'PAGE' ? getTagsFromPageData(data) : tags,
-            value: data,
+            tags: cacheHandlerValueTags,
+            value,
         };
 
-        await CacheHandler.#mergedHandler.set(cacheKey, cacheValue);
+        await CacheHandler.#mergedHandler.set(cacheKey, cacheHandlerValue);
 
         if (CacheHandler.#debug) {
             console.info('set to external cache store', cacheKey);
         }
 
-        if (hasFallbackFalse && cacheValue.value?.kind === 'PAGE') {
-            await this.#writePageWithFallbackFalse(cacheKey, cacheValue.value);
+        if (hasFallbackFalse && cacheHandlerValue.value?.kind === 'PAGE') {
+            const wasWritten = await CacheHandler.#writePagesRouterPage(cacheKey, cacheHandlerValue.value);
 
-            if (CacheHandler.#debug) {
+            if (CacheHandler.#debug && !wasWritten) {
+                console.warn('Unable to write to the file system', cacheKey);
+            }
+
+            if (CacheHandler.#debug && wasWritten) {
                 console.info('set to file system', cacheKey);
             }
         }
@@ -619,10 +631,6 @@ export class CacheHandler implements NextCacheHandler {
         if (CacheHandler.#debug) {
             console.info('updated external revalidated tags');
         }
-    }
-
-    #getFilePath(pathname: string): string {
-        return path.join(this.#serverDistDir, 'pages', pathname);
     }
 
     resetRequestCache(): void {
