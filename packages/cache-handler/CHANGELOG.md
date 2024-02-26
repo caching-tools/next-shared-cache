@@ -1,5 +1,11 @@
 # @neshca/cache-handler
 
+## 1.0.2
+
+### Patch Changes
+
+- ea5e158: Change hash set to Redis querying for the `redis-stack` Handler's `revalidateTag` method
+
 ## 1.0.1
 
 ### Patch Changes
