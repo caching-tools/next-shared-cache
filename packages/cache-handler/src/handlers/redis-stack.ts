@@ -125,15 +125,15 @@ export default async function createHandler<T extends RedisClientType>({
         async revalidateTag(tag) {
             assertClientIsReady();
 
-            const options = getTimeoutRedisCommandOptions(timeoutMs);
-
             const query = await client.ft.search('idx:tags', `@tag:(${sanitizeTag(tag)})`);
 
             const keysToDelete = query.documents.map((document) => document.id);
 
-            const deleteCacheOperation = client.del(options, keysToDelete);
+            const options = getTimeoutRedisCommandOptions(timeoutMs);
 
-            await Promise.all([deleteCacheOperation]);
+            const deleteKeysOperation = client.del(options, keysToDelete);
+
+            await Promise.all([deleteKeysOperation]);
         },
     };
 }

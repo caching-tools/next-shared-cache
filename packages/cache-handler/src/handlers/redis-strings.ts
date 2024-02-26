@@ -98,6 +98,10 @@ export default function createHandler<T extends RedisClientType>({
                 }
             }
 
+            if (keysToDelete.length === 0) {
+                return;
+            }
+
             const options = getTimeoutRedisCommandOptions(timeoutMs);
 
             const deleteKeysOperation = client.del(options, keysToDelete);
