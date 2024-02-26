@@ -121,6 +121,10 @@ export default async function createHandler<T extends RedisClientType>({
 
             const keysToDelete = query.documents.map((document) => document.id);
 
+            if (keysToDelete.length === 0) {
+                return;
+            }
+
             const options = getTimeoutRedisCommandOptions(timeoutMs);
 
             const deleteKeysOperation = client.del(options, keysToDelete);
