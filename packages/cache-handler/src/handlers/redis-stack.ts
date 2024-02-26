@@ -55,7 +55,7 @@ export default async function createHandler<T extends RedisClientType>({
     client,
     keyPrefix = '',
     timeoutMs = 5000,
-}: RedisCacheHandlerOptions<T>): Promise<Handler> {
+}: Omit<RedisCacheHandlerOptions<T>, 'sharedTagsKey'>): Promise<Handler> {
     function assertClientIsReady(): void {
         if (!client.isReady) {
             throw new Error('Redis client is not ready');
@@ -97,15 +97,7 @@ export default async function createHandler<T extends RedisClientType>({
         async set(key, cacheHandlerValue) {
             assertClientIsReady();
 
-            let preparedCacheValue = cacheHandlerValue;
-
-            if (cacheHandlerValue.value?.kind === 'ROUTE') {
-                preparedCacheValue = structuredClone(cacheHandlerValue);
-                // @ts-expect-error -- object must have the same shape as cacheValue
-                preparedCacheValue.value.body = cacheHandlerValue.value.body.toString('base64') as unknown as Buffer;
-            }
-
-            preparedCacheValue.tags = preparedCacheValue.tags.map(sanitizeTag);
+            cacheHandlerValue.tags = cacheHandlerValue.tags.map(sanitizeTag);
 
             const options = getTimeoutRedisCommandOptions(timeoutMs);
 
@@ -113,11 +105,11 @@ export default async function createHandler<T extends RedisClientType>({
                 options,
                 keyPrefix + key,
                 '.',
-                preparedCacheValue as unknown as RedisJSON,
+                cacheHandlerValue as unknown as RedisJSON,
             );
 
-            const expireCacheValue = preparedCacheValue.lifespan
-                ? client.expireAt(options, keyPrefix + key, preparedCacheValue.lifespan.expireAt)
+            const expireCacheValue = cacheHandlerValue.lifespan
+                ? client.expireAt(options, keyPrefix + key, cacheHandlerValue.lifespan.expireAt)
                 : undefined;
 
             await Promise.all([setCacheValue, expireCacheValue]);
