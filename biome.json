@@ -27,6 +27,24 @@
                 "useShorthandArrayType": "error",
                 "useShorthandAssign": "error",
                 "useSingleCaseStatement": "error"
+            },
+            "nursery": {
+                "noUnusedImports": "error",
+                "noUnusedPrivateClassMembers": "error",
+                "noUselessTernary": "error",
+                "useAwait": "error",
+                "useFilenamingConvention": {
+                    "level": "error",
+                    "options": {
+                        "filenameCases": ["kebab-case"]
+                    }
+                },
+                "useImportType": "error",
+                "useNumberNamespace": "error",
+                "useShorthandFunctionType": "error"
+            },
+            "complexity": {
+                "useSimplifiedLogicExpression": "error"
             }
         }
     },
@@ -52,5 +70,11 @@
         "formatter": {
             "enabled": false
         }
-    }
+    },
+    "overrides": [
+        {
+            "include": ["[slug].tsx", "[length].tsx"],
+            "linter": { "rules": { "nursery": { "useFilenamingConvention": "off" } } }
+        }
+    ]
 }

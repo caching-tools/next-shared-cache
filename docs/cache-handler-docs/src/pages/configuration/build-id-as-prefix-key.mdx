@@ -15,7 +15,7 @@ const nextConfig = {
 };
 ```
 
-To use `buildId` for prefixing or namespacing the cache keys, use either of the following solutions.:
+To use `buildId` for prefixing the cache keys, use either of the following solutions.:
 
 #### Using `process.env.GIT_HASH`
 
@@ -29,17 +29,16 @@ const nextConfig = {
 ```
 
 ```js filename="cache-handler.mjs" copy
-IncrementalCache.onCreation(async () => {
+CacheHandler.onCreation(async () => {
   await client.connect();
 
-  const redisCache = await createRedisCache({
+  const redisHandler = await createRedisHandler({
     client,
     keyPrefix: process.env.GIT_HASH,
   });
 
   return {
-    cache: redisCache,
-    useFileSystem: true,
+    handlers: [redisHandler],
   };
 });
 ```
@@ -59,23 +58,22 @@ const nextConfig = {
 ```
 
 ```js filename="cache-handler.mjs" copy
-IncrementalCache.onCreation(async ({ buildId }) => {
-  let redisCache;
+CacheHandler.onCreation(async ({ buildId }) => {
+  let redisHandler;
 
   if (buildId) {
     await client.connect();
 
-    redisCache = await createRedisCache({
+    redisHandler = await createRedisHandler({
       client,
       keyPrefix: `${buildId}:`,
     });
   }
 
-  const localCache = createLruCache();
+  const localHandler = createLruHandler();
 
   return {
-    cache: [redisCache, localCache],
-    useFileSystem: true,
+    handlers: [redisHandler, localHandler],
   };
 });
 ```

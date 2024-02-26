@@ -1,0 +1,28 @@
+# CacheHandlerValue
+
+```typescript
+type CacheHandlerValue = {
+  lastModified: number;
+  value: IncrementalCacheValue | null;
+  tags: string[];
+  lifespan: LifespanParameters | null;
+};
+```
+
+## Properties
+
+### `lastModified`
+
+Time in milliseconds when the cache entry was last modified. It is used by the Next.js server to determine if the cache entry is stale or fresh.
+
+### `value`
+
+The value to be cached. It may be a pre-rendered HTML page with its props, a result of a `fetch` call. It may also be `null` if the page is not found.
+
+### `tags`
+
+Tags associated with the cache entry. They are used for on-demand revalidation. They will be checked by the Handler's [`revalidateTag`](/api-reference/handler#revalidatetag) method to determine whether to delete the cache entry or not.
+
+### `lifespan`
+
+The lifespan parameters for the cache entry. It may be `null` for pages with `fallback: false` in `getStaticPaths`. Consider these pages as always fresh and never stale. See the [`LifespanParameters`](/api-reference/lifespan-parameters) type for more information.

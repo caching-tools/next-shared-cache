@@ -1,0 +1,84 @@
+# Handler
+
+```typescript
+type Handler = {
+  name: string;
+  get: (key: string) => Promise<CacheHandlerValue | null | undefined>;
+  set: (key: string, value: CacheHandlerValue) => Promise<void>;
+  revalidateTag: (tag: string) => Promise<void>;
+  delete?: (key: string) => Promise<void>;
+};
+```
+
+## Properties
+
+### `name`
+
+A descriptive name for the cache Handler. This is used to identify the cache Handler in the logs.
+
+### `get`
+
+#### Parameters
+
+- `key` - The unique string identifier for the cache entry.
+
+#### Return value
+
+A Promise that resolves to the cached value (if found), `null` or `undefined` if the entry is not found. See [`CacheHandlerValue`](/api-reference/cache-handler-value).
+
+#### Overview
+
+Retrieves the value associated with the given key from the cache. The `CacheHandler` class calls this method when a cache entry is requested. The method should return a Promise that resolves to the cached value (if found), `null` or `undefined` if the entry is not found.
+
+When using multiple cache layers, this method will be called in the order of the `handlers` array from the [`CacheHandlerConfig`](/api-reference/cache-handler-config) object. If the first Handler returns `null` the `get` operation is considered a cache miss. To pass the `get` operation to the next Handler, you should throw an error.
+
+Under the hood, the `get` method will automatically check if the cache entry is expired and will return `null` if it is. It also calls the [`delete`](/api-reference/handler#delete) method if it is implemented.
+
+### `set`
+
+#### Parameters
+
+- `key` - The unique string identifier for the cache entry.
+- `value` - The value to be stored in the cache. See [`CacheHandlerValue`](/api-reference/cache-handler-value).
+
+#### Return value
+
+A Promise that resolves when the value has been successfully set in the cache.
+
+#### Overview
+
+Sets or updates a value in the cache store. The `CacheHandler` class calls this method when a cache entry is created or updated. The method should return a Promise that resolves when the value has been successfully set in the cache. It will be called for each Handler from the `handlers` array in parallel.
+
+You should consider the `lifespan` parameter when setting the cache entry. If no `revalidate` option or `revalidate: false` is set in your [`getStaticProps`](https://nextjs.org/docs/pages/api-reference/functions/get-static-props#revalidate), the `lifespan` parameter will be `null` and you should consider the cache entry as always fresh and never stale.
+
+Use the absolute time (`expireAt`) to set an expiration time for the cache entry in your cache store to be in sync with the file system cache.
+
+### `revalidateTag`
+
+#### Parameters
+
+- `tag` - A string representing the cache tag associated with the data you want to revalidate.
+
+#### Return value
+
+A Promise that resolves when the cache entry has been successfully deleted.
+
+#### Overview
+
+This method is called by the `CacheHandler` class when [`revalidateTag`](https://nextjs.org/docs/app/api-reference/functions/revalidateTag) is called. It should delete all cache entries that are associated with the specified tag. It will be called for each Handler from the `handlers` array in parallel.
+
+The tag list is stored in the `CacheHandlerValue` object and can be accessed via the `tags` property. If you use a remote cache store like Redis, it will be too expensive to retrieve all keys just to check tags. So, you may want to store tags in a separate set inside your cache store or [create an index](https://redis.io/docs/interact/search-and-query/indexing/) for tags.
+
+### `delete`
+
+#### Parameters
+
+- `key` - The unique string identifier for the cache entry.
+
+#### Return value
+
+A Promise that resolves when the cache entry has been successfully deleted.
+
+#### Overview
+
+Deletes the cache entry associated with the given key from the cache store. This method is optional and supposed to be used only when the cache store does not support time-based key eviction. This method will be automatically called by the `CacheHandler` class when the retrieved cache entry has expired.

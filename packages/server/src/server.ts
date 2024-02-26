@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { createCache } from '@neshca/next-lru-cache/cache-string-value';
+import createCacheStore from '@neshca/next-lru-cache/next-cache-handler-value';
 import Fastify from 'fastify';
 import { pino } from 'pino';
 
@@ -13,9 +13,7 @@ const logger = pino({
 
 const server = Fastify();
 
-const cache = createCache();
-
-const revalidatedItems = new Map<string, number>();
+const lruCacheStore = createCacheStore();
 
 const host = process.env.HOST ?? 'localhost';
 const port = Number.parseInt(process.env.PORT ?? '8080', 10);
@@ -23,33 +21,46 @@ const port = Number.parseInt(process.env.PORT ?? '8080', 10);
 server.get('/get', async (request, reply): Promise<void> => {
     const { key } = request.query as { key: string };
 
-    const data = cache.get(key);
+    const cacheValue = lruCacheStore.get(key);
 
-    await reply.code(data ? 200 : 404).send(data);
+    if (!cacheValue) {
+        await reply.code(404).send(null);
+
+        return;
+    }
+
+    if (cacheValue.lifespan && cacheValue.lifespan.expireAt < Date.now() / 1000) {
+        lruCacheStore.delete(key);
+
+        await reply.code(404).send(null);
+    }
+
+    await reply.code(200).send(cacheValue);
 });
 
 server.post('/set', async (request, reply): Promise<void> => {
     const [key, data] = request.body as [string, string, number];
 
-    cache.set(key, data);
+    lruCacheStore.set(key, JSON.parse(data));
 
     await reply.code(200).send();
 });
 
-server.get('/getRevalidatedTags', async (_request, reply): Promise<void> => {
-    await reply.code(200).send(Object.fromEntries(revalidatedItems));
-});
-
 server.post('/revalidateTag', async (request, reply): Promise<void> => {
-    const [tag, revalidatedAt] = request.body as [string, number];
+    const [tag] = request.body as [string];
 
-    revalidatedItems.set(tag, revalidatedAt);
+    for (const [key, { tags }] of lruCacheStore.entries()) {
+        // If the value's tags include the specified tag, delete this entry
+        if (tags.includes(tag)) {
+            lruCacheStore.delete(key);
+        }
+    }
 
     await reply.code(200).send();
 });
 
 server.get('/clear-cache', async (_request, reply): Promise<void> => {
-    cache.clear();
+    lruCacheStore.clear();
 
     await reply.code(200).send(true);
 });

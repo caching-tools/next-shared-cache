@@ -48,7 +48,7 @@ await test('should return original operation if timeoutMs is not a number', asyn
 
 await test('should return original operation if timeoutMs is NaN', async () => {
     const operation = simulateOperation(100);
-    const result = await promiseWithTimeout(operation, NaN);
+    const result = await promiseWithTimeout(operation, Number.NaN);
     assert.strictEqual(result, 'completed');
 });
 

@@ -7,6 +7,6 @@ function calculateStringSize(value: string): number {
     return value.length;
 }
 
-export function createCache(options?: LruCacheOptions): LRUCache<string, string> {
+export default function createCacheStore(options?: LruCacheOptions): LRUCache<string, string> {
     return createConfiguredCache(calculateStringSize, options);
 }
