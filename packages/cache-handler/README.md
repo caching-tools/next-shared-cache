@@ -17,15 +17,12 @@ Check out the [changelog](https://github.com/caching-tools/next-shared-cache/blo
 3. [Examples and Practical Implementations](#examples-and-practical-implementations)
 4. [Requirements](#requirements)
 5. [Documentation](#documentation)
-6. [Roadmap](#roadmap)
-7. [Developing and Contributing](#developing-and-contributing)
-8. [License](#license)
+6. [Developing and Contributing](#developing-and-contributing)
+7. [License](#license)
 
 ## Overview
 
 Welcome to `@neshca/cache-handler`, a specialized ISR/Data cache API crafted for Next.js applications. This library is designed to simplify the complex task of configuring shared cache strategies in distributed environments, such as those involving multiple and independent instances of the same application. It offers a flexible and user-friendly approach to integrating custom cache solutions and hand-crafted, pre-configured cache strategies for Redis.
-
-Welcome to [**`@neshca/cache-handler`**](./packages/cache-handler/README.md), a specialized ISR/Data cache API crafted for Next.js applications. This library is designed to simplify the complex task of configuring shared cache strategies in distributed environments, such as those involving multiple and independent instances of the same application. It offers a flexible and user-friendly approach to integrating custom cache solutions and hand-crafted, pre-configured cache strategies for Redis.
 
 ### The importance of shared cache in distributed environments
 
@@ -56,16 +53,6 @@ Learn how to build your own Handler by reading [this guide](https://caching-tool
 ## Documentation
 
 [Documentation ↗](https://caching-tools.github.io/next-shared-cache)
-
-### Roadmap
-
-- [x] Support for App routes.
-- [x] Support for Pages routes.
-- [x] TTL by default for cache values.
-- [x] Happy path tests.
-- [x] Examples.
-- [x] Documentation.
-- [ ] Full test coverage.
 
 ## Developing and contributing
 
