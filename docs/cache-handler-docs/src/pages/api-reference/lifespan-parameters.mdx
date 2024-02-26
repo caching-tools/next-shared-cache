@@ -1,0 +1,38 @@
+# Handler
+
+```typescript
+type LifespanParameters = {
+  lastModifiedAt: number;
+  staleAt: number;
+  expireAt: number;
+  staleAge: number;
+  expireAge: number;
+  revalidate: Revalidate | undefined;
+};
+```
+
+## Properties
+
+### `lastModifiedAt`
+
+The Unix timestamp (in seconds) for when the cache entry was last modified.
+
+### `staleAt`
+
+The Unix timestamp (in seconds) for when the cache entry entry becomes stale. After this time, the entry is considered staled and may be used.
+
+### `expireAt`
+
+The Unix timestamp (in seconds) for when the cache entry must be removed from the cache. After this time, the entry is considered expired and must not be used.
+
+### `staleAge`
+
+Time in seconds before the cache entry becomes stale.
+
+### `expireAge`
+
+Time in seconds before the cache entry becomes expired.
+
+### `revalidate`
+
+Value from Next.js revalidate option. May be false if the page has no revalidate option or the revalidate option is set to false.

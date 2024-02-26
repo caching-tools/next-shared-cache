@@ -1,4 +1,3 @@
-import { replaceJsonWithBase64, reviveFromBase64Representation } from '@neshca/json-replacer-reviver';
 import type { RedisClientType } from 'redis';
 
 import type { CacheHandlerValue, Handler } from '../cache-handler';
@@ -20,7 +19,7 @@ import type { RedisCacheHandlerOptions } from './redis-stack';
  * @example
  * ```js
  * const redisClient = createRedisClient(...);
- * const cache = await createCache({
+ * const cache = await createHandler({
  *   client: redisClient,
  *   keyPrefix: 'myApp:',
  *   sharedTagsKey: 'myTags'
@@ -32,7 +31,7 @@ import type { RedisCacheHandlerOptions } from './redis-stack';
  * - the `set` method allows setting a value in the cache.
  * - the `revalidateTag` methods are used for handling tag-based cache revalidation.
  */
-export default function createCache<T extends RedisClientType>({
+export default function createHandler<T extends RedisClientType>({
     client,
     keyPrefix = '',
     sharedTagsKey = '__sharedTags__',
@@ -55,32 +54,22 @@ export default function createCache<T extends RedisClientType>({
                 return null;
             }
 
-            // use reviveFromBase64Representation to restore binary data from Base64
-            const data = JSON.parse(result, reviveFromBase64Representation) as CacheHandlerValue | null;
-
-            return data;
+            return JSON.parse(result) as CacheHandlerValue | null;
         },
         async set(key, cacheHandlerValue) {
             assertClientIsReady();
 
             const options = getTimeoutRedisCommandOptions(timeoutMs);
 
-            const isRouteKind = cacheHandlerValue.value?.kind === 'ROUTE';
-
-            const setOperation = client.set(
-                options,
-                keyPrefix + key,
-                // use replaceJsonWithBase64 to store binary data in Base64 and save space for ROUTE kind
-                JSON.stringify(cacheHandlerValue, isRouteKind ? replaceJsonWithBase64 : undefined),
-            );
+            const setOperation = client.set(options, keyPrefix + key, JSON.stringify(cacheHandlerValue));
 
             const expireOperation = cacheHandlerValue.lifespan
                 ? client.expireAt(options, keyPrefix + key, cacheHandlerValue.lifespan.expireAt)
                 : undefined;
 
             const setTagsOperation = cacheHandlerValue.tags.length
-                ? client.hSet(options, `${keyPrefix}${sharedTagsKey}`, {
-                      [key]: cacheHandlerValue.tags.join(','),
+                ? client.hSet(options, keyPrefix + sharedTagsKey, {
+                      [key]: JSON.stringify(cacheHandlerValue.tags),
                   })
                 : undefined;
 
@@ -91,19 +80,21 @@ export default function createCache<T extends RedisClientType>({
 
             const remoteTags: Record<string, string> = await client.hGetAll(
                 getTimeoutRedisCommandOptions(timeoutMs),
-                `${keyPrefix}${sharedTagsKey}`,
+                keyPrefix + sharedTagsKey,
             );
 
             const tagsMap = new Map(Object.entries(remoteTags));
 
             const keysToDelete = [];
 
+            const tagsToDelete = [];
+
             for (const [key, tagsString] of tagsMap) {
-                const tags = tagsString.split(',');
+                const tags = JSON.parse(tagsString);
 
                 if (tags.includes(tag)) {
                     keysToDelete.push(keyPrefix + key);
-                    tagsMap.delete(key);
+                    tagsToDelete.push(key);
                 }
             }
 
@@ -111,9 +102,9 @@ export default function createCache<T extends RedisClientType>({
 
             const deleteKeysOperation = client.del(options, keysToDelete);
 
-            const setTagsOperation = client.hSet(options, `${keyPrefix}${sharedTagsKey}`, Object.fromEntries(tagsMap));
+            const updateTagsOperation = client.hDel(options, keyPrefix + sharedTagsKey, tagsToDelete);
 
-            await Promise.all([deleteKeysOperation, setTagsOperation]);
+            await Promise.all([deleteKeysOperation, updateTagsOperation]);
         },
     };
 }

@@ -38,6 +38,6 @@ function calculateObjectSize({ value }: CacheHandlerValue): number {
 
 export type { LruCacheOptions };
 
-export function createCache(options?: LruCacheOptions): LRUCache<string, CacheHandlerValue> {
+export default function createCacheStore(options?: LruCacheOptions): LRUCache<string, CacheHandlerValue> {
     return createConfiguredCache(calculateObjectSize, options);
 }

@@ -1,4 +1,4 @@
-import { SchemaFieldTypes, type RedisClientType } from 'redis';
+import { type RedisClientType, SchemaFieldTypes } from 'redis';
 
 import type { CacheHandlerValue, Handler } from '../cache-handler';
 import type { RedisJSON } from '../common-types';
@@ -40,10 +40,9 @@ export type RedisCacheHandlerOptions<T> = {
  * @example
  * ```js
  * const redisClient = createRedisClient(...);
- * const cache = await createCache({
+ * const cache = await createHandler({
  *   client: redisClient,
  *   keyPrefix: 'myApp:',
- *   sharedTagsKey: 'myTags'
  * });
  * ```
  *
@@ -52,10 +51,9 @@ export type RedisCacheHandlerOptions<T> = {
  * - the `set` method allows setting a value in the cache.
  * - the `revalidateTag` methods are used for handling tag-based cache revalidation.
  */
-export default async function createCache<T extends RedisClientType>({
+export default async function createHandler<T extends RedisClientType>({
     client,
     keyPrefix = '',
-    sharedTagsKey = '__sharedTags__',
     timeoutMs = 5000,
 }: RedisCacheHandlerOptions<T>): Promise<Handler> {
     function assertClientIsReady(): void {
@@ -80,7 +78,7 @@ export default async function createCache<T extends RedisClientType>({
                 ON: 'JSON',
             },
         );
-    } catch (e) {
+    } catch (_e) {
         // Index already exists
     }
 
@@ -93,10 +91,6 @@ export default async function createCache<T extends RedisClientType>({
                 getTimeoutRedisCommandOptions(timeoutMs),
                 keyPrefix + key,
             )) as CacheHandlerValue | null;
-
-            if (cacheValue?.value?.kind === 'ROUTE') {
-                cacheValue.value.body = Buffer.from(cacheValue.value.body as unknown as string, 'base64');
-            }
 
             return cacheValue;
         },
@@ -111,9 +105,7 @@ export default async function createCache<T extends RedisClientType>({
                 preparedCacheValue.value.body = cacheHandlerValue.value.body.toString('base64') as unknown as Buffer;
             }
 
-            preparedCacheValue.tags = preparedCacheValue.tags.map((tag) => {
-                return sanitizeTag(sharedTagsKey + tag);
-            });
+            preparedCacheValue.tags = preparedCacheValue.tags.map(sanitizeTag);
 
             const options = getTimeoutRedisCommandOptions(timeoutMs);
 
@@ -124,8 +116,8 @@ export default async function createCache<T extends RedisClientType>({
                 preparedCacheValue as unknown as RedisJSON,
             );
 
-            const expireCacheValue = cacheHandlerValue.lifespan
-                ? client.expireAt(options, keyPrefix + key, cacheHandlerValue.lifespan.expireAt)
+            const expireCacheValue = preparedCacheValue.lifespan
+                ? client.expireAt(options, keyPrefix + key, preparedCacheValue.lifespan.expireAt)
                 : undefined;
 
             await Promise.all([setCacheValue, expireCacheValue]);
@@ -135,9 +127,9 @@ export default async function createCache<T extends RedisClientType>({
 
             const options = getTimeoutRedisCommandOptions(timeoutMs);
 
-            const query = await client.ft.search('idx:tags', `@tag:(${sanitizeTag(sharedTagsKey + tag)})`);
+            const query = await client.ft.search('idx:tags', `@tag:(${sanitizeTag(tag)})`);
 
-            const keysToDelete = query.documents.map((doc) => doc.id);
+            const keysToDelete = query.documents.map((document) => document.id);
 
             const deleteCacheOperation = client.del(options, keysToDelete);
 

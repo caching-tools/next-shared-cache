@@ -1,12 +1,12 @@
 import type { LruCacheOptions } from '@neshca/next-lru-cache/next-cache-handler-value';
-import { createCache } from '@neshca/next-lru-cache/next-cache-handler-value';
+import createCacheStore from '@neshca/next-lru-cache/next-cache-handler-value';
 
 import type { Handler } from '../cache-handler';
 
 export type LruCacheHandlerOptions = LruCacheOptions;
 
 /**
- * Creates an LRU (Least Recently Used) cache handler.
+ * Creates an LRU (Least Recently Used) cache Handler.
  *
  * This function initializes an LRU cache handler for managing cache operations.
  * It allows setting a maximum number of items and maximum item size in bytes.
@@ -19,17 +19,17 @@ export type LruCacheHandlerOptions = LruCacheOptions;
  *
  * @example
  * ```js
- * const lruCache = createLruCache({
+ * const lruHandler = createLruHandler({
  *   maxItemsNumber: 10000, // 10000 items
  *   maxItemSizeBytes: 1024 * 1024 * 500, // 500 MB
  * });
  * ```
  *
  * @remarks
- * - Use this Handler as a fallback for any remote store Handler instead of the filesystem when you use only the App router.
+ * - Use this Handler as a fallback for any remote store Handler.
  */
-export default function createLruCache({ ...lruOptions }: LruCacheHandlerOptions = {}): Handler {
-    const lruCacheStore = createCache(lruOptions);
+export default function createHandler({ ...lruOptions }: LruCacheHandlerOptions = {}): Handler {
+    const lruCacheStore = createCacheStore(lruOptions);
 
     return {
         name: 'local-lru',

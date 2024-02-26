@@ -1,7 +1,7 @@
 import { CacheHandler } from '@neshca/cache-handler';
-import createLruCache from '@neshca/cache-handler/local-lru';
-import createRedisCache from '@neshca/cache-handler/redis-stack';
-import createRedisStringsCache from '@neshca/cache-handler/redis-strings';
+import createLruHandler from '@neshca/cache-handler/local-lru';
+import createRedisHandler from '@neshca/cache-handler/redis-stack';
+import createRedisStringsHandler from '@neshca/cache-handler/redis-strings';
 import { createClient } from 'redis';
 
 CacheHandler.onCreation(async () => {
@@ -20,18 +20,18 @@ CacheHandler.onCreation(async () => {
     await client.connect();
     console.info('Redis client connected.');
 
-    const redisCache = await createRedisCache({
+    const redisHandler = await createRedisHandler({
         client,
         keyPrefix: 'JSON:',
         timeoutMs: 1000,
     });
 
-    const redisStringsCache = createRedisStringsCache({ client, keyPrefix: 'strings:', timeoutMs: 1000 });
+    const redisStringsHandler = createRedisStringsHandler({ client, keyPrefix: 'strings:', timeoutMs: 1000 });
 
-    const localCache = createLruCache();
+    const localHandler = createLruHandler();
 
     return {
-        handlers: [redisCache, redisStringsCache, localCache],
+        handlers: [redisHandler, redisStringsHandler, localHandler],
         ttl: { defaultStaleAge: 60, estimateExpireAge: (staleAge) => staleAge * 2 },
     };
 });

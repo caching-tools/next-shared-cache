@@ -25,29 +25,29 @@ export type LifespanParameters = {
     /**
      * The Unix timestamp (in seconds) for when the cache entry was last modified.
      */
-    lastModifiedAt: number;
+    readonly lastModifiedAt: number;
     /**
      * The Unix timestamp (in seconds) for when the cache entry entry becomes stale.
      * After this time, the entry is considered staled and may be used.
      */
-    staleAt: number;
+    readonly staleAt: number;
     /**
      * The Unix timestamp (in seconds) for when the cache entry must be removed from the cache.
      * After this time, the entry is considered expired and should not be used.
      */
-    expireAt: number;
+    readonly expireAt: number;
     /**
      * Time in seconds before the cache entry becomes stale.
      */
-    staleAge: number;
+    readonly staleAge: number;
     /**
      * Time in seconds before the cache entry becomes expired.
      */
-    expireAge: number;
+    readonly expireAge: number;
     /**
      * Value from Next.js revalidate option. May be false if the page has no revalidate option or the revalidate option is set to false.
      */
-    revalidate: Revalidate | undefined;
+    readonly revalidate: Revalidate | undefined;
 };
 
 export type CacheHandlerValue = NextCacheHandlerValue & {
@@ -58,7 +58,7 @@ export type CacheHandlerValue = NextCacheHandlerValue & {
     /**
      * Tags associated with the cache entry. They are used for on-demand revalidation.
      */
-    tags: string[];
+    tags: Readonly<string[]>;
     /**
      * The lifespan parameters for the cache entry.
      *

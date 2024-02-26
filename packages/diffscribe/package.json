@@ -1,6 +1,6 @@
 {
     "name": "diffscribe",
-    "version": "0.2.2",
+    "version": "0.2.3",
     "description": "An intelligent CLI tool designed to automatically generate meaningful commit messages using Git diffstat, status, and insights from OpenAI and you",
     "homepage": "https://github.com/caching-tools/next-shared-cache/tree/canary/packages/diffscribe",
     "bugs": "https://github.com/caching-tools/next-shared-cache/issues",
@@ -25,7 +25,7 @@
     },
     "devDependencies": {
         "@repo/typescript-config": "*",
-        "@types/node": "20.11.19",
+        "@types/node": "20.11.20",
         "rimraf": "5.0.5",
         "tsup": "8.0.2",
         "typescript": "5.3.3"

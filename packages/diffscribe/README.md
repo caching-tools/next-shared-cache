@@ -18,9 +18,9 @@ Please note that this project is in its beta version and may undergo significant
 
 ## Prerequisites:
 
-- Node.js `>=18.17.0`
-- Git `>=2`
-- An OpenAI API key. You can get one [here](https://platform.openai.com/account/api-keys)
+- Node.js `>=18.17.0`.
+- Git `>=2`.
+- An OpenAI API key. You can get one [here](https://platform.openai.com/account/api-keys).
 - `.env` file with `OPENAI_API_KEY` set to your OpenAI API key.
 
 ## Installation:

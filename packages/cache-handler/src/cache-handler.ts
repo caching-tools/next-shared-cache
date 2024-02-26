@@ -1,4 +1,4 @@
-import fs, { promises as fsPromises } from 'node:fs';
+import { promises as fsPromises } from 'node:fs';
 import path from 'node:path';
 
 import type {
@@ -18,17 +18,6 @@ import { createValidatedAgeEstimationFunction } from './helpers/create-validated
 import { getTagsFromPageData } from './helpers/get-tags-from-page-data';
 
 export type { CacheHandlerValue };
-
-function filterNullable(handler: unknown): handler is Handler {
-    return Boolean(handler);
-}
-
-const NEXT_DATA_SUFFIX = '.json';
-
-/**
- * The number of seconds in a year.
- */
-const ONE_YEAR = 60 * 60 * 24 * 365;
 
 /**
  * Represents a cache Handler.
@@ -132,7 +121,7 @@ export type Handler = {
  */
 export type TTLParameters = {
     /**
-     * The time period in seconds for when the cache entry becomes stale. Defaults to 1 year.
+     * The time in seconds for when the cache entry becomes stale. Defaults to 1 year.
      */
     defaultStaleAge: number;
     /**
@@ -152,7 +141,7 @@ export type TTLParameters = {
  */
 export type CacheHandlerConfig = {
     /**
-     * A custom cache instance or an array of cache instances that conform to the Cache interface.
+     * An array of cache instances that conform to the Handler interface.
      * Multiple caches can be used to implement various caching strategies or layers.
      */
     handlers: (Handler | undefined | null)[];
@@ -184,11 +173,6 @@ export type CacheCreationContext = {
      *
      * https://nextjs.org/docs/pages/building-your-application/deploying#build-cache
      *
-     * @remarks
-     * Some cache values may be lost during the build process
-     * because the `buildId` is defined after some cache values have already been set.
-     * However, `buildId` will be defined from the beginning when you start your app.
-     *
      * @example
      * ```js
      * // cache-handler.mjs
@@ -216,11 +200,7 @@ export type CacheCreationContext = {
 };
 
 /**
- * Represents a hook function that is called during the creation of the cache. This function allows for custom logic
- * to be executed at the time of cache instantiation, enabling dynamic configuration or initialization tasks.
- *
- * The function can either return a {@link CacheHandlerConfig} object directly or a Promise that resolves to a {@link CacheHandlerConfig},
- * allowing for asynchronous operations if needed.
+ * Represents a hook function that is called during the build and on start of the application.
  *
  * @param context - The {@link CacheCreationContext} object, providing contextual information about the cache creation environment,
  * such as server directory paths and whether the application is running in development mode.
@@ -246,14 +226,14 @@ export class CacheHandler implements NextCacheHandler {
      * ```js
      * // cache-handler.mjs
      * CacheHandler.onCreation(async () => {
-     *   const redisCache = await createRedisCache({
+     *   const redisHandler = await createRedisHandler({
      *    client,
      *   });
      *
-     *   const localCache = createLruCache();
+     *   const localHandler = createLruHandler();
      *
      *   return {
-     *     cache: [redisCache, localCache],
+     *     handlers: [redisHandler, localHandler],
      *   };
      * });
      *
@@ -272,18 +252,7 @@ export class CacheHandler implements NextCacheHandler {
         }`;
     }
 
-    static #resolveCreationPromise: () => void;
-
-    static #rejectCreationPromise: (error: unknown) => void;
-
-    /**
-     * A Promise that resolves when the `CacheHandler.configureCacheHandler` function has been called and the cache has been configured.
-     * It prevents the cache from being used before it's ready.
-     */
-    static readonly #creationPromise: Promise<void> = new Promise<void>((resolve, reject) => {
-        this.#resolveCreationPromise = resolve;
-        this.#rejectCreationPromise = reject;
-    });
+    static #context: FileSystemCacheContext;
 
     static #mergedHandler: Omit<Handler, 'name'>;
 
@@ -291,13 +260,74 @@ export class CacheHandler implements NextCacheHandler {
 
     static #debug = typeof process.env.NEXT_PRIVATE_DEBUG_CACHE !== 'undefined';
 
-    static #defaultStaleAge = ONE_YEAR;
+    // Default stale age is 1 year in seconds
+    static #defaultStaleAge = 60 * 60 * 24 * 365;
 
     static #estimateExpireAge: (staleAge: number) => number;
 
     static #fallbackFalseRoutes = new Set<string>();
 
     static #onCreationHook: OnCreationHook;
+
+    static #serverDistDir: string;
+
+    static async #readPagesRouterPage(cacheKey: string): Promise<CacheHandlerValue | null> {
+        let cacheHandlerValue: CacheHandlerValue | null = null;
+        let pageHtmlHandle: fsPromises.FileHandle | null = null;
+
+        try {
+            const pageHtmlPath = path.join(CacheHandler.#serverDistDir, 'pages', `${cacheKey}.html`);
+            const pageDataPath = path.join(CacheHandler.#serverDistDir, 'pages', `${cacheKey}.json`);
+
+            pageHtmlHandle = await fsPromises.open(pageHtmlPath, 'r');
+
+            const [pageHtmlFile, { mtimeMs }, pageDataFile] = await Promise.all([
+                pageHtmlHandle.readFile('utf-8'),
+                pageHtmlHandle.stat(),
+                fsPromises.readFile(pageDataPath, 'utf-8'),
+            ]);
+
+            const pageData = JSON.parse(pageDataFile) as object;
+
+            cacheHandlerValue = {
+                lastModified: mtimeMs,
+                lifespan: null,
+                tags: [],
+                value: {
+                    kind: 'PAGE',
+                    html: pageHtmlFile,
+                    pageData,
+                    postponed: undefined,
+                    headers: undefined,
+                    status: undefined,
+                },
+            };
+        } catch (_) {
+            cacheHandlerValue = null;
+        } finally {
+            await pageHtmlHandle?.close();
+        }
+
+        return cacheHandlerValue;
+    }
+
+    static async #writePagesRouterPage(cacheKey: string, pageData: IncrementalCachedPageValue): Promise<boolean> {
+        try {
+            const pageHtmlPath = path.join(CacheHandler.#serverDistDir, 'pages', `${cacheKey}.html`);
+            const pageDataPath = path.join(CacheHandler.#serverDistDir, 'pages', `${cacheKey}.json`);
+
+            await fsPromises.mkdir(path.dirname(pageHtmlPath), { recursive: true });
+
+            await Promise.all([
+                fsPromises.writeFile(pageHtmlPath, pageData.html),
+                fsPromises.writeFile(pageDataPath, JSON.stringify(pageData.pageData)),
+            ]);
+
+            return true;
+        } catch (_error) {
+            return false;
+        }
+    }
 
     /**
      * Returns the cache control parameters based on the last modified timestamp and revalidate option.
@@ -310,9 +340,9 @@ export class CacheHandler implements NextCacheHandler {
      *
      * @remarks
      * - `lastModifiedAt` is the Unix timestamp (in seconds) for when the cache entry was last modified.
-     * - `staleAge` is the time period in seconds which equals to the `revalidate` option from Next.js pages.
+     * - `staleAge` is the time in seconds which equals to the `revalidate` option from Next.js pages.
      * If page has no `revalidate` option, it will be set to 1 year.
-     * - `expireAge` is the time period in seconds for when the cache entry becomes expired.
+     * - `expireAge` is the time in seconds for when the cache entry becomes expired.
      * - `staleAt` is the Unix timestamp (in seconds) for when the cache entry becomes stale.
      * - `expireAt` is the Unix timestamp (in seconds) for when the cache entry must be removed from the cache.
      * - `revalidate` is the value from Next.js revalidate option.
@@ -345,21 +375,35 @@ export class CacheHandler implements NextCacheHandler {
         CacheHandler.#onCreationHook = onCreationHook;
     }
 
-    static async #configureCacheHandler(cacheCreationContext: CacheCreationContext): Promise<void> {
+    static async #configureCacheHandler(): Promise<void> {
+        if (CacheHandler.#mergedHandler) {
+            return;
+        }
+
+        const { serverDistDir, dev } = CacheHandler.#context;
+
+        let buildId: string | undefined;
+
+        try {
+            buildId = await fsPromises.readFile(path.join(serverDistDir, '..', 'BUILD_ID'), 'utf-8');
+        } catch (_error) {
+            buildId = undefined;
+        }
         // Retrieve cache configuration by invoking the onCreation hook with the provided context
-        const config = CacheHandler.#onCreationHook(cacheCreationContext);
+        const config = CacheHandler.#onCreationHook({ serverDistDir, dev, buildId });
 
         // Wait for the cache configuration to be resolved
         const { handlers, ttl = {} } = await config;
 
-        const { defaultStaleAge = ONE_YEAR, estimateExpireAge } = ttl;
+        const { defaultStaleAge, estimateExpireAge } = ttl;
 
-        CacheHandler.#defaultStaleAge = defaultStaleAge;
+        if (typeof defaultStaleAge === 'number') {
+            CacheHandler.#defaultStaleAge = Math.floor(defaultStaleAge);
+        }
 
         CacheHandler.#estimateExpireAge = createValidatedAgeEstimationFunction(estimateExpireAge);
 
-        // Extract the server distribution directory from the cache creation context
-        const { serverDistDir, dev } = cacheCreationContext;
+        CacheHandler.#serverDistDir = serverDistDir;
 
         // Notify the user that the cache is not used in development mode
         if (dev) {
@@ -375,7 +419,7 @@ export class CacheHandler implements NextCacheHandler {
             const prerenderManifest = JSON.parse(prerenderManifestData) as PrerenderManifest;
 
             for (const [route, { srcRoute, dataRoute }] of Object.entries(prerenderManifest.routes)) {
-                const isPagesRouter = dataRoute?.endsWith(NEXT_DATA_SUFFIX);
+                const isPagesRouter = dataRoute?.endsWith('.json');
 
                 if (isPagesRouter && prerenderManifest.dynamicRoutes[srcRoute || '']?.fallback === false) {
                     CacheHandler.#fallbackFalseRoutes.add(route);
@@ -383,7 +427,7 @@ export class CacheHandler implements NextCacheHandler {
             }
         } catch (_error) {}
 
-        const handlersList: Handler[] = handlers.filter(filterNullable);
+        const handlersList: Handler[] = handlers.filter((handler): handler is Handler => Boolean(handler));
 
         CacheHandler.#cacheListLength = handlersList.length;
 
@@ -391,41 +435,52 @@ export class CacheHandler implements NextCacheHandler {
             async get(key) {
                 for await (const handler of handlersList) {
                     try {
-                        let cacheValue = await handler.get(key);
+                        let cacheHandlerValue = await handler.get(key);
 
-                        if (cacheValue?.lifespan && cacheValue.lifespan.expireAt < Math.floor(Date.now() / 1000)) {
-                            cacheValue = null;
-                            handler.delete?.(key);
+                        if (
+                            cacheHandlerValue?.lifespan &&
+                            cacheHandlerValue.lifespan.expireAt < Math.floor(Date.now() / 1000)
+                        ) {
+                            cacheHandlerValue = null;
+                            await handler.delete?.(key).catch((deleteError) => {
+                                if (CacheHandler.#debug) {
+                                    console.warn(
+                                        `Handler "${handler.name}" failed to delete value for key "${key}".`,
+                                        deleteError,
+                                    );
+                                }
+                            });
                         }
 
                         if (CacheHandler.#debug) {
-                            console.info(`get from "${handler.name}"`, key, Boolean(cacheValue));
+                            console.info(`get from "${handler.name}"`, key, Boolean(cacheHandlerValue));
                         }
 
-                        return cacheValue;
+                        return cacheHandlerValue;
                     } catch (error) {
                         if (CacheHandler.#debug) {
-                            console.warn(
-                                `Cache handler "${handler.name}" failed to get value for key "${key}".`,
-                                error,
-                            );
+                            console.warn(`Handler "${handler.name}" failed to get value for key "${key}".`, error);
                         }
                     }
                 }
 
                 return null;
             },
-            async set(key, value) {
+            async set(key, cacheHandlerValue) {
                 await Promise.all(
-                    handlersList.map((cacheItem) => {
+                    handlersList.map((handler) => {
                         try {
-                            return cacheItem.set(key, value);
+                            return handler.set(key, {
+                                lastModified: cacheHandlerValue.lastModified,
+                                lifespan: cacheHandlerValue.lifespan,
+                                tags: cacheHandlerValue.tags,
+                                value: cacheHandlerValue.value,
+                                age: cacheHandlerValue.age,
+                                cacheState: cacheHandlerValue.cacheState,
+                            });
                         } catch (error) {
                             if (CacheHandler.#debug) {
-                                console.warn(
-                                    `Cache handler "${cacheItem.name}" failed to set value for key "${key}".`,
-                                    error,
-                                );
+                                console.warn(`Handler "${handler.name}" failed to set value for key "${key}".`, error);
                             }
                         }
 
@@ -435,15 +490,12 @@ export class CacheHandler implements NextCacheHandler {
             },
             async revalidateTag(tag) {
                 await Promise.all(
-                    handlersList.map((cacheItem) => {
+                    handlersList.map((handler) => {
                         try {
-                            return cacheItem.revalidateTag(tag);
+                            return handler.revalidateTag(tag);
                         } catch (error) {
                             if (CacheHandler.#debug) {
-                                console.warn(
-                                    `Cache handler "${cacheItem.name}" failed to revalidate tag "${tag}".`,
-                                    error,
-                                );
+                                console.warn(`Handler "${handler.name}" failed to revalidate tag "${tag}".`, error);
                             }
                         }
 
@@ -454,69 +506,12 @@ export class CacheHandler implements NextCacheHandler {
         };
     }
 
-    readonly #serverDistDir: string;
-
     private constructor(context: FileSystemCacheContext) {
-        this.#serverDistDir = context.serverDistDir;
-
-        if (!CacheHandler.#mergedHandler) {
-            const { dev } = context;
-
-            let buildId: string | undefined;
-
-            try {
-                buildId = fs.readFileSync(path.join(this.#serverDistDir, '..', 'BUILD_ID'), 'utf-8');
-            } catch (_error) {
-                buildId = undefined;
-            }
-
-            CacheHandler.#configureCacheHandler({
-                dev,
-                serverDistDir: this.#serverDistDir,
-                buildId,
-            })
-                .then(CacheHandler.#resolveCreationPromise)
-                .catch(CacheHandler.#rejectCreationPromise);
-        }
-    }
-
-    async #readPageWithFallbackFalse(cacheKey: string): Promise<CacheHandlerValue | null> {
-        try {
-            const pageFilePath = this.#getFilePath(`${cacheKey}.html`);
-            const pageDataFilePath = this.#getFilePath(`${cacheKey}${NEXT_DATA_SUFFIX}`);
-
-            const [pageFile, pageDataFile] = await Promise.all([
-                fsPromises.readFile(pageFilePath, 'utf-8'),
-                fsPromises.readFile(pageDataFilePath, 'utf-8'),
-            ]);
-            const { mtime } = await fsPromises.stat(pageFilePath);
-
-            const lastModified = mtime.getTime();
-
-            const pageData = JSON.parse(pageDataFile) as object;
-
-            return {
-                lastModified,
-                lifespan: null,
-                tags: [],
-                value: {
-                    kind: 'PAGE',
-                    html: pageFile,
-                    pageData,
-                    postponed: undefined,
-                    headers: undefined,
-                    status: undefined,
-                },
-            };
-        } catch (_) {
-            // unable to get data from the file system
-        }
-
-        return null;
+        CacheHandler.#context = context;
     }
 
     async get(...args: CacheHandlerParametersGet): Promise<CacheHandlerValue | null> {
-        await CacheHandler.#creationPromise;
+        await CacheHandler.#configureCacheHandler();
 
         const [cacheKey, ctx = {}] = args;
 
@@ -524,89 +519,84 @@ export class CacheHandler implements NextCacheHandler {
 
         let cachedData: CacheHandlerValue | null | undefined = await CacheHandler.#mergedHandler.get(cacheKey);
 
-        const hasFallbackFalse = CacheHandler.#fallbackFalseRoutes.has(cacheKey);
+        if (cachedData?.value?.kind === 'ROUTE') {
+            cachedData.value.body = Buffer.from(cachedData.value.body as unknown as string, 'base64');
+        }
 
-        if (!cachedData && hasFallbackFalse) {
-            cachedData = await this.#readPageWithFallbackFalse(cacheKey);
+        if (!cachedData && CacheHandler.#fallbackFalseRoutes.has(cacheKey)) {
+            cachedData = await CacheHandler.#readPagesRouterPage(cacheKey);
 
             if (CacheHandler.#debug) {
                 console.info('get from file system', cacheKey, tags, kindHint, 'got any value', Boolean(cachedData));
             }
 
+            // if we have a value from the file system, we should set it to the cache store
             if (cachedData) {
                 await CacheHandler.#mergedHandler.set(cacheKey, cachedData);
             }
         }
 
-        if (!cachedData) {
-            return null;
-        }
-
-        return cachedData;
-    }
-
-    async #writePageWithFallbackFalse(cacheKey: string, pageData: IncrementalCachedPageValue): Promise<void> {
-        try {
-            const htmlPath = this.#getFilePath(`${cacheKey}.html`);
-
-            await fsPromises.mkdir(path.dirname(htmlPath), { recursive: true });
-
-            await Promise.all([
-                fsPromises.writeFile(htmlPath, pageData.html),
-                fsPromises.writeFile(
-                    this.#getFilePath(`${cacheKey}${NEXT_DATA_SUFFIX}`),
-                    JSON.stringify(pageData.pageData),
-                ),
-            ]);
-        } catch (_error) {
-            if (CacheHandler.#debug) {
-                console.warn('Unable to write to the file system', cacheKey);
-            }
-        }
+        return cachedData ?? null;
     }
 
     async set(...args: CacheHandlerParametersSet): Promise<void> {
-        await CacheHandler.#creationPromise;
+        await CacheHandler.#configureCacheHandler();
 
-        const [cacheKey, data, ctx] = args;
+        const [cacheKey, value, ctx] = args;
 
         const { revalidate, tags = [] } = ctx;
 
         const lastModified = Date.now();
 
-        // enrich the data with the tags
-        if (data?.kind === 'FETCH') {
-            data.tags = tags;
-        }
-
         const hasFallbackFalse = CacheHandler.#fallbackFalseRoutes.has(cacheKey);
 
         const lifespan = hasFallbackFalse ? null : CacheHandler.#getLifespanParameters(lastModified, revalidate);
 
-        const cacheValue: CacheHandlerValue = {
+        let cacheHandlerValueTags = tags;
+
+        switch (value?.kind) {
+            case 'PAGE': {
+                cacheHandlerValueTags = getTagsFromPageData(value);
+                break;
+            }
+            case 'ROUTE': {
+                // replace the body with a base64 encoded string to save space
+                value.body = value.body.toString('base64') as unknown as Buffer;
+                break;
+            }
+            default: {
+                break;
+            }
+        }
+
+        const cacheHandlerValue: CacheHandlerValue = {
             lastModified,
             lifespan,
-            tags: data?.kind === 'PAGE' ? getTagsFromPageData(data) : tags,
-            value: data,
+            tags: Object.freeze(cacheHandlerValueTags),
+            value,
         };
 
-        await CacheHandler.#mergedHandler.set(cacheKey, cacheValue);
+        await CacheHandler.#mergedHandler.set(cacheKey, cacheHandlerValue);
 
         if (CacheHandler.#debug) {
             console.info('set to external cache store', cacheKey);
         }
 
-        if (hasFallbackFalse && cacheValue.value?.kind === 'PAGE') {
-            await this.#writePageWithFallbackFalse(cacheKey, cacheValue.value);
+        if (hasFallbackFalse && cacheHandlerValue.value?.kind === 'PAGE') {
+            const wasWritten = await CacheHandler.#writePagesRouterPage(cacheKey, cacheHandlerValue.value);
 
-            if (CacheHandler.#debug) {
+            if (CacheHandler.#debug && !wasWritten) {
+                console.warn('Unable to write to the file system', cacheKey);
+            }
+
+            if (CacheHandler.#debug && wasWritten) {
                 console.info('set to file system', cacheKey);
             }
         }
     }
 
     async revalidateTag(...args: CacheHandlerParametersRevalidateTag): Promise<void> {
-        await CacheHandler.#creationPromise;
+        await CacheHandler.#configureCacheHandler();
 
         const [tag] = args;
 
@@ -619,10 +609,6 @@ export class CacheHandler implements NextCacheHandler {
         if (CacheHandler.#debug) {
             console.info('updated external revalidated tags');
         }
-    }
-
-    #getFilePath(pathname: string): string {
-        return path.join(this.#serverDistDir, 'pages', pathname);
     }
 
     resetRequestCache(): void {
