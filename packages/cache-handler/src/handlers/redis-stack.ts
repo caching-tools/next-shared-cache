@@ -64,18 +64,6 @@ export default async function createHandler<T extends RedisClientType>({
         }
     }
 
-    assertClientIsReady();
-
-    await client.json.set(
-        getTimeoutRedisCommandOptions(timeoutMs),
-        `${keyPrefix}${sharedTagsKey}`,
-        '.',
-        {},
-        {
-            NX: true,
-        },
-    );
-
     return {
         name: 'redis-stack',
         async get(key) {
@@ -93,12 +81,11 @@ export default async function createHandler<T extends RedisClientType>({
 
             const options = getTimeoutRedisCommandOptions(timeoutMs);
 
-            const setTags = client.json.set(
-                options,
-                `${keyPrefix}${sharedTagsKey}`,
-                `.${key}`,
-                cacheHandlerValue.tags as unknown as RedisJSON,
-            );
+            const setTags = cacheHandlerValue.tags.length
+                ? client.hSet(options, keyPrefix + sharedTagsKey, {
+                      [key]: JSON.stringify(cacheHandlerValue.tags),
+                  })
+                : undefined;
 
             const setCacheValue = client.json.set(
                 options,
@@ -116,31 +103,37 @@ export default async function createHandler<T extends RedisClientType>({
         async revalidateTag(tag) {
             assertClientIsReady();
 
-            const options = getTimeoutRedisCommandOptions(timeoutMs);
+            const remoteTags: Record<string, string> = await client.hGetAll(
+                getTimeoutRedisCommandOptions(timeoutMs),
+                keyPrefix + sharedTagsKey,
+            );
 
-            const remoteTagsMap = await client.json.get(options, `${keyPrefix}${sharedTagsKey}`);
-
-            const tagMap = new Map(Object.entries(remoteTagsMap as Record<string, string[]>));
+            const tagsMap = new Map(Object.entries(remoteTags));
 
             const keysToDelete = [];
 
-            for (const [key, tags] of tagMap) {
+            const tagsToDelete = [];
+
+            for (const [key, tagsString] of tagsMap) {
+                const tags = JSON.parse(tagsString);
+
                 if (tags.includes(tag)) {
                     keysToDelete.push(keyPrefix + key);
-                    tagMap.delete(key);
+                    tagsToDelete.push(key);
                 }
             }
 
-            const deleteCacheOperation = client.del(options, keysToDelete);
+            if (keysToDelete.length === 0) {
+                return;
+            }
 
-            const setTagsOperation = client.json.set(
-                options,
-                `${keyPrefix}${sharedTagsKey}`,
-                '.',
-                Object.fromEntries(tagMap),
-            );
+            const options = getTimeoutRedisCommandOptions(timeoutMs);
 
-            await Promise.all([deleteCacheOperation, setTagsOperation]);
+            const deleteKeysOperation = client.del(options, keysToDelete);
+
+            const updateTagsOperation = client.hDel(options, keyPrefix + sharedTagsKey, tagsToDelete);
+
+            await Promise.all([deleteKeysOperation, updateTagsOperation]);
         },
     };
 }
