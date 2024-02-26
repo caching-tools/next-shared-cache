@@ -1,5 +1,15 @@
 # @neshca/server
 
+## 1.0.0
+
+### Major Changes
+
+- dbf9286: Release 1.0.0
+
+  #### Breaking Changes
+
+  - change the API to match with the new CacheHandler API
+
 ## 0.6.1
 
 ### Patch Changes
