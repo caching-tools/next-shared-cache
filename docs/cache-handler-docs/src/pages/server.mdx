@@ -25,27 +25,26 @@ PORT=8080 HOST=localhost npx next-cache-server
   to the URL of your `@neshca/server`. You can use any other way to set the URL.
 </Callout>
 
-Create a file called `cache-handler.mjs` next to you `next.config.js` with the following contents:
+Create a file called `cache-handler.mjs` next to your `next.config.js` with the following contents:
 
 ```js filename="cache-handler.mjs" copy
-import { IncrementalCache } from '@neshca/cache-handler';
-import createLruCache from '@neshca/cache-handler/local-lru';
-import createServerCache from '@neshca/cache-handler/server';
+import { CacheHandler } from '@neshca/cache-handler';
+import createLruHandler from '@neshca/cache-handler/local-lru';
+import createServerHandler from '@neshca/cache-handler/server';
 
 const baseUrl = process.env.REMOTE_CACHE_SERVER_BASE_URL ?? 'http://localhost:8080';
 
-IncrementalCache.onCreation(() => {
-  const httpCache = createServerCache({
+CacheHandler.onCreation(() => {
+  const httpHandler = createServerHandler({
     baseUrl,
   });
 
-  const localCache = createLruCache();
+  const localHandler = createLruHandler();
 
   return {
-    cache: [httpCache, localCache],
-    useFileSystem: true,
+    handlers: [httpHandler, localHandler],
   };
 });
 
-export default IncrementalCache;
+export default CacheHandler;
 ```

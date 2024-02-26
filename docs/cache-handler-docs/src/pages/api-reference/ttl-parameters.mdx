@@ -1,0 +1,61 @@
+# TTLParameters
+
+```typescript
+type TTLParameters = {
+  defaultStaleAge: number;
+  estimateExpireAge(staleAge: number): number;
+};
+```
+
+## Properties
+
+### `defaultStaleAge`
+
+The time in seconds for when the cache entry becomes stale. Defaults to 1 year.
+
+Stale age is the time after which the cache entry is considered stale, can be served from the cache, and should be revalidated. Revalidation is handled by the `CacheHandler` class.
+
+### `estimateExpireAge`
+
+Estimates the expiration age based on the stale age.
+
+Expire age is the time after which the cache entry is considered expired and should be removed from the cache and must not be served.
+
+The provided callback will be wrapped in a normalizing function to ensure that the result is a non-negative integer.
+
+#### Parameters
+
+- `staleAge` - The stale age in seconds. Defaults to 1 year.
+
+  The stale age is the time you have provided in the `revalidate` option in your [`getStaticProps`](https://nextjs.org/docs/pages/api-reference/functions/get-static-props#revalidate) or in the [`fetch`](https://nextjs.org/docs/app/building-your-application/data-fetching/fetching-caching-and-revalidating#time-based-revalidation) method. If you did not specify the `revalidate` option, the stale age will be the default stale age.
+
+  After the stale age, the cache entry is considered stale, can be served from the cache, and should be revalidated. Revalidation is handled by the `CacheHandler` class.
+
+#### Return value
+
+The expire age in seconds.
+
+## Example
+
+In this example, the `CacheHandler` class is configured to use TTL parameters with a default stale age of 1 hour and an expire age that is twice the stale age. If you have specified the `revalidate` option in your `getStaticProps` or `fetch` method, the stale age will be the time you have provided in the `revalidate` option, and the expire age will be twice the stale age. This setup may be useful if you want to revalidate the cache entry in the background.
+
+```js filename="cache-handler.mjs" copy
+CacheHandler.onCreation(async () => {
+  const mainHandler = {
+    // ...
+  };
+
+  const fallbackHandler = {
+    // ...
+  };
+
+  return {
+    handlers: [mainHandler, fallbackHandler],
+    ttl: { defaultStaleAge: 3600, estimateExpireAge: (staleAge) => staleAge * 2 },
+  };
+});
+```
+
+## Caveats
+
+TTL parameters are not used for the pages with `fallback: false` in `getStaticPaths`. Such pages will be cached indefinitely and will not be deleted from the cache after the expiration age. Instead, they only will be updated after the stale and expire age.

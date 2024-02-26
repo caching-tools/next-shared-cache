@@ -23,7 +23,7 @@ const DEFAULT_OPTIONS: LruCacheOptions = {
 };
 
 /**
- * Creates a configured LRU cache.
+ * Creates a configured LRUCache.
  *
  * @param calculateSizeCallback - A callback function to calculate the size of cache items.
  *

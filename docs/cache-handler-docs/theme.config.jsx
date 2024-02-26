@@ -14,6 +14,9 @@ function Head() {
                 content={frontMatter.description || '@neshca/cache-handler documentation'}
                 property="og:description"
             />
+            <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+            <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+            <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
         </>
     );
 }
@@ -50,10 +53,10 @@ export default {
         ),
     },
     banner: {
-        key: '0.6.0-release',
+        key: 'version-1.0.0',
         text: (
             <a href="https://nextjs.org/blog/next-14-1">
-                🎉 Next.js stabilized the API, and we are almost there, just a few steps before version 1.0.0!
+                🎉 1.0.0 is out! It features an improved API and TTL by default.
             </a>
         ),
     },

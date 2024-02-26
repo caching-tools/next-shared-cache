@@ -45,5 +45,6 @@
     },
     "[typescriptreact]": {
         "editor.defaultFormatter": "biomejs.biome"
-    }
+    },
+    "grammarly.files.include": ["**/*.md", "**/*.mdx"]
 }

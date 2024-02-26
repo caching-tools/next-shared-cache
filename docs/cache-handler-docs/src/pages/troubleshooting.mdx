@@ -8,13 +8,14 @@ Add `console.log` statements to your cache handler:
 
 ```js filename="cache-handler.mjs"
 /* ... */
-const cache = {
+const handler = {
+  name: 'my-cache-handler',
   async get(key) {
-    console.log('cache.get', key);
+    console.log('handler.get', key);
     return cacheStore.get(key);
   },
   async set(key, value) {
-    console.log('cache.set', key, value);
+    console.log('handler.set', key, value);
     cacheStore.set(key, value);
   },
 };
@@ -28,11 +29,11 @@ npm run build
 npm run start
 ```
 
-The console should display output the application starts and any page is opened in your browser:
+The console should display the output the application starts and any page is opened in your browser:
 
 ```
-cache.get ...
-cache.set ...
+handler.get ...
+handler.set ...
 ```
 
 #### Method 2: Debug Mode
@@ -52,10 +53,10 @@ npm run build
 npm run start
 ```
 
-Verbose output should appear in your console when the application starts and any page is opened in your browser:
+A verbose output should appear in your server console when the application starts and any page is opened in your browser:
 
 ```
-using custom cache handler @neshca/cache-handler with 1 Handlers and file system caching
+using custom cache handler @neshca/cache-handler with 1 Handlers
 get from "redis-stack" ba7bea0a3991dc2cbf8e068da71c2a2aa8c0e6f902fe695c1badf1e994acc43a false
 set to external cache store 8f058e8d96c4010b07abddd0f9f26ebd9ed71e2ccfb18eca348fc57a6e86f986
 ```

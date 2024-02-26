@@ -14,5 +14,5 @@ export default async function Index(): Promise<JSX.Element> {
 
     const { count, path, time } = data;
 
-    return <CommonAppPage count={count} path={path} revalidateAfter={Infinity} time={time} />;
+    return <CommonAppPage count={count} path={path} revalidateAfter={Number.POSITIVE_INFINITY} time={time} />;
 }

@@ -1,3 +1,4 @@
+import Timers from 'node:timers/promises';
 import { expect, test } from '@playwright/test';
 
 const paths = [
@@ -98,6 +99,43 @@ test.describe('Time-based revalidation', () => {
             await page.reload();
 
             await expect(page.getByTestId('data')).toHaveText(pageValue);
+
+            await page.reload();
+
+            await expect(page.getByTestId('data')).not.toHaveText(pageValue);
+        });
+    }
+
+    for (const path of paths) {
+        test(`Page should be fresh after reloaded once if becoming stale and waiting the same time for cache expiration ${path}`, async ({
+            page,
+            baseURL,
+        }) => {
+            test.fail(path.includes('fallback-false'), 'See https://github.com/vercel/next.js/issues/58094');
+
+            const url = new URL(path, `${baseURL}:3000`);
+
+            const startTime = Date.now();
+
+            await page.goto(url.href);
+
+            await page.getByTestId('revalidate-button-path').click();
+
+            await expect(page.getByTestId('is-revalidated-by-path')).toContainText('Revalidated at');
+
+            await page.reload();
+
+            const pageValue = (await page.getByTestId('data').innerText()).valueOf();
+
+            await page.reload();
+
+            await expect(page.getByTestId('data')).toHaveText(pageValue);
+
+            await expect(page.getByTestId('cache-state')).toContainText('stale', { timeout: 7500 });
+
+            const elapsedTime = Date.now() - startTime;
+
+            await Timers.scheduler.wait(elapsedTime);
 
             await page.reload();
 
