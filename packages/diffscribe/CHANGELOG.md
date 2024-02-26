@@ -1,5 +1,11 @@
 # diffscribe
 
+## 0.2.3
+
+### Patch Changes
+
+- dbf9286: Fixed punctuation in readme
+
 ## 0.2.2
 
 ### Patch Changes
