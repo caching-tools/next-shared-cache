@@ -65,8 +65,6 @@ export default function createHandler({ baseUrl, timeoutMs }: ServerCacheHandler
         async set(key, cacheHandlerValue) {
             const url = new URL('/set', baseUrl);
 
-            const _isRouteKind = cacheHandlerValue.value?.kind === 'ROUTE';
-
             const response = await fetch(url, {
                 method: 'POST',
                 body: JSON.stringify([key, JSON.stringify(cacheHandlerValue)]),
