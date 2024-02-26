@@ -1,4 +1,4 @@
-import type { RedisClientType } from 'redis';
+import { type RedisClientType, SchemaFieldTypes } from 'redis';
 
 import type { CacheHandlerValue, Handler } from '../cache-handler';
 import type { RedisJSON } from '../common-types';
@@ -43,7 +43,6 @@ export type RedisCacheHandlerOptions<T> = {
  * const cache = await createHandler({
  *   client: redisClient,
  *   keyPrefix: 'myApp:',
- *   sharedTagsKey: 'myTags'
  * });
  * ```
  *
@@ -55,13 +54,32 @@ export type RedisCacheHandlerOptions<T> = {
 export default async function createHandler<T extends RedisClientType>({
     client,
     keyPrefix = '',
-    sharedTagsKey = '__sharedTags__',
     timeoutMs = 5000,
-}: RedisCacheHandlerOptions<T>): Promise<Handler> {
+}: Omit<RedisCacheHandlerOptions<T>, 'sharedTagsKey'>): Promise<Handler> {
     function assertClientIsReady(): void {
         if (!client.isReady) {
             throw new Error('Redis client is not ready');
         }
+    }
+
+    function sanitizeTag(str: string) {
+        return str.replace(/[^a-zA-Z0-9]/gi, '_');
+    }
+
+    assertClientIsReady();
+
+    try {
+        await client.ft.create(
+            'idx:tags',
+            {
+                '$.tags': { type: SchemaFieldTypes.TEXT, AS: 'tag' },
+            },
+            {
+                ON: 'JSON',
+            },
+        );
+    } catch (_e) {
+        // Index already exists
     }
 
     return {
@@ -79,13 +97,9 @@ export default async function createHandler<T extends RedisClientType>({
         async set(key, cacheHandlerValue) {
             assertClientIsReady();
 
-            const options = getTimeoutRedisCommandOptions(timeoutMs);
+            cacheHandlerValue.tags = cacheHandlerValue.tags.map(sanitizeTag);
 
-            const setTags = cacheHandlerValue.tags.length
-                ? client.hSet(options, keyPrefix + sharedTagsKey, {
-                      [key]: JSON.stringify(cacheHandlerValue.tags),
-                  })
-                : undefined;
+            const options = getTimeoutRedisCommandOptions(timeoutMs);
 
             const setCacheValue = client.json.set(
                 options,
@@ -98,30 +112,14 @@ export default async function createHandler<T extends RedisClientType>({
                 ? client.expireAt(options, keyPrefix + key, cacheHandlerValue.lifespan.expireAt)
                 : undefined;
 
-            await Promise.all([setCacheValue, expireCacheValue, setTags]);
+            await Promise.all([setCacheValue, expireCacheValue]);
         },
         async revalidateTag(tag) {
             assertClientIsReady();
 
-            const remoteTags: Record<string, string> = await client.hGetAll(
-                getTimeoutRedisCommandOptions(timeoutMs),
-                keyPrefix + sharedTagsKey,
-            );
+            const query = await client.ft.search('idx:tags', `@tag:(${sanitizeTag(tag)})`);
 
-            const tagsMap = new Map(Object.entries(remoteTags));
-
-            const keysToDelete = [];
-
-            const tagsToDelete = [];
-
-            for (const [key, tagsString] of tagsMap) {
-                const tags = JSON.parse(tagsString);
-
-                if (tags.includes(tag)) {
-                    keysToDelete.push(keyPrefix + key);
-                    tagsToDelete.push(key);
-                }
-            }
+            const keysToDelete = query.documents.map((document) => document.id);
 
             if (keysToDelete.length === 0) {
                 return;
@@ -131,9 +129,7 @@ export default async function createHandler<T extends RedisClientType>({
 
             const deleteKeysOperation = client.del(options, keysToDelete);
 
-            const updateTagsOperation = client.hDel(options, keyPrefix + sharedTagsKey, tagsToDelete);
-
-            await Promise.all([deleteKeysOperation, updateTagsOperation]);
+            await Promise.all([deleteKeysOperation]);
         },
     };
 }
