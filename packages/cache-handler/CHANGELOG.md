@@ -1,5 +1,11 @@
 # @neshca/cache-handler
 
+## 1.0.3
+
+### Patch Changes
+
+- 30a20d9: Fix Redis client type in Redis Handlers
+
 ## 1.0.2
 
 ### Patch Changes
