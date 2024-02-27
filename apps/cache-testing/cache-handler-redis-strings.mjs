@@ -1,3 +1,5 @@
+// @ts-check
+
 import { CacheHandler } from '@neshca/cache-handler';
 import createLruHandler from '@neshca/cache-handler/local-lru';
 import createRedisHandler from '@neshca/cache-handler/redis-strings';
@@ -10,6 +12,7 @@ CacheHandler.onCreation(async () => {
 
     const PREFIX = 'string:';
 
+    /** @type {import("redis").RedisClientType} */
     const client = createClient({
         url: process.env.REDIS_URL,
         name: `cache-handler:${PREFIX}${process.env.PORT ?? process.pid}`,
