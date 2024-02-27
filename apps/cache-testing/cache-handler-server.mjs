@@ -1,3 +1,5 @@
+// @ts-check
+
 import { CacheHandler } from '@neshca/cache-handler';
 import createLruHandler from '@neshca/cache-handler/local-lru';
 import createServerHandler from '@neshca/cache-handler/server';

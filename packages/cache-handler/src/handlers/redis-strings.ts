@@ -1,9 +1,11 @@
-import type { RedisClientType } from 'redis';
+// import type { RedisClientType } from 'redis';
 
 import type { CacheHandlerValue, Handler } from '../cache-handler';
+import type { CreateRedisStringsHandlerOptions } from '../common-types';
+
 import { getTimeoutRedisCommandOptions } from '../helpers/get-timeout-redis-command-options';
 
-import type { RedisCacheHandlerOptions } from './redis-stack';
+export { CreateRedisStringsHandlerOptions };
 
 /**
  * Creates a Handler using Redis client.
@@ -12,7 +14,7 @@ import type { RedisCacheHandlerOptions } from './redis-stack';
  * It supports both Redis Client and Redis Cluster types. The handler includes
  * methods to get, set, and manage cache values and revalidated tags.
  *
- * @param options - The configuration options for the Redis Handler. See {@link RedisCacheHandlerOptions}.
+ * @param options - The configuration options for the Redis Handler. See {@link CreateRedisStringsHandlerOptions}.
  *
  * @returns An object representing the cache, with methods for cache operations.
  *
@@ -31,12 +33,12 @@ import type { RedisCacheHandlerOptions } from './redis-stack';
  * - the `set` method allows setting a value in the cache.
  * - the `revalidateTag` methods are used for handling tag-based cache revalidation.
  */
-export default function createHandler<T extends RedisClientType>({
+export default function createHandler({
     client,
     keyPrefix = '',
     sharedTagsKey = '__sharedTags__',
     timeoutMs = 5000,
-}: RedisCacheHandlerOptions<T>): Handler {
+}: CreateRedisStringsHandlerOptions): Handler {
     function assertClientIsReady(): void {
         if (!client.isReady) {
             throw new Error('Redis client is not ready yet or connection is lost. Keep trying...');

@@ -1,30 +1,10 @@
-import { type RedisClientType, SchemaFieldTypes } from 'redis';
+import { SchemaFieldTypes } from 'redis';
 
 import type { CacheHandlerValue, Handler } from '../cache-handler';
-import type { RedisJSON } from '../common-types';
+import type { CreateRedisStackHandlerOptions, RedisJSON } from '../common-types';
 import { getTimeoutRedisCommandOptions } from '../helpers/get-timeout-redis-command-options';
 
-/**
- * The configuration options for the Redis Handler
- */
-export type RedisCacheHandlerOptions<T> = {
-    /**
-     * The Redis client instance.
-     */
-    client: T;
-    /**
-     * Optional. Prefix for all keys, useful for namespacing. Defaults to an empty string.
-     */
-    keyPrefix?: string;
-    /**
-     * Optional. Key for storing cache tags. Defaults to `__sharedTags__`.
-     */
-    sharedTagsKey?: string;
-    /**
-     * Timeout in milliseconds for Redis operations. Defaults to 5000.
-     */
-    timeoutMs?: number;
-};
+export { CreateRedisStackHandlerOptions };
 
 /**
  * Creates a Handler using Redis client.
@@ -33,14 +13,14 @@ export type RedisCacheHandlerOptions<T> = {
  * It supports Redis Client. The handler includes
  * methods to get, set, and manage cache values and revalidated tags.
  *
- * @param options - The configuration options for the Redis Handler. See {@link RedisCacheHandlerOptions}.
+ * @param options - The configuration options for the Redis Stack Handler. See {@link CreateRedisStackHandlerOptions}.
  *
  * @returns A promise that resolves to object representing the cache, with methods for cache operations.
  *
  * @example
  * ```js
  * const redisClient = createRedisClient(...);
- * const cache = await createHandler({
+ * const handler = await createHandler({
  *   client: redisClient,
  *   keyPrefix: 'myApp:',
  * });
@@ -51,11 +31,11 @@ export type RedisCacheHandlerOptions<T> = {
  * - the `set` method allows setting a value in the cache.
  * - the `revalidateTag` methods are used for handling tag-based cache revalidation.
  */
-export default async function createHandler<T extends RedisClientType>({
+export default async function createHandler({
     client,
     keyPrefix = '',
     timeoutMs = 5000,
-}: Omit<RedisCacheHandlerOptions<T>, 'sharedTagsKey'>): Promise<Handler> {
+}: CreateRedisStackHandlerOptions): Promise<Handler> {
     function assertClientIsReady(): void {
         if (!client.isReady) {
             throw new Error('Redis client is not ready');
@@ -127,9 +107,7 @@ export default async function createHandler<T extends RedisClientType>({
 
             const options = getTimeoutRedisCommandOptions(timeoutMs);
 
-            const deleteKeysOperation = client.del(options, keysToDelete);
-
-            await Promise.all([deleteKeysOperation]);
+            await client.del(options, keysToDelete);
         },
     };
 }
