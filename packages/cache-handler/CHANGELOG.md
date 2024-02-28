@@ -1,5 +1,11 @@
 # @neshca/cache-handler
 
+## 1.0.4
+
+### Patch Changes
+
+- 3dd5b93: Fix body mutation of the ROUTE kind values.
+
 ## 1.0.3
 
 ### Patch Changes
