@@ -322,3 +322,15 @@ test.describe('SSR', () => {
         expect(valueFromPageAfterReload - valueFromPage === 1).toBe(true);
     });
 });
+
+test.describe('Routes', () => {
+    test('static route return OK', async ({ page, baseURL }) => {
+        const url = new URL('/app/static', `${baseURL}:3000`);
+
+        await page.goto(url.href);
+
+        const message = await page.getByText('OK').innerText();
+
+        expect(message).toBe('OK');
+    });
+});
