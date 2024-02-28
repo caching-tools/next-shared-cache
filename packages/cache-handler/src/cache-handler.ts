@@ -542,7 +542,7 @@ export class CacheHandler implements NextCacheHandler {
     async set(...args: CacheHandlerParametersSet): Promise<void> {
         await CacheHandler.#configureCacheHandler();
 
-        const [cacheKey, value, ctx] = args;
+        const [cacheKey, incrementalCacheValue, ctx] = args;
 
         const { revalidate, tags = [] } = ctx;
 
@@ -554,14 +554,23 @@ export class CacheHandler implements NextCacheHandler {
 
         let cacheHandlerValueTags = tags;
 
+        let value = incrementalCacheValue;
+
         switch (value?.kind) {
             case 'PAGE': {
                 cacheHandlerValueTags = getTagsFromPageData(value);
                 break;
             }
             case 'ROUTE': {
-                // replace the body with a base64 encoded string to save space
-                value.body = value.body.toString('base64') as unknown as Buffer;
+                // create a new object to avoid mutating the original value
+                value = {
+                    // replace the body with a base64 encoded string to save space
+                    body: value.body.toString('base64') as unknown as Buffer,
+                    headers: value.headers,
+                    kind: value.kind,
+                    status: value.status,
+                };
+
                 break;
             }
             default: {
