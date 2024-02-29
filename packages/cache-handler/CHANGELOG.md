@@ -1,5 +1,11 @@
 # @neshca/cache-handler
 
+## 1.0.5
+
+### Patch Changes
+
+- 00b6aaf: Add information about Next.js Routers support in readmes and documentation.
+
 ## 1.0.4
 
 ### Patch Changes
