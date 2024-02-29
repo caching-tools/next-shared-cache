@@ -1,6 +1,15 @@
 # `@neshca/cache-handler`
 
+[![npm package](https://img.shields.io/npm/v/@neshca/cache-handler/latest.svg)](https://www.npmjs.com/package/@neshca/cache-handler)
+[![Dependencies](https://img.shields.io/npm/dm/@neshca/cache-handler)](https://www.npmjs.com/package/@neshca/cache-handler)
+[![License](https://img.shields.io/npm/l/express.svg)](https://github.com/caching-tools/next-shared-cache/blob/canary/packages/cache-handler/LICENSE)
+
 Welcome to [**`@neshca/cache-handler`**](./packages/cache-handler/README.md), a specialized ISR/Data cache API crafted for Next.js applications. This library is designed to simplify the complex task of configuring shared cache strategies in distributed environments, such as those involving multiple and independent instances of the same application. It offers a flexible and user-friendly approach to integrating custom cache solutions and hand-crafted, pre-configured cache strategies for Redis.
+
+### Next.js Routers support
+
+- Full support for Pages Router.
+- Almost full support for App Router. The only exception is the `revalidatePath` function.
 
 ### The importance of shared cache in distributed environments
 
@@ -12,6 +21,7 @@ Next.js applications are often deployed in a self-hosted distributed environment
 - Comprehensive customization options.
 - Simplified on-demand revalidation, akin to managing a single application instance.
 - TTL by default to keep cache storage clean and space-efficient.
+- One configuration for both Routes.
 
 ### Kickstarting Your Custom Cache Solution
 
