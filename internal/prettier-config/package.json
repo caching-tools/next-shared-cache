@@ -4,6 +4,6 @@
     "private": true,
     "license": "MIT",
     "devDependencies": {
-        "@vercel/style-guide": "5.2.0"
+        "@vercel/style-guide": "6.0.0"
     }
 }
