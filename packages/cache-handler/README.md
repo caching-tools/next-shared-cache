@@ -27,7 +27,7 @@ Welcome to `@neshca/cache-handler`, a specialized ISR/Data cache API crafted for
 ### Next.js Routers support
 
 - Full support for Pages Router.
-- Almost full support for App Router. The only exception is the `revalidatePath` function.
+- Almost full support for App Router. The only exceptions are the [`unstable_cache`](https://github.com/caching-tools/next-shared-cache/issues/391) and the [`revalidatePath`](https://github.com/caching-tools/next-shared-cache/issues/382) functions.
 
 ### The importance of shared cache in distributed environments
 
