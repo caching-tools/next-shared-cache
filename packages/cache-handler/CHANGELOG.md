@@ -1,5 +1,11 @@
 # @neshca/cache-handler
 
+## 1.0.6
+
+### Patch Changes
+
+- c8cc0af: Add tests for `unstable_cache`
+
 ## 1.0.5
 
 ### Patch Changes
