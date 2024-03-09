@@ -10,11 +10,14 @@
             "suspicious": {
                 "noConsoleLog": "error",
                 "noApproximativeNumericConstant": "error",
-                "noMisrefactoredShorthandAssign": "error"
+                "noMisrefactoredShorthandAssign": "error",
+                "useAwait": "error"
             },
             "correctness": {
                 "noUndeclaredVariables": "error",
-                "noUnusedVariables": "error"
+                "noUnusedVariables": "error",
+                "noUnusedImports": "error",
+                "noUnusedPrivateClassMembers": "error"
             },
             "style": {
                 "noNamespace": "error",
@@ -26,22 +29,20 @@
                 "useCollapsedElseIf": "error",
                 "useShorthandArrayType": "error",
                 "useShorthandAssign": "error",
-                "useSingleCaseStatement": "error"
-            },
-            "nursery": {
-                "noUnusedImports": "error",
-                "noUnusedPrivateClassMembers": "error",
-                "noUselessTernary": "error",
-                "useAwait": "error",
+                "useSingleCaseStatement": "error",
+                "useImportType": "error",
+                "useNumberNamespace": "error",
+                "useShorthandFunctionType": "error",
                 "useFilenamingConvention": {
                     "level": "error",
                     "options": {
                         "filenameCases": ["kebab-case"]
                     }
-                },
-                "useImportType": "error",
-                "useNumberNamespace": "error",
-                "useShorthandFunctionType": "error"
+                }
+            },
+            "nursery": {
+                "noUselessTernary": "error",
+                "noDuplicateTestHooks": "error"
             },
             "complexity": {
                 "useSimplifiedLogicExpression": "error"
@@ -73,8 +74,8 @@
     },
     "overrides": [
         {
-            "include": ["[slug].tsx", "[length].tsx"],
-            "linter": { "rules": { "nursery": { "useFilenamingConvention": "off" } } }
+            "include": ["[slug].tsx", "[length].tsx", "200.tsx"],
+            "linter": { "rules": { "style": { "useFilenamingConvention": "off" } } }
         }
     ]
 }

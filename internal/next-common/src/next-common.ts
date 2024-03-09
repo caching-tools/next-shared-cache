@@ -1,3 +1,4 @@
+// biome-ignore lint/style/useNodejsImportProtocol: RollupError: "OutgoingHttpHeaders" is not exported by "node:http"
 import type { OutgoingHttpHeaders } from 'http';
 
 import type { RouteMetadata as NextRouteMetadata } from 'next/dist/export/routes/types';

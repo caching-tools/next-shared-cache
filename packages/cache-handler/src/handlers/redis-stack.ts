@@ -4,7 +4,7 @@ import type { CacheHandlerValue, Handler } from '../cache-handler';
 import type { CreateRedisStackHandlerOptions, RedisJSON } from '../common-types';
 import { getTimeoutRedisCommandOptions } from '../helpers/get-timeout-redis-command-options';
 
-export { CreateRedisStackHandlerOptions };
+export type { CreateRedisStackHandlerOptions };
 
 /**
  * Creates a Handler using Redis client.

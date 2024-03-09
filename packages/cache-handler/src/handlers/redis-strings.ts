@@ -5,7 +5,7 @@ import type { CreateRedisStringsHandlerOptions } from '../common-types';
 
 import { getTimeoutRedisCommandOptions } from '../helpers/get-timeout-redis-command-options';
 
-export { CreateRedisStringsHandlerOptions };
+export type { CreateRedisStringsHandlerOptions };
 
 /**
  * Creates a Handler using Redis client.

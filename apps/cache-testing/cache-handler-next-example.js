@@ -5,13 +5,13 @@ module.exports = class CacheHandler {
         this.options = options;
     }
 
-    // biome-ignore lint/nursery/useAwait: don't bother
+    // biome-ignore lint/suspicious/useAwait: don't bother
     async get(key) {
         // This could be stored anywhere, like durable storage
         return cache.get(key);
     }
 
-    // biome-ignore lint/nursery/useAwait: don't bother
+    // biome-ignore lint/suspicious/useAwait: don't bother
     async set(key, data, ctx) {
         // This could be stored anywhere, like durable storage
         cache.set(key, {
@@ -21,7 +21,7 @@ module.exports = class CacheHandler {
         });
     }
 
-    // biome-ignore lint/nursery/useAwait: don't bother
+    // biome-ignore lint/suspicious/useAwait: don't bother
     async revalidateTag(tag) {
         // Iterate over all entries in the cache
         // biome-ignore lint/style/useConst: don't bother

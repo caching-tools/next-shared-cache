@@ -2,9 +2,9 @@
 // @ts-check
 
 const core = require('@actions/core');
-const { execFileSync } = require('child_process');
+const { execFileSync } = require('node:child_process');
 const { globSync } = require('glob');
-const fs = require('fs');
+const fs = require('node:fs');
 
 function run() {
     try {
