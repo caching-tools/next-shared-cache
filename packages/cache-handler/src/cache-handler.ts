@@ -2,7 +2,6 @@ import { promises as fsPromises } from 'node:fs';
 import path from 'node:path';
 
 import type {
-    CacheHandler as NextCacheHandler,
     CacheHandlerParametersGet,
     CacheHandlerParametersRevalidateTag,
     CacheHandlerParametersSet,
@@ -10,6 +9,7 @@ import type {
     FileSystemCacheContext,
     IncrementalCachedPageValue,
     LifespanParameters,
+    CacheHandler as NextCacheHandler,
     PrerenderManifest,
     Revalidate,
 } from '@neshca/next-common';
