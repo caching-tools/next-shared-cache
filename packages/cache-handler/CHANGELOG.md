@@ -1,5 +1,16 @@
 # @neshca/cache-handler
 
+## 1.0.7
+
+### Patch Changes
+
+- e92658a: Fix the redis-stack Handler `revalidateTag` method.
+
+  #### Changes
+
+  - Add pagination to tags search
+  - Replace `del` operation with `unlink`
+
 ## 1.0.6
 
 ### Patch Changes
