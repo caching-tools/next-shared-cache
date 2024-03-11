@@ -97,17 +97,32 @@ export default async function createHandler({
         async revalidateTag(tag) {
             assertClientIsReady();
 
-            const query = await client.ft.search('idx:tags', `@tag:(${sanitizeTag(tag)})`);
+            let from = 0;
 
-            const keysToDelete = query.documents.map((document) => document.id);
+            const querySize = 25;
 
-            if (keysToDelete.length === 0) {
-                return;
+            const keysToDelete: string[] = [];
+
+            while (true) {
+                const { documents } = await client.ft.search('idx:tags', `@tag:(${sanitizeTag(tag)})`, {
+                    LIMIT: { from, size: querySize },
+                    TIMEOUT: timeoutMs,
+                });
+
+                for (const { id } of documents) {
+                    keysToDelete.push(id);
+                }
+
+                if (documents.length < querySize) {
+                    break;
+                }
+
+                from += querySize;
             }
 
             const options = getTimeoutRedisCommandOptions(timeoutMs);
 
-            await client.del(options, keysToDelete);
+            await client.unlink(options, keysToDelete);
         },
     };
 }

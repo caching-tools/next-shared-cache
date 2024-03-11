@@ -145,7 +145,7 @@ CacheHandler.onCreation(async () => {
       const options = commandOptions({ signal: AbortSignal.timeout(timeoutMs) });
 
       // Delete the keys from Redis.
-      const deleteKeysOperation = client.del(options, keysToDelete);
+      const deleteKeysOperation = client.unlink(options, keysToDelete);
 
       // Update the tags in Redis by deleting the revalidated tags.
       const updateTagsOperation = client.hDel(options, keyPrefix + sharedTagsKey, tagsToDelete);

@@ -106,7 +106,7 @@ export default function createHandler({
 
             const options = getTimeoutRedisCommandOptions(timeoutMs);
 
-            const deleteKeysOperation = client.del(options, keysToDelete);
+            const deleteKeysOperation = client.unlink(options, keysToDelete);
 
             const updateTagsOperation = client.hDel(options, keyPrefix + sharedTagsKey, tagsToDelete);
 
