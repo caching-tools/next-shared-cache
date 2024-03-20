@@ -28,7 +28,7 @@
         "@types/node": "20.11.30",
         "rimraf": "5.0.5",
         "tsup": "8.0.2",
-        "typescript": "5.3.3"
+        "typescript": "5.4.2"
     },
     "peerDependencies": {
         "dotenv": "^16.3.1",
