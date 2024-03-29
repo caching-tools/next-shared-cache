@@ -30,7 +30,7 @@
         "@types/eslint": "8.56.6",
         "@types/node": "20.11.30",
         "@types/react": "18.2.73",
-        "@types/react-dom": "18.2.22",
+        "@types/react-dom": "18.2.23",
         "axios": "1.6.8",
         "dotenv-cli": "7.4.1",
         "eslint": "8.57.0",
