@@ -141,6 +141,11 @@ CacheHandler.onCreation(async () => {
         }
       }
 
+      // If there are no keys to delete, return early.
+      if (keysToDelete.length === 0) {
+        return;
+      }
+
       // Create a new AbortSignal with a timeout for the Redis operation.
       const options = commandOptions({ signal: AbortSignal.timeout(timeoutMs) });
 

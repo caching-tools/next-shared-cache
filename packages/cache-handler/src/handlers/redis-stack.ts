@@ -120,6 +120,10 @@ export default async function createHandler({
                 from += querySize;
             }
 
+            if (keysToDelete.length === 0) {
+                return;
+            }
+
             const options = getTimeoutRedisCommandOptions(timeoutMs);
 
             await client.unlink(options, keysToDelete);
