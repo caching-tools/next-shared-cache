@@ -1,5 +1,11 @@
 # @neshca/cache-handler
 
+## 1.0.8
+
+### Patch Changes
+
+- 45c8e8b: Fixed unlink calls for Redis Handlers and updated dependencies.
+
 ## 1.0.7
 
 ### Patch Changes
