@@ -5,7 +5,7 @@ import type { CountBackendApiResponseJson, PageProps } from './types';
 
 async function getViaAxios(url: URL) {
     try {
-        return (await axios.get<CountBackendApiResponseJson>(url.toString())).data;
+        return (await axios.get<CountBackendApiResponseJson>(url.href)).data;
     } catch (_error) {
         return null;
     }
