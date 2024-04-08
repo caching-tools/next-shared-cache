@@ -337,8 +337,6 @@ test.describe('Routes', () => {
 
 test.describe('unstable_cache', () => {
     test('unstable_cache works', async ({ page, baseURL }) => {
-        test.fixme(true, 'This test is failing because of unstable_cache is not supported yet.');
-
         const url = new URL('/app/with-params/unstable-cache/200', `${baseURL}:3000`);
 
         await page.goto(url.href);
