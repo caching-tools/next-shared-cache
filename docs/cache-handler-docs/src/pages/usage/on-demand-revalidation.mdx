@@ -6,12 +6,22 @@ Next.js provides a way to revalidate a page or a result of a `fetch` call on dem
 
 ### Pages Router
 
-The Pages Router supports only the `revalidatePath` option.
+The Pages Router supports only the `response.revalidate(path)`.
 
 See [Using On-Demand Revalidation](https://nextjs.org/docs/pages/building-your-application/data-fetching/incremental-static-regeneration#using-on-demand-revalidation) in the Next.js documentation.
 
+#### `response.revalidate(path)` caveat
+
+Calling `response.revalidate(path)` will synchronously call `getStaticProps` and render the page with a given `path`. Then it will revalidate the cache for this page. If you want to revalidate multiple paths at once, you need to call `response.revalidate(path)` multiple times.
+
 ### App Router
 
-The App Router supports both `revalidatePath` and `revalidateTag` functions. However due to current limitations, `revalidatePath` is disabled for the App Router.
+The App Router supports both `revalidatePath` and `revalidateTag` functions. These functions will remove the cache values from the store.
 
 See [On-demand Revalidation](https://nextjs.org/docs/app/building-your-application/data-fetching/fetching-caching-and-revalidating#on-demand-revalidation) in the Next.js documentation.
+
+#### `revalidatePath` caveat
+
+The `revalidatePath` function works differently from the `response.revalidate(path)` and `revalidateTag` functions. It does not revalidate the cached `fetch` result immediately. Instead, it marks the cache as revalidated and the next request will revalidate the cache.
+
+If you are creating a custom cache Handler, you need to manually mark the cache as revalidated in Handler's `revalidateTag` method. Later in the Handler's `get` method, you must check if the cache is revalidated and return `null` if necessary. See [Custom Redis strings example](/usage/creating-a-custom-handler#guide)

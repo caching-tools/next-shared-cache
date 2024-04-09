@@ -3,7 +3,6 @@ import path from 'node:path';
 
 import type {
     CacheHandlerParametersGet,
-    CacheHandlerParametersRevalidateTag,
     CacheHandlerParametersSet,
     CacheHandlerValue,
     FileSystemCacheContext,
@@ -20,17 +19,38 @@ import { getTagsFromPageData } from './helpers/get-tags-from-page-data';
 export type { CacheHandlerValue };
 
 /**
+ * Represents an internal Next.js metadata for a `get` method.
+ * This metadata is available in the `get` method of the cache handler.
+ *
+ * @since 1.1.0
+ */
+type HandlerGetMeta = {
+    /**
+     * An array of tags that are implicitly associated with the cache entry.
+     *
+     * @since 1.1.0
+     */
+    implicitTags: string[];
+};
+
+/**
  * Represents a cache Handler.
+ *
+ * @since 1.0.0
  */
 export type Handler = {
     /**
      * A descriptive name for the cache Handler.
+     *
+     * @since 1.0.0
      */
     name: string;
     /**
      * Retrieves the value associated with the given key from the cache.
      *
      * @param key - The unique string identifier for the cache entry.
+     *
+     * @param meta - The metadata object for the `get` method. See {@link HandlerGetMeta}.
      *
      * @returns A Promise that resolves to the cached value (if found), `null` or `undefined` if the entry is not found.
      *
@@ -74,8 +94,10 @@ export type Handler = {
      *    }
      * }
      * ```
+     *
+     * @since 1.0.0
      */
-    get: (key: string) => Promise<CacheHandlerValue | null | undefined>;
+    get: (key: string, meta: HandlerGetMeta) => Promise<CacheHandlerValue | null | undefined>;
     /**
      * Sets or updates a value in the cache store.
      *
@@ -94,6 +116,8 @@ export type Handler = {
      * the `lifespan` parameter will be `null` and you should consider the cache entry as always fresh and never stale.
      *
      * Use the absolute time (`expireAt`) to set and expiration time for the cache entry in your cache store to be in sync with the file system cache.
+     *
+     * @since 1.0.0
      */
     set: (key: string, value: CacheHandlerValue) => Promise<void>;
     /**
@@ -102,6 +126,8 @@ export type Handler = {
      *
      * @param tag - A string representing the cache tag associated with the data you want to revalidate.
      * Must be less than or equal to 256 characters. This value is case-sensitive.
+     *
+     * @since 1.0.0
      */
     revalidateTag: (tag: string) => Promise<void>;
     /**
@@ -112,16 +138,22 @@ export type Handler = {
      * @param key - The unique string identifier for the cache entry.
      *
      * @returns A Promise that resolves when the cache entry has been successfully deleted.
+     *
+     * @since 1.0.0
      */
     delete?: (key: string) => Promise<void>;
 };
 
 /**
  * Represents the parameters for Time-to-Live (TTL) configuration.
+ *
+ * @since 1.0.0
  */
 export type TTLParameters = {
     /**
      * The time in seconds for when the cache entry becomes stale. Defaults to 1 year.
+     *
+     * @since 1.0.0
      */
     defaultStaleAge: number;
     /**
@@ -132,36 +164,50 @@ export type TTLParameters = {
      * Revalidation is handled by the `CacheHandler` class.
      *
      * @returns The expiration age in seconds.
+     *
+     * @since 1.0.0
      */
     estimateExpireAge(staleAge: number): number;
 };
 
 /**
  * Configuration options for the {@link CacheHandler}.
+ *
+ * @since 1.0.0
  */
 export type CacheHandlerConfig = {
     /**
      * An array of cache instances that conform to the Handler interface.
      * Multiple caches can be used to implement various caching strategies or layers.
+     *
+     * @since 1.0.0
      */
     handlers: (Handler | undefined | null)[];
     /**
      * Time-to-live (TTL) options for the cache entries.
+     *
+     * @since 1.0.0
      */
     ttl?: Partial<TTLParameters>;
 };
 
 /**
  * Contextual information provided during cache creation, including server directory paths and environment mode.
+ *
+ * @since 1.0.0
  */
 export type CacheCreationContext = {
     /**
      * The absolute path to the Next.js server directory.
+     *
+     * @since 1.0.0
      */
     serverDistDir: string;
     /**
      * Indicates if the Next.js application is running in development mode.
      * When in development mode, caching behavior might differ.
+     *
+     * @since 1.0.0
      */
     dev?: boolean;
     /**
@@ -195,6 +241,8 @@ export type CacheCreationContext = {
      *   };
      * });
      * ```
+     *
+     * @since 1.0.0
      */
     buildId?: string;
 };
@@ -207,6 +255,8 @@ export type CacheCreationContext = {
  *
  * @returns Either a {@link CacheHandlerConfig} object or a Promise that resolves to a {@link CacheHandlerConfig},
  * specifying how the cache should be configured.
+ *
+ * @since 1.0.0
  */
 export type OnCreationHook = (context: CacheCreationContext) => Promise<CacheHandlerConfig> | CacheHandlerConfig;
 
@@ -370,6 +420,8 @@ export class CacheHandler implements NextCacheHandler {
      * or extended based on specific application requirements or environmental conditions.
      *
      * @param onCreationHook - The {@link OnCreationHook} function to be called during cache creation.
+     *
+     * @since 1.0.0
      */
     static onCreation(onCreationHook: OnCreationHook): void {
         CacheHandler.#onCreationHook = onCreationHook;
@@ -432,10 +484,10 @@ export class CacheHandler implements NextCacheHandler {
         CacheHandler.#cacheListLength = handlersList.length;
 
         CacheHandler.#mergedHandler = {
-            async get(key) {
+            async get(key, meta) {
                 for await (const handler of handlersList) {
                     try {
-                        let cacheHandlerValue = await handler.get(key);
+                        let cacheHandlerValue = await handler.get(key, meta);
 
                         if (
                             cacheHandlerValue?.lifespan &&
@@ -510,14 +562,17 @@ export class CacheHandler implements NextCacheHandler {
         CacheHandler.#context = context;
     }
 
-    async get(...args: CacheHandlerParametersGet): Promise<CacheHandlerValue | null> {
+    async get(
+        cacheKey: CacheHandlerParametersGet[0],
+        ctx: CacheHandlerParametersGet[1] = {},
+    ): Promise<CacheHandlerValue | null> {
         await CacheHandler.#configureCacheHandler();
 
-        const [cacheKey, ctx = {}] = args;
+        const { tags = [], kindHint, softTags = [] } = ctx;
 
-        const { tags = [], kindHint } = ctx;
-
-        let cachedData: CacheHandlerValue | null | undefined = await CacheHandler.#mergedHandler.get(cacheKey);
+        let cachedData: CacheHandlerValue | null | undefined = await CacheHandler.#mergedHandler.get(cacheKey, {
+            implicitTags: softTags,
+        });
 
         if (cachedData?.value?.kind === 'ROUTE') {
             cachedData.value.body = Buffer.from(cachedData.value.body as unknown as string, 'base64');
@@ -539,10 +594,12 @@ export class CacheHandler implements NextCacheHandler {
         return cachedData ?? null;
     }
 
-    async set(...args: CacheHandlerParametersSet): Promise<void> {
+    async set(
+        cacheKey: CacheHandlerParametersSet[0],
+        incrementalCacheValue: CacheHandlerParametersSet[1],
+        ctx: CacheHandlerParametersSet[2],
+    ): Promise<void> {
         await CacheHandler.#configureCacheHandler();
-
-        const [cacheKey, incrementalCacheValue, ctx] = args;
 
         const { revalidate, tags = [] } = ctx;
 
@@ -604,10 +661,8 @@ export class CacheHandler implements NextCacheHandler {
         }
     }
 
-    async revalidateTag(...args: CacheHandlerParametersRevalidateTag): Promise<void> {
+    async revalidateTag(tag: string): Promise<void> {
         await CacheHandler.#configureCacheHandler();
-
-        const [tag] = args;
 
         if (CacheHandler.#debug) {
             console.info('revalidateTag', tag);

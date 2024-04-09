@@ -110,3 +110,5 @@ export type TagsManifest = {
     version: 1;
     items: Record<string, { revalidatedAt: number }>;
 };
+
+export const NEXT_CACHE_IMPLICIT_TAG_ID = '_N_T_';

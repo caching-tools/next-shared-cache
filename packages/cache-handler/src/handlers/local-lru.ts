@@ -1,6 +1,7 @@
 import type { LruCacheOptions } from '@neshca/next-lru-cache/next-cache-handler-value';
 import createCacheStore from '@neshca/next-lru-cache/next-cache-handler-value';
 
+import { NEXT_CACHE_IMPLICIT_TAG_ID } from '@neshca/next-common';
 import type { Handler } from '../cache-handler';
 
 export type LruCacheHandlerOptions = LruCacheOptions;
@@ -27,17 +28,39 @@ export type LruCacheHandlerOptions = LruCacheOptions;
  *
  * @remarks
  * - Use this Handler as a fallback for any remote store Handler.
+ *
+ * @since 1.0.0
  */
 export default function createHandler({ ...lruOptions }: LruCacheHandlerOptions = {}): Handler {
     const lruCacheStore = createCacheStore(lruOptions);
 
+    const revalidatedTags = new Map<string, number>();
+
     return {
         name: 'local-lru',
-        get(key) {
+        get(key, { implicitTags }) {
             const cacheValue = lruCacheStore.get(key);
 
             if (!cacheValue) {
                 return Promise.resolve(null);
+            }
+
+            const sanitizedImplicitTags = implicitTags;
+
+            const combinedTags = new Set([...cacheValue.tags, ...sanitizedImplicitTags]);
+
+            if (combinedTags.size === 0) {
+                return Promise.resolve(cacheValue);
+            }
+
+            for (const tag of combinedTags) {
+                const revalidationTime = revalidatedTags.get(tag);
+
+                if (revalidationTime && revalidationTime > cacheValue.lastModified) {
+                    lruCacheStore.delete(key);
+
+                    return Promise.resolve(null);
+                }
             }
 
             return Promise.resolve(cacheValue);
@@ -54,6 +77,10 @@ export default function createHandler({ ...lruOptions }: LruCacheHandlerOptions 
                 if (tags.includes(tag)) {
                     lruCacheStore.delete(key);
                 }
+            }
+
+            if (tag.startsWith(NEXT_CACHE_IMPLICIT_TAG_ID)) {
+                revalidatedTags.set(tag, Date.now());
             }
 
             return Promise.resolve();

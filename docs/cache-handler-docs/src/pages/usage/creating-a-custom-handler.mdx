@@ -18,6 +18,7 @@ Create a file called `cache-handler.mjs` next to your `next.config.js` with the 
 
 ```js filename="cache-handler.mjs" copy
 import { CacheHandler } from '@neshca/cache-handler';
+import { isImplicitTag } from '@neshca/cache-handler/helpers';
 import createLruHandler from '@neshca/cache-handler/local-lru';
 import { createClient, commandOptions } from 'redis';
 
@@ -29,6 +30,8 @@ CacheHandler.onCreation(async () => {
 
   // Ignore Redis errors: https://github.com/redis/node-redis?tab=readme-ov-file#events.
   client.on('error', () => {});
+
+  await client.connect();
 
   // Define a timeout for Redis operations.
   const timeoutMs = 1000;
@@ -51,6 +54,8 @@ CacheHandler.onCreation(async () => {
     }
   }
 
+  const revalidatedTagsKey = `${keyPrefix}__revalidated_tags__`;
+
   // Create a custom Redis Handler
   const customRedisHandler = {
     // Give the handler a name.
@@ -58,7 +63,7 @@ CacheHandler.onCreation(async () => {
     name: 'redis-strings-custom',
     // We do not use try/catch blocks in the Handler methods.
     // CacheHandler will handle errors and use the next available Handler.
-    async get(key) {
+    async get(key, implicitTags) {
       // Ensure that the client is ready before using it.
       // If the client is not ready, the CacheHandler will use the next available Handler.
       assertClientIsReady();
@@ -77,7 +82,43 @@ CacheHandler.onCreation(async () => {
       }
 
       // Redis stores strings, so we need to parse the JSON.
-      return JSON.parse(result);
+      const cacheValue = JSON.parse(result);
+
+      // If the cache value has no tags, return it early.
+      if (!cacheValue) {
+        return null;
+      }
+
+      // Get the set of explicit and implicit tags.
+      // implicitTags are available only on the `get` method.
+      const combinedTags = new Set([...cacheValue.tags, ...implicitTags]);
+
+      // If there are no tags, return the cache value early.
+      if (combinedTags.size === 0) {
+        return cacheValue;
+      }
+
+      // Get the revalidation times for the tags.
+      const revalidationTimes = await client.hmGet(
+        commandOptions({ signal: AbortSignal.timeout(timeoutMs) }),
+        revalidatedTagsKey,
+        Array.from(combinedTags),
+      );
+
+      // Iterate over all revalidation times.
+      for (const timeString of revalidationTimes) {
+        // If the revalidation time is greater than the last modified time of the cache value,
+        if (timeString && Number.parseInt(timeString, 10) > cacheValue.lastModified) {
+          // Delete the key from Redis.
+          await client.unlink(commandOptions({ signal: AbortSignal.timeout(timeoutMs) }), keyPrefix + key);
+
+          // Return null to indicate cache miss.
+          return null;
+        }
+      }
+
+      // Return the cache value.
+      return cacheValue;
     },
     async set(key, cacheHandlerValue) {
       // Ensure that the client is ready before using it.
@@ -99,9 +140,7 @@ CacheHandler.onCreation(async () => {
       // If the cache handler value has tags, set the tags.
       // We store them separately to save time to retrieve them in the `revalidateTag` method.
       const setTagsOperation = cacheHandlerValue.tags.length
-        ? client.hSet(options, keyPrefix + sharedTagsKey, {
-            [key]: JSON.stringify(cacheHandlerValue.tags),
-          })
+        ? client.hSet(options, keyPrefix + sharedTagsKey, key, JSON.stringify(cacheHandlerValue.tags))
         : undefined;
 
       // Wait for all operations to complete.
@@ -111,14 +150,46 @@ CacheHandler.onCreation(async () => {
       // Ensure that the client is ready before using it.
       assertClientIsReady();
 
-      // Create a new AbortSignal with a timeout for the Redis operation.
-      const getOptions = commandOptions({ signal: AbortSignal.timeout(timeoutMs) });
+      // Check if the tag is implicit.
+      // Implicit tags are not stored in the cached values.
+      if (isImplicitTag(tag)) {
+        // Mark the tag as revalidated at the current time.
+        await client.hSet(
+          commandOptions({ signal: AbortSignal.timeout(timeoutMs) }),
+          revalidatedTagsKey,
+          tag,
+          Date.now(),
+        );
+      }
 
-      // Get all keys and their tags from Redis from the hash map we've created in the `set` method.
-      const remoteTags = await client.hGetAll(getOptions, keyPrefix + sharedTagsKey);
+      // Create a map to store the tags for each key.
+      const tagsMap = new Map();
 
-      // Create a map from the tags.
-      const tagsMap = new Map(Object.entries(remoteTags));
+      // Cursor for the hScan operation.
+      let cursor = 0;
+
+      // Query size for the hScan operation.
+      const querySize = 25;
+
+      // Iterate over all keys in the shared tags.
+      while (true) {
+        // Get a portion of the keys.
+        const remoteTagsPortion = await client.hScan(keyPrefix + sharedTagsKey, cursor, { COUNT: querySize });
+
+        // Iterate over all keys in the portion.
+        for (const { field, value } of remoteTagsPortion.tuples) {
+          // Parse the tags from the value.
+          tagsMap.set(field, JSON.parse(value));
+        }
+
+        // If the cursor is 0, we have reached the end.
+        if (remoteTagsPortion.cursor === 0) {
+          break;
+        }
+
+        // Update the cursor for the next iteration.
+        cursor = remoteTagsPortion.cursor;
+      }
 
       // Create an array of keys to delete.
       const keysToDelete = [];
@@ -126,12 +197,8 @@ CacheHandler.onCreation(async () => {
       // Create an array of tags to delete form the hash map.
       const tagsToDelete = [];
 
-      // Iterate over all keys and their tags.
-      for (const [key, tagsString] of tagsMap) {
-        // In the set method, we store tags as a stringified array.
-        // So, we need to parse it back to an array.
-        const tags = JSON.parse(tagsString);
-
+      // Iterate over all keys and tags.
+      for (const [key, tags] of tagsMap) {
         // If the tags include the specified tag, add the key to the delete list.
         if (tags.includes(tag)) {
           // Key must be prefixed because we use the key prefix in the set method.

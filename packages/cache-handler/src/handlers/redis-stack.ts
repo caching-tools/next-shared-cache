@@ -2,7 +2,9 @@ import { SchemaFieldTypes } from 'redis';
 
 import type { CacheHandlerValue, Handler } from '../cache-handler';
 import type { CreateRedisStackHandlerOptions, RedisJSON } from '../common-types';
+import { REVALIDATED_TAGS_KEY } from '../constants';
 import { getTimeoutRedisCommandOptions } from '../helpers/get-timeout-redis-command-options';
+import { isImplicitTag } from '../helpers/is-implicit-tag';
 
 export type { CreateRedisStackHandlerOptions };
 
@@ -62,15 +64,43 @@ export default async function createHandler({
         // Index already exists
     }
 
+    const revalidatedTagsKey = keyPrefix + REVALIDATED_TAGS_KEY;
+
     return {
         name: 'redis-stack',
-        async get(key) {
+        async get(key, { implicitTags }) {
             assertClientIsReady();
 
             const cacheValue = (await client.json.get(
                 getTimeoutRedisCommandOptions(timeoutMs),
                 keyPrefix + key,
             )) as CacheHandlerValue | null;
+
+            if (!cacheValue) {
+                return null;
+            }
+
+            const sanitizedImplicitTags = implicitTags.map(sanitizeTag);
+
+            const combinedTags = new Set([...cacheValue.tags, ...sanitizedImplicitTags]);
+
+            if (combinedTags.size === 0) {
+                return cacheValue;
+            }
+
+            const revalidationTimes = await client.hmGet(
+                getTimeoutRedisCommandOptions(timeoutMs),
+                revalidatedTagsKey,
+                Array.from(combinedTags),
+            );
+
+            for (const timeString of revalidationTimes) {
+                if (timeString && Number.parseInt(timeString, 10) > cacheValue.lastModified) {
+                    await client.unlink(getTimeoutRedisCommandOptions(timeoutMs), keyPrefix + key);
+
+                    return null;
+                }
+            }
 
             return cacheValue;
         },
@@ -97,6 +127,19 @@ export default async function createHandler({
         async revalidateTag(tag) {
             assertClientIsReady();
 
+            const sanitizedTag = sanitizeTag(tag);
+
+            // If the tag is an implicit tag, we need to mark it as revalidated.
+            // The revalidation process is done by the CacheHandler class on the next get operation.
+            if (isImplicitTag(tag)) {
+                await client.hSet(
+                    getTimeoutRedisCommandOptions(timeoutMs),
+                    revalidatedTagsKey,
+                    sanitizedTag,
+                    Date.now(),
+                );
+            }
+
             let from = 0;
 
             const querySize = 25;
@@ -104,7 +147,7 @@ export default async function createHandler({
             const keysToDelete: string[] = [];
 
             while (true) {
-                const { documents } = await client.ft.search('idx:tags', `@tag:(${sanitizeTag(tag)})`, {
+                const { documents } = await client.ft.search('idx:tags', `@tag:(${sanitizedTag})`, {
                     LIMIT: { from, size: querySize },
                     TIMEOUT: timeoutMs,
                 });

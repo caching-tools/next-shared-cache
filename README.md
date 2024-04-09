@@ -8,8 +8,7 @@ Welcome to [**`@neshca/cache-handler`**](./packages/cache-handler/README.md), a 
 
 ### Next.js Routers support
 
-- Full support for Pages Router.
-- Almost full support for App Router. The only exception is the [`revalidatePath`](https://github.com/caching-tools/next-shared-cache/issues/382) function.
+- Full support for the Pages and the App Router.
 
 ### The importance of shared cache in distributed environments
 

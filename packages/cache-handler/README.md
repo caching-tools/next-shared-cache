@@ -2,7 +2,7 @@
 
 **Flexible API to replace the default Next.js cache, accommodating custom cache solutions for multi-instance self-hosted deployments**
 
-🎉 1.0.0 is out! It features an improved API and TTL by default.
+🎉 1.1.0 is out! It features Full support for the App Router!
 
 Check out the [changelog](https://github.com/caching-tools/next-shared-cache/blob/canary/packages/cache-handler/CHANGELOG.md)
 
@@ -26,8 +26,7 @@ Welcome to `@neshca/cache-handler`, a specialized ISR/Data cache API crafted for
 
 ### Next.js Routers support
 
-- Full support for Pages Router.
-- Almost full support for App Router. The only exception is the [`revalidatePath`](https://github.com/caching-tools/next-shared-cache/issues/382) function.
+- Full support for the Pages and the App Router.
 
 ### The importance of shared cache in distributed environments
 

@@ -53,10 +53,10 @@ export default {
         ),
     },
     banner: {
-        key: 'version-1.0.0',
+        key: 'version-1.1.0',
         text: (
             <a href="https://nextjs.org/blog/next-14-1">
-                🎉 1.0.0 is out! It features an improved API and TTL by default.
+                🎉 1.1.0 is out! It features Full support for the App Router!
             </a>
         ),
     },

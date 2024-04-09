@@ -37,12 +37,36 @@ test.describe('On-demand revalidation', () => {
     }
 
     for (const path of paths) {
+        test(`If revalidate by path is clicked, then page should be fresh after reload ${path}`, async ({
+            page,
+            baseURL,
+        }) => {
+            const url = new URL(path, `${baseURL}:3000`);
+
+            await page.goto(url.href);
+
+            await refreshPageCache(page, 'path');
+
+            const valueFromPage = Number.parseInt((await page.getByTestId('data').innerText()).valueOf(), 10);
+
+            await refreshPageCache(page, 'path');
+
+            await expect(page.getByTestId('cache-state')).toContainText('fresh');
+
+            const valueFromPageAfterReload = Number.parseInt(
+                (await page.getByTestId('data').innerText()).valueOf(),
+                10,
+            );
+
+            expect(valueFromPageAfterReload - valueFromPage === 1).toBe(true);
+        });
+    }
+
+    for (const path of paths) {
         test(`If revalidate by path is clicked on page A, then page B should be fresh on load ${path}`, async ({
             context,
             baseURL,
         }) => {
-            test.fail(true, 'This test is failing because of revalidate by path is not supported yet.');
-
             const appAUrl = new URL(path, `${baseURL}:3000`);
 
             const appA = await context.newPage();
