@@ -3,10 +3,14 @@ import type { CacheHandlerValue, Handler } from '../cache-handler';
 export type ServerCacheHandlerOptions = {
     /**
      * The base URL of the cache store server.
+     *
+     * @since 1.0.0
      */
     baseUrl: URL | string;
     /**
      * Timeout in milliseconds for remote cache store operations.
+     *
+     * @since 1.0.0
      */
     timeoutMs?: number;
 };
@@ -37,10 +41,11 @@ export type ServerCacheHandlerOptions = {
 export default function createHandler({ baseUrl, timeoutMs }: ServerCacheHandlerOptions): Handler {
     return {
         name: 'server',
-        async get(key) {
+        async get(key, { implicitTags }) {
             const url = new URL('/get', baseUrl);
 
             url.searchParams.set('key', key);
+            url.searchParams.set('implicitTags', JSON.stringify(implicitTags));
 
             const response = await fetch(url, {
                 signal: timeoutMs ? AbortSignal.timeout(timeoutMs) : undefined,

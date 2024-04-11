@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import { NEXT_CACHE_IMPLICIT_TAG_ID } from '@neshca/next-common';
 import createCacheStore from '@neshca/next-lru-cache/next-cache-handler-value';
 import Fastify from 'fastify';
 import { pino } from 'pino';
@@ -18,8 +19,10 @@ const lruCacheStore = createCacheStore();
 const host = process.env.HOST ?? 'localhost';
 const port = Number.parseInt(process.env.PORT ?? '8080', 10);
 
+const revalidatedTags = new Map<string, number>();
+
 server.get('/get', async (request, reply): Promise<void> => {
-    const { key } = request.query as { key: string };
+    const { key, implicitTags: implicitTagsString } = request.query as { key: string; implicitTags: string };
 
     const cacheValue = lruCacheStore.get(key);
 
@@ -33,6 +36,24 @@ server.get('/get', async (request, reply): Promise<void> => {
         lruCacheStore.delete(key);
 
         await reply.code(404).send(null);
+    }
+
+    const implicitTags = JSON.parse(implicitTagsString);
+
+    const combinedTags = new Set([...cacheValue.tags, ...implicitTags]);
+
+    if (combinedTags.size === 0) {
+        await reply.code(404).send(null);
+    }
+
+    for (const tag of combinedTags) {
+        const revalidationTime = revalidatedTags.get(tag);
+
+        if (revalidationTime && revalidationTime > cacheValue.lastModified) {
+            lruCacheStore.delete(key);
+
+            await reply.code(404).send(null);
+        }
     }
 
     await reply.code(200).send(cacheValue);
@@ -54,6 +75,10 @@ server.post('/revalidateTag', async (request, reply): Promise<void> => {
         if (tags.includes(tag)) {
             lruCacheStore.delete(key);
         }
+    }
+
+    if (tag.startsWith(NEXT_CACHE_IMPLICIT_TAG_ID)) {
+        revalidatedTags.set(tag, Date.now());
     }
 
     await reply.code(200).send();
