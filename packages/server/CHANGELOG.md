@@ -1,5 +1,11 @@
 # @neshca/server
 
+## 1.1.0
+
+### Minor Changes
+
+- 588153b: Add support for the new `implicitTags` parameter.
+
 ## 1.0.0
 
 ### Major Changes
