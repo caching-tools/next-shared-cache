@@ -29,7 +29,7 @@
         "@repo/typescript-config": "*",
         "@types/eslint": "8.56.7",
         "@types/node": "20.12.7",
-        "@types/react": "18.2.76",
+        "@types/react": "18.2.77",
         "@types/react-dom": "18.2.25",
         "axios": "1.6.8",
         "dotenv-cli": "7.4.1",
