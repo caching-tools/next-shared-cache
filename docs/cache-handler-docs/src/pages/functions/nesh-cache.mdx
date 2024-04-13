@@ -1,0 +1,60 @@
+# nashCache
+
+`nashCache` allows you to cache the results of expensive operations, like database queries, and reuse them across multiple requests. Unlike Next.js' `unstable_cache` function, `nashCache` passes all e2e tests, and provides more control over the cache's behavior such as customizing the serialization and deserialization of the cache data. It allows to store any type of data in the cache and not just JSON serializable data.
+
+This function is experimental, the API may change in the future. Use with caution.
+
+## Parameters
+
+### `fetchData`
+
+This is an asynchronous function that fetches the data you want to cache. It must be a function that returns a `Promise`.
+
+### `commonOptions`
+
+This is an object that controls how the cache behaves. It can contain the following properties:
+
+- `tags` - An array of tags to associate with the cached result. Tags are used to revalidate the cache using the `revalidateTag` and `revalidatePath` functions.
+
+- `revalidate` - The revalidation interval in milliseconds. Must be a positive integer or `false` to disable revalidation. Defaults to `export const revalidate = time;` in the current route.
+
+- `argumentsSerializer` - A function that serializes the arguments passed to the callback function. Use it to create a cache key. Defaults to `JSON.stringify(args)`.
+
+- `resultSerializer` - A function that serializes the result of the callback function.Defaults to `Buffer.from(JSON.stringify(data)).toString('base64')`.
+
+- `resultDeserializer` - A function that deserializes the string representation of the result of the callback function. Defaults to `JSON.parse(Buffer.from(data, 'base64').toString('utf-8'))`.
+
+## Returns
+
+`nashCache` returns a function that when invoked, returns a `Promise` that resolves to the cached data. If the data is not in the cache, the provided function will be invoked, and its result will be cached and returned. The first argument is the `options` which can be used to override the common [`options`](/functions/nesh-cache#commonoptions). In addition, there is a `cacheKey` option that can be used to provide a custom cache key.
+
+## Example
+
+```jsx filename="./src/app/page.js" copy
+import { neshCache } from '@neshca/cache-handler/functions';
+import axios from 'axios';
+
+async function getViaAxios(url) {
+  try {
+    return (await axios.get(url.href)).data;
+  } catch (_error) {
+    return null;
+  }
+}
+
+const cachedAxios = neshCache(getViaAxios);
+
+export default async function Index() {
+  const url = new URL('https://api.example.com/data.json');
+
+  const data = await cachedAxios(url);
+
+  if (!data) {
+    notFound();
+  }
+
+  const { id } = data;
+
+  return <div>id is {id}</div>;
+}
+```

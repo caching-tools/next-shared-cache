@@ -19,6 +19,11 @@ export type {
     IncrementalCacheKindHint,
 } from 'next/dist/server/response-cache/types';
 
+export {
+    type StaticGenerationStore,
+    staticGenerationAsyncStorage,
+} from 'next/dist/client/components/static-generation-async-storage.external.js';
+
 /**
  * A set of time periods and timestamps for controlling cache behavior.
  */

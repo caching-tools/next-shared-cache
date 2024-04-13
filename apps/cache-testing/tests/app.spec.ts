@@ -4,6 +4,7 @@ import { refreshPageCache, revalidateByPath, revalidateByTag } from './test-help
 
 const paths = [
     '/app/with-params/dynamic-true/200',
+    '/app/with-params/nesh-cache/200',
     // '/app/with-params/dynamic-false/200', // this fails with native next.js cache
     '/app/no-params/dynamic-true/200',
     '/app/no-params/dynamic-false/200',
