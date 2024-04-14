@@ -16,7 +16,7 @@
     "type": "module",
     "exports": null,
     "bin": {
-        "next-cache-server": "./dist/server.js"
+        "next-cache-server": "dist/server.js"
     },
     "scripts": {
         "build": "tsup",

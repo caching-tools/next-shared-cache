@@ -16,7 +16,7 @@
     "type": "module",
     "exports": null,
     "bin": {
-        "diffscribe": "./dist/diffscribe.js"
+        "diffscribe": "dist/diffscribe.js"
     },
     "scripts": {
         "build": "tsup",
