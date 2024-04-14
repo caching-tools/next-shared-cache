@@ -1,5 +1,18 @@
 # @neshca/cache-handler
 
+## 1.2.0
+
+### Minor Changes
+
+- 76bcdcd: Add experimental `neshCache` function and related documentation.
+
+  #### New features
+
+  ##### `@neshca/cache-handler/functions`
+
+  - add new endpoint `@neshca/cache-handler/functions` with useful application-side functions
+  - add experimental function `neshCache` and related documentation
+
 ## 1.1.0
 
 ### Minor Changes
