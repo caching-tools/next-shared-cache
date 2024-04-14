@@ -1,5 +1,11 @@
 # diffscribe
 
+## 0.2.4
+
+### Patch Changes
+
+- 7adc1af: Fix bin paths in package.json files.
+
 ## 0.2.3
 
 ### Patch Changes
