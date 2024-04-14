@@ -1,3 +1,4 @@
+import { neshCache } from '@neshca/cache-handler/functions';
 import axios from 'axios';
 import { unstable_cache } from 'next/cache';
 import { normalizeSlug } from './normalize-slug';
@@ -11,7 +12,13 @@ async function getViaAxios(url: URL) {
     }
 }
 
-export function createGetData(path: string, revalidate?: number, cache?: RequestCache | 'unstable-cache') {
+const cachedAxios = neshCache(getViaAxios);
+
+export function createGetData(
+    path: string,
+    revalidate?: number,
+    cache?: RequestCache | 'unstable-cache' | 'nesh-cache',
+) {
     return async function getData(slug: string): Promise<Omit<PageProps, 'revalidateAfter'> | null> {
         const pathAndTag = `/${path}/${normalizeSlug(slug)}`;
 
@@ -21,30 +28,55 @@ export function createGetData(path: string, revalidate?: number, cache?: Request
 
         const tags = [pathAndTag, 'whole-app-route'];
 
-        if (cache === 'unstable-cache') {
-            const cachedGet = unstable_cache(getViaAxios, tags, {
-                revalidate,
-                tags,
-            });
+        switch (cache) {
+            case 'unstable-cache': {
+                const cachedGet = unstable_cache(getViaAxios, tags, {
+                    revalidate,
+                    tags,
+                });
 
-            const data = await cachedGet(url);
+                const data = await cachedGet(url);
 
-            if (!data) {
-                return null;
+                if (!data) {
+                    return null;
+                }
+
+                parsedResult = data;
+
+                break;
+            }
+            case 'nesh-cache': {
+                const data = await cachedAxios(
+                    {
+                        revalidate,
+                        tags,
+                    },
+                    url,
+                );
+
+                if (!data) {
+                    return null;
+                }
+
+                parsedResult = data;
+
+                break;
             }
 
-            parsedResult = data;
-        } else {
-            const result = await fetch(url, {
-                cache,
-                next: { revalidate, tags },
-            });
+            default: {
+                const result = await fetch(url, {
+                    cache,
+                    next: { revalidate, tags },
+                });
 
-            if (!result.ok) {
-                return null;
+                if (!result.ok) {
+                    return null;
+                }
+
+                parsedResult = (await result.json()) as CountBackendApiResponseJson;
+
+                break;
             }
-
-            parsedResult = (await result.json()) as CountBackendApiResponseJson;
         }
 
         const newData = { count: parsedResult.count, path, time: parsedResult.unixTimeMs };

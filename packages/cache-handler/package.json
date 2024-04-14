@@ -31,6 +31,10 @@
             "require": "./dist/helpers/helpers.cjs",
             "import": "./dist/helpers/helpers.js"
         },
+        "./functions": {
+            "require": "./dist/functions/functions.cjs",
+            "import": "./dist/functions/functions.js"
+        },
         "./*": {
             "require": "./dist/handlers/*.cjs",
             "import": "./dist/handlers/*.js"
@@ -43,6 +47,9 @@
             ],
             "helpers": [
                 "dist/helpers/helpers.d.ts"
+            ],
+            "functions": [
+                "dist/functions/functions.d.ts"
             ],
             "redis-stack": [
                 "dist/handlers/redis-stack.d.ts"

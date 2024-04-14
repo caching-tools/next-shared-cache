@@ -2,7 +2,7 @@
 
 **Flexible API to replace the default Next.js cache, accommodating custom cache solutions for multi-instance self-hosted deployments**
 
-🎉 1.1.0 is out! It features Full support for the App Router!
+🎉 1.2.0 is out! It features [`neshCache`](https://caching-tools.github.io/next-shared-cache/functions/nesh-cache) application-side function!
 
 Check out the [changelog](https://github.com/caching-tools/next-shared-cache/blob/canary/packages/cache-handler/CHANGELOG.md)
 
@@ -39,6 +39,7 @@ Next.js applications are often deployed in a self-hosted distributed environment
 - Simplified on-demand revalidation, akin to managing a single application instance.
 - TTL by default to keep cache storage clean and space-efficient.
 - One configuration for both Routes.
+- [`neshCache`](https://caching-tools.github.io/next-shared-cache/functions/nesh-cache) application-side function.
 
 ### Kickstarting Your Custom Cache Solution
 

@@ -53,10 +53,10 @@ export default {
         ),
     },
     banner: {
-        key: 'version-1.1.0',
+        key: 'version-1.2.0',
         text: (
-            <a href="https://nextjs.org/blog/next-14-1">
-                🎉 1.1.0 is out! It features Full support for the App Router!
+            <a href="https://github.com/caching-tools/next-shared-cache/functions/nesh-cache">
+                🎉 1.2.0 is out! It features `neshCache`` application-side function!
             </a>
         ),
     },
