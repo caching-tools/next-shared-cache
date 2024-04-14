@@ -1,5 +1,11 @@
 # @neshca/cache-handler
 
+## 1.2.1
+
+### Patch Changes
+
+- 7adc1af: Fix bin paths in package.json files.
+
 ## 1.2.0
 
 ### Minor Changes

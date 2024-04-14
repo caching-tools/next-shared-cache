@@ -1,5 +1,11 @@
 # @neshca/json-replacer-reviver
 
+## 1.1.3
+
+### Patch Changes
+
+- 7adc1af: Fix bin paths in package.json files.
+
 ## 1.1.2
 
 ### Patch Changes
