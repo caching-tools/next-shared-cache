@@ -119,7 +119,8 @@ type NeshCacheOptions<Arguments extends unknown[], Result> = {
     /**
      * The revalidation interval in milliseconds.
      * Must be a positive integer or `false` to disable revalidation.
-     * Defaults to `export const revalidate = time;` in the current route.
+     *
+     * @default revalidate // of the current route
      */
     revalidate?: Revalidate;
     /**
@@ -128,7 +129,9 @@ type NeshCacheOptions<Arguments extends unknown[], Result> = {
     cacheKey?: string;
     /**
      * A function that serializes the arguments passed to the callback function.
-     * Use it to create a cache key. Defaults to `JSON.stringify(args)`.
+     * Use it to create a cache key.
+     *
+     * @default (args) => JSON.stringify(args)
      *
      * @param callbackArguments - The arguments passed to the callback function.
      */
@@ -136,14 +139,16 @@ type NeshCacheOptions<Arguments extends unknown[], Result> = {
     /**
      *
      * A function that serializes the result of the callback function.
-     * Defaults to `Buffer.from(JSON.stringify(data)).toString('base64')`.
+     *
+     * @default (result) => Buffer.from(JSON.stringify(result)).toString('base64')
      *
      * @param result - The result of the callback function.
      */
     resultSerializer?(result: Result): string;
     /**
      * A function that deserializes the string representation of the result of the callback function.
-     * Defaults to `JSON.parse(Buffer.from(data, 'base64').toString('utf-8'))`.
+     *
+     * @default (string) => JSON.parse(Buffer.from(string, 'base64').toString('utf-8'))
      *
      * @param string - The string representation of the result of the callback function.
      */

@@ -38,6 +38,7 @@ export default function createHandler({
     keyPrefix = '',
     sharedTagsKey = '__sharedTags__',
     timeoutMs = 5000,
+    keyExpirationStrategy = 'EXPIREAT',
 }: CreateRedisStringsHandlerOptions): Handler {
     function assertClientIsReady(): void {
         if (!client.isReady) {
@@ -91,11 +92,33 @@ export default function createHandler({
 
             const options = getTimeoutRedisCommandOptions(timeoutMs);
 
-            const setOperation = client.set(options, keyPrefix + key, JSON.stringify(cacheHandlerValue));
+            let setOperation: Promise<string | null>;
 
-            const expireOperation = cacheHandlerValue.lifespan
-                ? client.expireAt(options, keyPrefix + key, cacheHandlerValue.lifespan.expireAt)
-                : undefined;
+            let expireOperation: Promise<boolean> | undefined;
+
+            switch (keyExpirationStrategy) {
+                case 'EXAT': {
+                    setOperation = client.set(
+                        options,
+                        keyPrefix + key,
+                        JSON.stringify(cacheHandlerValue),
+                        typeof cacheHandlerValue.lifespan?.expireAt === 'number'
+                            ? {
+                                  EXAT: cacheHandlerValue.lifespan.expireAt,
+                              }
+                            : undefined,
+                    );
+                    break;
+                }
+                case 'EXPIREAT': {
+                    setOperation = client.set(options, keyPrefix + key, JSON.stringify(cacheHandlerValue));
+
+                    expireOperation = cacheHandlerValue.lifespan
+                        ? client.expireAt(options, keyPrefix + key, cacheHandlerValue.lifespan.expireAt)
+                        : undefined;
+                    break;
+                }
+            }
 
             const setTagsOperation = cacheHandlerValue.tags.length
                 ? client.hSet(options, keyPrefix + sharedTagsKey, key, JSON.stringify(cacheHandlerValue.tags))
