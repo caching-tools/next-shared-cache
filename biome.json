@@ -11,7 +11,8 @@
                 "noConsoleLog": "error",
                 "noApproximativeNumericConstant": "error",
                 "noMisrefactoredShorthandAssign": "error",
-                "useAwait": "error"
+                "useAwait": "error",
+                "noDuplicateTestHooks": "error"
             },
             "correctness": {
                 "noUndeclaredVariables": "error",
@@ -38,14 +39,23 @@
                     "options": {
                         "filenameCases": ["kebab-case"]
                     }
-                }
+                },
+                "useNodeAssertStrict": "error"
             },
             "nursery": {
-                "noUselessTernary": "error",
-                "noDuplicateTestHooks": "error"
+                "noConstantMathMinMaxClamp": "error",
+                "noDoneCallback": "error",
+                "noDuplicateElseIf": "error",
+                "noEvolvingAny": "error",
+                "noFlatMapIdentity": "error",
+                "noMisplacedAssertion": "error"
             },
             "complexity": {
-                "useSimplifiedLogicExpression": "error"
+                "useSimplifiedLogicExpression": "error",
+                "noUselessTernary": "error"
+            },
+            "performance": {
+                "noReExportAll": "error"
             }
         }
     },

@@ -1,4 +1,4 @@
-import assert from 'node:assert';
+import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { MAX_INT32 } from '../constants';
 import { createValidatedAgeEstimationFunction } from './create-validated-age-estimation-function';

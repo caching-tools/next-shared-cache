@@ -132,9 +132,9 @@ export default function createHandler({
                 cursor = remoteTagsPortion.cursor;
             }
 
-            const keysToDelete = [];
+            const keysToDelete: string[] = [];
 
-            const tagsToDelete = [];
+            const tagsToDelete: string[] = [];
 
             for (const [key, tags] of tagsMap) {
                 if (tags.includes(tag)) {
