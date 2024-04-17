@@ -15,13 +15,17 @@ export type CreateRedisStackHandlerOptions<T = ReturnType<typeof createClient>> 
      */
     client: T;
     /**
-     * Optional. Prefix for all keys, useful for namespacing. Defaults to an empty string.
+     * Optional. Prefix for all keys, useful for namespacing.
+     *
+     * @default '' // empty string
      *
      * @since 1.0.0
      */
     keyPrefix?: string;
     /**
-     * Timeout in milliseconds for Redis operations. Defaults to 5000.
+     * Timeout in milliseconds for Redis operations.
+     *
+     * @default 5000 // 5000 ms
      *
      * @since 1.0.0
      */
@@ -30,9 +34,28 @@ export type CreateRedisStackHandlerOptions<T = ReturnType<typeof createClient>> 
 
 export type CreateRedisStringsHandlerOptions = CreateRedisStackHandlerOptions & {
     /**
-     * Optional. Key for storing cache tags. Defaults to `__sharedTags__`.
+     * Optional. Key for storing cache tags.
+     *
+     * @default '__sharedTags__'
      *
      * @since 1.0.0
      */
     sharedTagsKey?: string;
+    /**
+     * Optional. It allows you to choose the expiration strategy for cache keys.
+     *
+     * - `'EXAT'`: Uses the `EXAT` option of the `SET` command to set the expiration time. This is more efficient than `EXPIREAT`.
+     * - `'EXPIREAT'`: Uses the `EXPIREAT` command to set the expiration time. This requires an additional command call.
+     *
+     * By default, the expiration strategy is set to `'EXPIREAT'` for compatibility previous `@neshca/cache-handler` versions.
+     *
+     * @default 'EXPIREAT'
+     *
+     * @since 1.3.0
+     *
+     * @remarks
+     * - The `'EXPIREAT'` strategy requires Redis server 4.0.0 or newer.
+     * - The `'EXAT'` strategy requires Redis server 6.2.0 or newer.
+     */
+    keyExpirationStrategy?: 'EXAT' | 'EXPIREAT';
 };

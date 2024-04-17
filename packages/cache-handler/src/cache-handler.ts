@@ -151,7 +151,9 @@ export type Handler = {
  */
 export type TTLParameters = {
     /**
-     * The time in seconds for when the cache entry becomes stale. Defaults to 1 year.
+     * The time in seconds for when the cache entry becomes stale.
+     *
+     * @default 31536000 // 1 year
      *
      * @since 1.0.0
      */
@@ -159,9 +161,11 @@ export type TTLParameters = {
     /**
      * Estimates the expiration age based on the stale age.
      *
-     * @param staleAge - The stale age in seconds. Defaults to 1 year.
+     * @param staleAge - The stale age in seconds.
      * After the stale age, the cache entry is considered stale, can be served from the cache, and should be revalidated.
      * Revalidation is handled by the `CacheHandler` class.
+     *
+     * @default (staleAge) => staleAge
      *
      * @returns The expiration age in seconds.
      *
