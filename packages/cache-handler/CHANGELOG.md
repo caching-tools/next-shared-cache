@@ -1,5 +1,17 @@
 # @neshca/cache-handler
 
+## 1.3.0
+
+### Minor Changes
+
+- 0d4766b: Added `keyExpirationStrategy` option for the `redis-strings` Handler.
+
+  #### New Features
+
+  ##### `@neshca/cache-handle/redis-strings`
+
+  - Added `keyExpirationStrategy` option. It allows you to choose the expiration strategy for cache keys.
+
 ## 1.2.1
 
 ### Patch Changes
