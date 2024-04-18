@@ -2,7 +2,7 @@
 
 **Flexible API to replace the default Next.js cache, accommodating custom cache solutions for multi-instance self-hosted deployments**
 
-🎉 1.2.0 is out! It features [`neshCache`](https://caching-tools.github.io/next-shared-cache/functions/nesh-cache) application-side function!
+🎉 1.3.0 is out! It features the new `keyExpirationStrategy` option for the `redis-strings` Handler! It allows to use of a more performant API for the cache set operation but requires Redis server 6.2.0. Do not forget about the new [`neshCache`](https://caching-tools.github.io/next-shared-cache/functions/nesh-cache) application-side function for caching non-fetch data requests, e.g. `axios` or database queries.
 
 Check out the [changelog](https://github.com/caching-tools/next-shared-cache/blob/canary/packages/cache-handler/CHANGELOG.md)
 
