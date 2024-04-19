@@ -1,0 +1,35 @@
+import { Callout } from 'nextra/components';
+
+# `local-lru` Handler
+
+```js
+import createLocalHandler from '@neshca/cache-handler/local-lru';
+
+// ...
+const localHandler = createLocalHandler({
+  maxItemsNumber: 10000,
+  maxItemSizeBytes: 1024 * 1024 * 500,
+});
+// ...
+```
+
+The `local-lru` Handler uses a [`lru-cache`](https://www.npmjs.com/package/lru-cache) instance as the cache store. It stores the cache in memory and evicts the least recently used entries when the cache reaches its limits. You can use this Handler as a fallback cache when the shared cache is unavailable.
+
+<Callout type="info">
+  The `local-lru` Handler stores the cache in memory. Make sure to set the limits according to your server's memory
+  capacity.
+</Callout>
+
+## API
+
+`@neshca/cache-handler/local-lru` exports a function that creates a new `Handler` instance for the `local-lru` Handler.
+
+### Parameters
+
+- `options` - An object containing the following properties:
+  - `maxItemsNumber` - Optional. Maximum number of items the cache can hold. Defaults to `1000`.
+  - `maxItemSizeBytes` - Optional. Maximum size in bytes for each item in the cache. Defaults to `1024 * 1024 * 100` (100 MB).
+
+### Return value
+
+A new `Handler` instance for the `local-lru` Handler.

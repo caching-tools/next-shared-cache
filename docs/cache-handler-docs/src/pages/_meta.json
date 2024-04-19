@@ -11,6 +11,7 @@
     },
     "configuration": "Configuration",
     "api-reference": "API reference",
+    "handlers": "Handlers",
     "functions": "Functions",
     "-- Usage": {
         "type": "separator",
