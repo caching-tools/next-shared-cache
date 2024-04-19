@@ -4,7 +4,12 @@ import createCacheStore from '@neshca/next-lru-cache/next-cache-handler-value';
 import { NEXT_CACHE_IMPLICIT_TAG_ID } from '@neshca/next-common';
 import type { Handler } from '../cache-handler';
 
+/**
+ * @deprecated Use {@link LruCacheOptions} instead.
+ */
 export type LruCacheHandlerOptions = LruCacheOptions;
+
+export type { LruCacheOptions };
 
 /**
  * Creates an LRU (Least Recently Used) cache Handler.
@@ -14,7 +19,7 @@ export type LruCacheHandlerOptions = LruCacheOptions;
  * The handler includes methods to get and set cache values.
  * Revalidation is handled by the `CacheHandler` class.
  *
- * @param options - The configuration options for the LRU cache handler. See {@link LruCacheHandlerOptions}.
+ * @param options - The configuration options for the LRU cache handler. See {@link LruCacheOptions}.
  *
  * @returns An object representing the cache, with methods for cache operations.
  *
@@ -31,7 +36,7 @@ export type LruCacheHandlerOptions = LruCacheOptions;
  *
  * @since 1.0.0
  */
-export default function createHandler({ ...lruOptions }: LruCacheHandlerOptions = {}): Handler {
+export default function createHandler({ ...lruOptions }: LruCacheOptions = {}): Handler {
     const lruCacheStore = createCacheStore(lruOptions);
 
     const revalidatedTags = new Map<string, number>();

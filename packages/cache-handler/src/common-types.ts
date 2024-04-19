@@ -23,7 +23,7 @@ export type CreateRedisStackHandlerOptions<T = ReturnType<typeof createClient>> 
      */
     keyPrefix?: string;
     /**
-     * Timeout in milliseconds for Redis operations.
+     * Optional. Timeout in milliseconds for Redis operations.
      *
      * @default 5000 // 5000 ms
      *

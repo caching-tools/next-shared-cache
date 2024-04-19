@@ -1,0 +1,38 @@
+import { Callout } from 'nextra/components';
+
+# `redis-stack` Handler
+
+```js
+import createRedisHandler from '@neshca/cache-handler/redis-stack';
+
+// ...
+await client.connect();
+
+const redisHandler = await createRedisHandler({
+  client,
+  keyPrefix: 'prefix:',
+  timeoutMs: 1000,
+});
+// ...
+```
+
+The `redis-stack` Handler uses Redis with `RedisJSON` and `RedisSearch` modules as the cache store. It is a full-featured cache handler that supports JSON objects and full-text search, offering a trade-off between performance and flexibility. While it may sacrifice some speed compared to the [`redis-strings`](/handlers/redis-strings) Handler, it empowers you to manage cache on demand more efficiently and faster. It also allows for more versatile cache usage from your application, such as creating custom revalidating strategies and functions. The `redis-stack` Handler is suitable for applications that require advanced cache management and search capabilities.
+
+<Callout type="info">
+  Make sure that you have the `RedisJSON` and `RedisSearch` modules installed and enabled in your Redis server.
+</Callout>
+
+## API
+
+`@neshca/cache-handler/redis-stack` exports a function that creates a new `Handler` instance for the `redis-stack` Handler.
+
+### Parameters
+
+- `options` - An object containing the following properties:
+  - `client` - A Redis client instance. The client must be ready before creating the Handler.
+  - `keyPrefix` - Optional. Prefix for all keys, useful for namespacing. Defaults to an empty string.
+  - `timeoutMs` - Optional. Timeout in milliseconds for Redis operations. Defaults to `5000`.
+
+### Return value
+
+A Promise that resolves to a new `Handler` instance for the `redis-stack` Handler.
