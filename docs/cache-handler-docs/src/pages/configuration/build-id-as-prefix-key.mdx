@@ -19,26 +19,17 @@ To use `buildId` for prefixing the cache keys, use either of the following solut
 
 #### Using `process.env.GIT_HASH`
 
-```js filename="next.config.js" copy
-const nextConfig = {
-  generateBuildId: async () => {
-    // This could be anything, using the latest git hash
-    return process.env.GIT_HASH;
-  },
-};
-```
-
 ```js filename="cache-handler.mjs" copy
 CacheHandler.onCreation(async () => {
   await client.connect();
 
-  const redisHandler = await createRedisHandler({
+  const handler = await createRedisHandler({
     client,
     keyPrefix: process.env.GIT_HASH,
   });
 
   return {
-    handlers: [redisHandler],
+    handlers: [handler],
   };
 });
 ```
@@ -59,21 +50,19 @@ const nextConfig = {
 
 ```js filename="cache-handler.mjs" copy
 CacheHandler.onCreation(async ({ buildId }) => {
-  let redisHandler;
+  let handler;
 
   if (buildId) {
     await client.connect();
 
-    redisHandler = await createRedisHandler({
+    handler = await createRedisHandler({
       client,
       keyPrefix: `${buildId}:`,
     });
   }
 
-  const localHandler = createLruHandler();
-
   return {
-    handlers: [redisHandler, localHandler],
+    handlers: [handler],
   };
 });
 ```

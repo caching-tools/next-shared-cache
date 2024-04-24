@@ -8,22 +8,18 @@ There are scenarios, especially during deployment, where your Redis server may n
 
    ```js filename="cache-handler.mjs" copy
    CacheHandler.onCreation(async () => {
-     let redisHandler;
+     let handler;
 
      if (process.env.REDIS_AVAILABLE) {
        await client.connect();
 
-       redisHandler = await createRedisHandler({
+       handler = await createRedisHandler({
          client,
        });
      }
 
-     const localHandler = {
-       // ...
-     };
-
      return {
-       handlers: [redisHandler, localHandler],
+       handlers: [handler],
      };
    });
    ```

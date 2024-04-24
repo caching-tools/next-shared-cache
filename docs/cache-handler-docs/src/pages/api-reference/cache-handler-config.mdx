@@ -1,4 +1,4 @@
-# CacheHandlerValue
+# CacheHandlerConfig
 
 ```typescript
 type CacheHandlerConfig = {
@@ -19,22 +19,22 @@ In the example below, we use a local cache and a Redis cache. If the Redis cache
 
 ```js filename="cache-handler.mjs" copy
 CacheHandler.onCreation(async () => {
-  let redisHandler;
+  let handler;
 
   if (process.env.REDIS_AVAILABLE) {
     await client.connect();
 
-    redisHandler = await createRedisHandler({
+    handler = await createRedisHandler({
       client,
     });
+  } else {
+    handler = {
+      // ...
+    };
   }
 
-  const localHandler = {
-    // ...
-  };
-
   return {
-    handlers: [redisHandler, localHandler],
+    handlers: [handler],
   };
 });
 ```

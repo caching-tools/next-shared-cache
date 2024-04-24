@@ -10,7 +10,7 @@ Install the `redis` package:
 npm install -D redis
 ```
 
-Then, install Redis server locally or use a cloud-based Redis service. Learn how to run Redis locally by following the [Install Redis Stack documentation](https://redis.io/docs/install/install-stack/docker/). Redis Stack also includes a RedisInsight tool to manage and monitor your Redis instance.
+Then, install the Redis server locally or use a cloud-based Redis service. Learn how to run Redis locally by following the [Install Redis Stack documentation](https://redis.io/docs/install/install-stack/docker/). Redis Stack also includes a RedisInsight tool to manage and monitor your Redis instance.
 
 ### Guide
 
@@ -19,7 +19,6 @@ Create a file called `cache-handler.mjs` next to your `next.config.js` with the 
 ```js filename="cache-handler.mjs" copy
 import { CacheHandler } from '@neshca/cache-handler';
 import { isImplicitTag } from '@neshca/cache-handler/helpers';
-import createLruHandler from '@neshca/cache-handler/local-lru';
 import { createClient, commandOptions } from 'redis';
 
 CacheHandler.onCreation(async () => {
@@ -227,15 +226,11 @@ CacheHandler.onCreation(async () => {
     },
   };
 
-  // Create a local LRU handler.
-  // This handler is used as a fallback for the Redis handler.
-  const localHandler = createLruHandler();
-
   return {
     // The order of the handlers is important.
     // The CacheHandler will run get methods in the order of the handlers array.
     // Other methods will be run in parallel.
-    handlers: [customRedisHandler, localHandler],
+    handlers: [customRedisHandler],
   };
 });
 

@@ -29,7 +29,6 @@ Create a file called `cache-handler.mjs` next to your `next.config.js` with the 
 
 ```js filename="cache-handler.mjs" copy
 import { CacheHandler } from '@neshca/cache-handler';
-import createLruHandler from '@neshca/cache-handler/local-lru';
 import createServerHandler from '@neshca/cache-handler/server';
 
 const baseUrl = process.env.REMOTE_CACHE_SERVER_BASE_URL ?? 'http://localhost:8080';
@@ -39,10 +38,8 @@ CacheHandler.onCreation(() => {
     baseUrl,
   });
 
-  const localHandler = createLruHandler();
-
   return {
-    handlers: [httpHandler, localHandler],
+    handlers: [httpHandler],
   };
 });
 
