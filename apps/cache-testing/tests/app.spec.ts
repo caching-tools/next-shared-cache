@@ -375,3 +375,11 @@ test.describe('unstable_cache', () => {
         expect(valueFromPageAfterReload === valueFromPage).toBe(true);
     });
 });
+
+test.describe('Sitemap', () => {
+    test('/sitemap.xml should be available', async ({ page, baseURL }) => {
+        const url = new URL('/sitemap.xml', `${baseURL}:3000`);
+
+        await page.goto(url.href);
+    });
+});

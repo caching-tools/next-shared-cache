@@ -37,6 +37,8 @@ export type ServerCacheHandlerOptions = {
  * - the `get` method retrieves a value from the server cache. If the server response has status 404, it returns `null`.
  * - the `set` method allows setting a value in the server cache.
  * - the `revalidateTag` methods are used for handling tag-based cache revalidation.
+ *
+ * @since 1.0.0
  */
 export default function createHandler({ baseUrl, timeoutMs }: ServerCacheHandlerOptions): Handler {
     return {

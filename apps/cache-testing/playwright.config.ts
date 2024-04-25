@@ -17,7 +17,7 @@ export default defineConfig({
         },
     ],
     webServer: {
-        command: `node --import tsx ./run-app-instances.ts ports=${ports.join(',')}`,
+        command: `tsx ./run-app-instances.ts ports=${ports.join(',')}`,
         url: 'http://localhost:9000',
         reuseExistingServer: !process.env.CI,
         stdout: 'pipe',

@@ -59,3 +59,21 @@ export type CreateRedisStringsHandlerOptions = CreateRedisStackHandlerOptions & 
      */
     keyExpirationStrategy?: 'EXAT' | 'EXPIREAT';
 };
+
+export type CreateRedisSitemapHandlerOptions = CreateRedisStackHandlerOptions & {
+    /**
+     * Optional. The absolute path to the Next.js server directory.
+     * If provided, the Handler will populate the sitemap with the pre-rendered pages.
+     *
+     * @since 1.4.0
+     */
+    serverDistDir?: string;
+    /**
+     * Optional. The key for storing sitemap links.
+     *
+     * @default '__sitemap__'
+     *
+     * @since 1.4.0
+     */
+    sitemapKey?: string;
+};

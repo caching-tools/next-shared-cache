@@ -57,6 +57,9 @@
             "redis-strings": [
                 "dist/handlers/redis-strings.d.ts"
             ],
+            "redis-sitemap": [
+                "dist/handlers/redis-sitemap.d.ts"
+            ],
             "server": [
                 "dist/handlers/server.d.ts"
             ],
@@ -69,8 +72,8 @@
         "build": "tsup --dts-resolve",
         "clean": "rimraf ./dist ./.turbo ./node_modules",
         "dev": "tsup --watch",
-        "test": "node --test --import tsx/esm src/**/*.test.ts",
-        "test:watch": "node --watch --test --import tsx/esm src/**/*.test.ts"
+        "test": "tsx --test src/**/*.test.ts",
+        "test:watch": "tsx --watch --test src/**/*.test.ts"
     },
     "dependencies": {
         "lru-cache": "10.2.2"

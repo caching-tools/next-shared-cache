@@ -1,0 +1,87 @@
+# `redis-sitemap` Utility Handler
+
+```js
+import createRedisHandler from '@neshca/cache-handler/redis-sitemap';
+
+// ...
+await client.connect();
+
+const sitemapHandler = createSitemapHandler({
+  client,
+  timeoutMs: 1000,
+  serverDistDir,
+  keyPrefix: 'myApp:',
+  sitemapKey: '__sitemap__',
+});
+// ...
+```
+
+Creates a utility Handler that uses the Redis client to store pre-rendered and dynamic pages, excluding API routes and SSR pages. It also keeps track of their last modified timestamps for Pages and App Routes. This can make generating the same sitemap in distributed environments easier.
+
+## API
+
+`@neshca/cache-handler/redis-sitemap` exports a function that creates a new `Handler` instance for the `redis-sitemap` Handler.
+
+### Parameters
+
+- `options` - An object containing the following properties:
+  - `client` - A Redis client instance. The client must be ready before creating the Handler.
+  - `keyPrefix` - Optional. Prefix for all keys, useful for namespacing. Defaults to an empty string.
+  - `timeoutMs` - Optional. Timeout in milliseconds for Redis operations. Defaults to `5000`.
+  - `serverDistDir` - Optional. The absolute path to the Next.js server directory. If provided, the Handler will populate the sitemap with the pre-rendered pages. Use the `serverDistDir` from the [`onCreation` callback context](/configuration/on-creation#context).
+  - `sitemapKey` - Optional. The key for storing sitemap links. Defaults to `__sitemap__`.
+
+### Return value
+
+A new `Handler` instance for the `redis-sitemap` Handler.
+
+## How to use the data inside your application
+
+Follow [this guide](https://nextjs.org/docs/app/api-reference/file-conventions/metadata/sitemap) to create a `sitemap.{xml,ts,js}` file.
+
+Create the Redis client, establish a connection and scan the data from the Redis server:
+
+```typescript
+import { getTimeoutRedisCommandOptions, promiseWithTimeout } from '@neshca/cache-handler/helpers';
+import type { MetadataRoute } from 'next';
+import { createClient } from 'redis';
+
+export const dynamic = 'force-dynamic';
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const client = createClient({
+    url: process.env.REDIS_URL,
+  });
+
+  await promiseWithTimeout(client.connect(), 1000);
+
+  const sitemap: MetadataRoute.Sitemap = [];
+
+  let currentCursor = 0;
+
+  do {
+    if (client.isReady === false) {
+      throw new Error('Redis client is not ready yet or connection is lost. Keep trying...');
+    }
+
+    const options = getTimeoutRedisCommandOptions(1000);
+
+    const { cursor, tuples } = await client.hScan(options, '__sitemap__', currentCursor, { COUNT: 100 });
+
+    currentCursor = cursor;
+
+    for (const { field, value } of tuples) {
+      const url = new URL(field, 'https://example.com');
+
+      sitemap.push({
+        url: url.href,
+        lastModified: new Date(Number.parseInt(value)),
+      });
+    }
+  } while (currentCursor !== 0);
+
+  await client.quit();
+
+  return sitemap;
+}
+```

@@ -1,0 +1,41 @@
+# `redis-strings` Handler
+
+```js
+import createRedisHandler from '@neshca/cache-handler/redis-strings';
+
+// ...
+await client.connect();
+
+const redisHandler = createRedisHandler({
+  client,
+  keyPrefix: 'JSON:',
+  timeoutMs: 1000,
+  keyExpirationStrategy: 'EXAT',
+  sharedTagsKey: '__sharedTags__',
+});
+// ...
+```
+
+Creates a utility Handler that uses the Redis client to store pre-rendered and dynamic pages, excluding API routes and SSR pages. It also keeps track of their last modified timestamps for Pages and App Routes. This method can make generating the same sitemap in distributed environments easier.
+
+## API
+
+`@neshca/cache-handler/redis-strings` exports a function that creates a new `Handler` instance for the `redis-strings` Handler.
+
+### Parameters
+
+- `options` - An object containing the following properties:
+  - `client` - A Redis client instance. The client must be ready before creating the Handler.
+  - `keyPrefix` - Optional. Prefix for all keys, useful for namespacing. Defaults to an empty string.
+  - `timeoutMs` - Optional. Timeout in milliseconds for Redis operations. Defaults to `5000`.
+  - `keyExpirationStrategy` - Optional. It allows you to choose the expiration strategy for cache keys. Defaults to `EXPRIREAT`.
+  - `sharedTagsKey` - Optional. Dedicated key for the internal revalidation process. It must not interfere with cache keys from your application. Defaults to `__sharedTags__`.
+
+#### `keyExpirationStrategy`
+
+- `'EXAT'`: Uses the `EXAT` option of the `SET` command to set the expiration time. This is more efficient than `EXPIREAT`. Requires Redis server 6.2.0 or newer
+- `'EXPIREAT'`: Uses the `EXPIREAT` command to set the expiration time. This requires an additional command call. Requires Redis server 4.0.0 or newer.
+
+### Return value
+
+A new `Handler` instance for the `redis-strings` Handler.
