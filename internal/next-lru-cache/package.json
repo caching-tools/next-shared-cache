@@ -11,7 +11,7 @@
         "clean": "rimraf ./.turbo ./node_modules"
     },
     "dependencies": {
-        "lru-cache": "10.2.0"
+        "lru-cache": "10.2.1"
     },
     "devDependencies": {
         "@neshca/next-common": "*",
