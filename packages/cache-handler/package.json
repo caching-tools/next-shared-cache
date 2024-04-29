@@ -73,7 +73,7 @@
         "test:watch": "node --watch --test --import tsx/esm src/**/*.test.ts"
     },
     "dependencies": {
-        "lru-cache": "10.2.1"
+        "lru-cache": "10.2.2"
     },
     "devDependencies": {
         "@neshca/next-common": "*",
