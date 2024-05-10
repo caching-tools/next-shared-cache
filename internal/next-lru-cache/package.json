@@ -17,7 +17,7 @@
         "@neshca/next-common": "*",
         "@repo/typescript-config": "*",
         "@types/node": "20.12.11",
-        "rimraf": "5.0.5",
+        "rimraf": "5.0.6",
         "typescript": "5.4.5"
     }
 }
