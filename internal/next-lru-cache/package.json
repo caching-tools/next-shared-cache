@@ -16,7 +16,7 @@
     "devDependencies": {
         "@neshca/next-common": "*",
         "@repo/typescript-config": "*",
-        "@types/node": "20.12.7",
+        "@types/node": "20.12.11",
         "rimraf": "5.0.5",
         "typescript": "5.4.5"
     }
