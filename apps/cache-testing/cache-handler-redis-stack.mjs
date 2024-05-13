@@ -2,10 +2,11 @@
 
 import { CacheHandler } from '@neshca/cache-handler';
 import createLruHandler from '@neshca/cache-handler/local-lru';
+import createSitemapHandler from '@neshca/cache-handler/redis-sitemap';
 import createRedisHandler from '@neshca/cache-handler/redis-stack';
 import { createClient } from 'redis';
 
-CacheHandler.onCreation(async () => {
+CacheHandler.onCreation(async ({ serverDistDir }) => {
     if (!process.env.REDIS_URL) {
         console.warn('Make sure that REDIS_URL is added to the .env.local file and loaded properly.');
     }
@@ -53,12 +54,23 @@ CacheHandler.onCreation(async () => {
     /** @type {import("@neshca/cache-handler").Handler | null} */
     let handler;
 
+    /** @type {import("@neshca/cache-handler").Handler | null} */
+    let sitemapHandler = null;
+
     if (client?.isReady) {
         // Create the `redis-stack` Handler if the client is available and connected.
         handler = await createRedisHandler({
             client,
             keyPrefix: 'JSON:',
             timeoutMs: 1000,
+        });
+
+        sitemapHandler = createSitemapHandler({
+            client,
+            timeoutMs: 1000,
+            serverDistDir,
+            keyPrefix: 'myApp:',
+            sitemapKey: '__sitemap__',
         });
     } else {
         // Fallback to LRU handler if Redis client is not available.
@@ -68,7 +80,7 @@ CacheHandler.onCreation(async () => {
     }
 
     return {
-        handlers: [handler],
+        handlers: [handler, sitemapHandler],
         ttl: { defaultStaleAge: 60, estimateExpireAge: (staleAge) => staleAge * 2 },
     };
 });

@@ -23,8 +23,8 @@
         "build": "tsup",
         "clean": "rimraf ./dist ./.turbo ./node_modules",
         "dev": "tsup --watch",
-        "test": "node --test --import tsx/esm **/*.test.ts",
-        "test:watch": "node --watch --test --import tsx/esm **/*.test.ts"
+        "test": "tsx --test **/*.test.ts",
+        "test:watch": "tsx --watch --test **/*.test.ts"
     },
     "devDependencies": {
         "@repo/typescript-config": "*",

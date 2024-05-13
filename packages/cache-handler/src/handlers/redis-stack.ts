@@ -32,6 +32,8 @@ export type { CreateRedisStackHandlerOptions };
  * - the `get` method retrieves a value from the cache, automatically converting `Buffer` types when necessary.
  * - the `set` method allows setting a value in the cache.
  * - the `revalidateTag` methods are used for handling tag-based cache revalidation.
+ *
+ * @since 1.0.0
  */
 export default async function createHandler({
     client,

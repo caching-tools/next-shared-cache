@@ -344,7 +344,7 @@ export class CacheHandler implements NextCacheHandler {
             const pageData = JSON.parse(pageDataFile) as object;
 
             cacheHandlerValue = {
-                lastModified: mtimeMs,
+                lastModified: Math.floor(mtimeMs),
                 lifespan: null,
                 tags: [],
                 value: {

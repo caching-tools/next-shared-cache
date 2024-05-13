@@ -21,8 +21,8 @@
     "scripts": {
         "build": "tsup",
         "clean": "rimraf ./dist ./.turbo ./node_modules",
-        "dev": "node --watch --import tsx/esm ./src/server.ts",
-        "start": "node --import tsx/esm ./src/server.ts"
+        "dev": "tsx --watch ./src/server.ts",
+        "start": "tsx ./src/server.ts"
     },
     "dependencies": {
         "fastify": "4.27.0",

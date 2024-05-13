@@ -12,6 +12,7 @@
     "configuration": "Configuration",
     "api-reference": "API reference",
     "handlers": "Handlers",
+    "utility-handlers": "Utility Handlers",
     "functions": "Functions",
     "-- Usage": {
         "type": "separator",

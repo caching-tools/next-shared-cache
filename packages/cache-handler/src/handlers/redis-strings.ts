@@ -32,6 +32,8 @@ export type { CreateRedisStringsHandlerOptions };
  * - the `get` method retrieves a value from the cache, automatically converting `Buffer` types when necessary.
  * - the `set` method allows setting a value in the cache.
  * - the `revalidateTag` methods are used for handling tag-based cache revalidation.
+ *
+ * @since 1.0.0
  */
 export default function createHandler({
     client,
@@ -137,23 +139,23 @@ export default function createHandler({
 
             const tagsMap: Map<string, string[]> = new Map();
 
-            let cursor = 0;
+            let currentCursor = 0;
 
-            const querySize = 25;
+            do {
+                assertClientIsReady();
 
-            while (true) {
-                const remoteTagsPortion = await client.hScan(keyPrefix + sharedTagsKey, cursor, { COUNT: querySize });
+                const options = getTimeoutRedisCommandOptions(timeoutMs);
 
-                for (const { field, value } of remoteTagsPortion.tuples) {
+                const { cursor, tuples } = await client.hScan(options, keyPrefix + sharedTagsKey, currentCursor, {
+                    COUNT: 100,
+                });
+
+                currentCursor = cursor;
+
+                for (const { field, value } of tuples) {
                     tagsMap.set(field, JSON.parse(value));
                 }
-
-                if (remoteTagsPortion.cursor === 0) {
-                    break;
-                }
-
-                cursor = remoteTagsPortion.cursor;
-            }
+            } while (currentCursor !== 0);
 
             const keysToDelete: string[] = [];
 

@@ -53,9 +53,11 @@ export default {
         ),
     },
     banner: {
-        key: 'version-1.3.0',
+        key: 'version-1.4.0',
         text: (
-            <div>🎉 1.3.0 is out! It features the new keyExpirationStrategy option for the redis-strings Handler!</div>
+            <a href="https://github.com/caching-tools/next-shared-cache/utility-handlers/redis-sitemap">
+                🎉 1.4.0 is out! It features the new redis-sitemap Utility Handler!
+            </a>
         ),
     },
 };
