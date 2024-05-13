@@ -69,8 +69,8 @@
         "build": "tsup --dts-resolve",
         "clean": "rimraf ./dist ./.turbo ./node_modules",
         "dev": "tsup --watch",
-        "test": "node --test --import tsx/esm src/**/*.test.ts",
-        "test:watch": "node --watch --test --import tsx/esm src/**/*.test.ts"
+        "test": "tsx --test src/**/*.test.ts",
+        "test:watch": "tsx --watch --test src/**/*.test.ts"
     },
     "dependencies": {
         "lru-cache": "10.2.2"

@@ -6,8 +6,8 @@
     "type": "module",
     "scripts": {
         "clean": "rimraf ./.turbo ./node_modules",
-        "dev": "node --watch --import tsx/esm ./src/backend.ts",
-        "start": "node --import tsx/esm ./src/backend.ts"
+        "dev": "tsx --watch ./src/backend.ts",
+        "start": "tsx ./src/backend.ts"
     },
     "dependencies": {
         "fastify": "4.27.0",

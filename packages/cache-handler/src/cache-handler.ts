@@ -3,6 +3,7 @@ import path from 'node:path';
 
 import type {
     CacheHandlerParametersGet,
+    CacheHandlerParametersRevalidateTag,
     CacheHandlerParametersSet,
     CacheHandlerValue,
     FileSystemCacheContext,
@@ -665,14 +666,18 @@ export class CacheHandler implements NextCacheHandler {
         }
     }
 
-    async revalidateTag(tag: string): Promise<void> {
+    async revalidateTag(tag: CacheHandlerParametersRevalidateTag[0]): Promise<void> {
         await CacheHandler.#configureCacheHandler();
+
+        const tags = typeof tag === 'string' ? [tag] : tag;
 
         if (CacheHandler.#debug) {
             console.info('revalidateTag', tag);
         }
 
-        await CacheHandler.#mergedHandler.revalidateTag(tag);
+        for (const tag of tags) {
+            await CacheHandler.#mergedHandler.revalidateTag(tag);
+        }
 
         if (CacheHandler.#debug) {
             console.info('updated external revalidated tags');
