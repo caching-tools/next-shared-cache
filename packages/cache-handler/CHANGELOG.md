@@ -1,5 +1,11 @@
 # @neshca/cache-handler
 
+## 1.3.2
+
+### Patch Changes
+
+- e5774f5: Added support for batched revalidateTag calls.
+
 ## 1.3.1
 
 ### Patch Changes
