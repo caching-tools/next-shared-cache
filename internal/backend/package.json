@@ -11,7 +11,7 @@
     },
     "dependencies": {
         "fastify": "4.27.0",
-        "pino": "9.0.0"
+        "pino": "9.1.0"
     },
     "devDependencies": {
         "@repo/typescript-config": "*",
