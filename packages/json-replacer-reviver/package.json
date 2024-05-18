@@ -29,7 +29,7 @@
     "devDependencies": {
         "@repo/typescript-config": "*",
         "@types/node": "20.12.11",
-        "rimraf": "5.0.6",
+        "rimraf": "5.0.7",
         "tsup": "8.0.2",
         "tsx": "4.10.4",
         "typescript": "5.4.5"
