@@ -33,7 +33,7 @@
         "@types/react-dom": "18.3.0",
         "axios": "1.6.8",
         "dotenv-cli": "7.4.2",
-        "eslint": "8.57.0",
+        "eslint": "9.3.0",
         "fastify": "4.27.0",
         "pm2": "5.3.1",
         "redis": "4.6.13",
