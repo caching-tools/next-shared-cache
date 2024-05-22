@@ -31,7 +31,7 @@
         "@types/node": "20.12.12",
         "@types/react": "18.3.2",
         "@types/react-dom": "18.3.0",
-        "axios": "1.7.1",
+        "axios": "1.7.2",
         "dotenv-cli": "7.4.2",
         "eslint": "8.57.0",
         "fastify": "4.27.0",
