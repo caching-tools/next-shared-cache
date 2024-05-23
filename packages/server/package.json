@@ -35,7 +35,7 @@
         "@types/node": "20.12.12",
         "rimraf": "5.0.7",
         "tsup": "8.0.2",
-        "tsx": "4.10.5",
+        "tsx": "4.11.0",
         "typescript": "5.4.5"
     },
     "distTags": [
