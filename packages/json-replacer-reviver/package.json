@@ -30,7 +30,7 @@
         "@repo/typescript-config": "*",
         "@types/node": "20.14.1",
         "rimraf": "5.0.7",
-        "tsup": "8.0.2",
+        "tsup": "8.1.0",
         "tsx": "4.11.0",
         "typescript": "5.4.5"
     }
