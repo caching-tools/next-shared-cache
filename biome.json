@@ -18,7 +18,9 @@
                 "noUndeclaredVariables": "error",
                 "noUnusedVariables": "error",
                 "noUnusedImports": "error",
-                "noUnusedPrivateClassMembers": "error"
+                "noUnusedPrivateClassMembers": "error",
+                "noConstantMathMinMaxClamp": "error",
+                "noFlatMapIdentity": "error"
             },
             "style": {
                 "noNamespace": "error",
@@ -43,12 +45,16 @@
                 "useNodeAssertStrict": "error"
             },
             "nursery": {
-                "noConstantMathMinMaxClamp": "error",
                 "noDoneCallback": "error",
                 "noDuplicateElseIf": "error",
-                "noEvolvingAny": "error",
-                "noFlatMapIdentity": "error",
-                "noMisplacedAssertion": "error"
+                "noEvolvingTypes": "error",
+                "noMisplacedAssertion": "error",
+                "useNumberToFixedDigitsArgument": "error",
+                "useThrowNewError": "error",
+                "useTopLevelRegex": "error",
+                "noYodaExpression": "error",
+                "noUnusedFunctionParameters": "error",
+                "noUselessUndefinedInitialization": "error"
             },
             "complexity": {
                 "useSimplifiedLogicExpression": "error",
@@ -86,6 +92,10 @@
         {
             "include": ["[slug].tsx", "[length].tsx", "200.tsx"],
             "linter": { "rules": { "style": { "useFilenamingConvention": "off" } } }
+        },
+        {
+            "include": ["*.test.ts"],
+            "linter": { "rules": { "nursery": { "useTopLevelRegex": "off" } } }
         }
     ]
 }
