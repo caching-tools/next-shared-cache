@@ -1,5 +1,16 @@
 import assert from 'node:assert/strict';
-import { type IncrementalCacheEntry, NEXT_CACHE_IMPLICIT_TAG_ID, type Revalidate } from '@neshca/next-common';
+import {
+    CachedRouteKind,
+    IncrementalCacheKind,
+    type Kek,
+    type Lol,
+    NEXT_CACHE_IMPLICIT_TAG_ID,
+    type Revalidate,
+} from '@neshca/next-common';
+import {
+    type RequestStore,
+    requestAsyncStorage,
+} from 'next/dist/client/components/request-async-storage.external.js';
 import {
     type StaticGenerationStore,
     staticGenerationAsyncStorage,
@@ -30,34 +41,33 @@ function getDerivedTags(pathname: string): string[] {
     return derivedTags;
 }
 
-function addImplicitTags(staticGenerationStore: StaticGenerationStore) {
+function addImplicitTags(staticGenerationStore: StaticGenerationStore, requestStore?: RequestStore) {
     const newTags: string[] = [];
 
-    const { pagePath, urlPathname } = staticGenerationStore;
+    const { page, fallbackRouteParams } = staticGenerationStore;
 
-    if (!Array.isArray(staticGenerationStore.tags)) {
-        staticGenerationStore.tags = [];
-    }
+    const hasFallbackRouteParams = fallbackRouteParams && fallbackRouteParams.size > 0;
 
-    if (pagePath) {
-        const derivedTags = getDerivedTags(pagePath);
+    // Ini the tags array if it doesn't exist.
+    staticGenerationStore.tags ??= [];
 
-        for (let tag of derivedTags) {
-            tag = `${NEXT_CACHE_IMPLICIT_TAG_ID}${tag}`;
-            if (!staticGenerationStore.tags?.includes(tag)) {
-                staticGenerationStore.tags.push(tag);
-            }
-            newTags.push(tag);
-        }
-    }
+    const derivedTags = getDerivedTags(page);
 
-    if (urlPathname) {
-        const parsedPathname = new URL(urlPathname, 'http://n').pathname;
-
-        const tag = `${NEXT_CACHE_IMPLICIT_TAG_ID}${parsedPathname}`;
+    for (let tag of derivedTags) {
+        tag = `${NEXT_CACHE_IMPLICIT_TAG_ID}${tag}`;
         if (!staticGenerationStore.tags?.includes(tag)) {
             staticGenerationStore.tags.push(tag);
         }
+        newTags.push(tag);
+    }
+
+    if (requestStore?.url.pathname && !hasFallbackRouteParams) {
+        const tag = `${NEXT_CACHE_IMPLICIT_TAG_ID}${requestStore.url.pathname}`;
+
+        if (!staticGenerationStore.tags?.includes(tag)) {
+            staticGenerationStore.tags.push(tag);
+        }
+
         newTags.push(tag);
     }
 
@@ -221,9 +231,10 @@ export function neshCache<Arguments extends unknown[], Result extends Promise<un
         options: NeshCacheOptions<Arguments, Result>,
         ...args: Arguments
     ): Promise<Result | null> {
-        const store = staticGenerationAsyncStorage.getStore();
+        const staticGenerationStore = staticGenerationAsyncStorage.getStore();
+        const requestStore = requestAsyncStorage.getStore();
 
-        assert(store?.incrementalCache, 'neshCache must be used in a Next.js app directory.');
+        assert(staticGenerationStore?.incrementalCache, 'neshCache must be used in a Next.js app directory.');
 
         const {
             tags = [],
@@ -239,11 +250,15 @@ export function neshCache<Arguments extends unknown[], Result extends Promise<un
             'neshCache: revalidate must be a positive integer or false.',
         );
 
-        if (store.fetchCache === 'force-no-store' || store.isDraftMode || store.incrementalCache.dev) {
+        if (
+            staticGenerationStore.fetchCache === 'force-no-store' ||
+            staticGenerationStore.isDraftMode ||
+            staticGenerationStore.incrementalCache.dev
+        ) {
             return await callback(...args);
         }
 
-        const uniqueTags = new Set(store.tags);
+        const uniqueTags = new Set(staticGenerationStore.tags);
 
         const combinedTags = [...tags, ...commonTags];
 
@@ -258,23 +273,26 @@ export function neshCache<Arguments extends unknown[], Result extends Promise<un
         const allTags = Array.from(uniqueTags);
 
         // TODO: Find out why this is necessary
-        store.tags = allTags;
-        store.revalidate = revalidate;
-        const fetchIdx = store.nextFetchId ?? 1;
-        store.nextFetchId = fetchIdx + 1;
+        staticGenerationStore.tags = allTags;
+        staticGenerationStore.revalidate = revalidate;
+        const fetchIdx = staticGenerationStore.nextFetchId ?? 1;
+        staticGenerationStore.nextFetchId = fetchIdx + 1;
 
-        const key = await store.incrementalCache.fetchCacheKey(`nesh-cache-${cacheKey ?? argumentsSerializer(args)}`);
+        const key = await staticGenerationStore.incrementalCache.generateCacheKey(
+            `nesh-cache-${cacheKey ?? argumentsSerializer(args)}`,
+        );
 
-        const handleUnlock = await store.incrementalCache.lock(key);
+        const handleUnlock = await staticGenerationStore.incrementalCache.lock(key);
 
-        let cacheData: IncrementalCacheEntry | null = null;
+        let cacheData: Awaited<ReturnType<typeof staticGenerationStore.incrementalCache.get>> = null;
 
         try {
-            cacheData = await store.incrementalCache.get(key, {
+            cacheData = await staticGenerationStore.incrementalCache.get(key, {
                 revalidate,
                 tags: allTags,
-                softTags: addImplicitTags(store),
-                kindHint: 'fetch',
+                softTags: addImplicitTags(staticGenerationStore, requestStore),
+                kind: IncrementalCacheKind.FETCH as unknown as Kek.FETCH,
+                isFallback: false,
                 fetchIdx,
                 fetchUrl: 'neshCache',
             });
@@ -284,7 +302,7 @@ export function neshCache<Arguments extends unknown[], Result extends Promise<un
             throw error;
         }
 
-        if (cacheData?.value?.kind === 'FETCH' && cacheData.isStale === false) {
+        if (cacheData?.value?.kind === (CachedRouteKind.FETCH as unknown as Lol.FETCH) && cacheData.isStale === false) {
             await handleUnlock();
 
             return resultDeserializer(cacheData.value.data.body);
@@ -295,7 +313,7 @@ export function neshCache<Arguments extends unknown[], Result extends Promise<un
         try {
             data = await staticGenerationAsyncStorage.run(
                 {
-                    ...store,
+                    ...staticGenerationStore,
                     // force any nested fetches to bypass cache so they revalidate
                     // when the unstable_cache call is revalidated
                     fetchCache: 'force-no-store',
@@ -310,10 +328,10 @@ export function neshCache<Arguments extends unknown[], Result extends Promise<un
             await handleUnlock();
         }
 
-        store.incrementalCache.set(
+        staticGenerationStore.incrementalCache.set(
             key,
             {
-                kind: 'FETCH',
+                kind: CachedRouteKind.FETCH as unknown as Lol.FETCH,
                 data: {
                     body: resultSerializer(data),
                     headers: {},

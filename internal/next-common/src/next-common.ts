@@ -1,8 +1,8 @@
-// biome-ignore lint/style/useNodejsImportProtocol: RollupError: "OutgoingHttpHeaders" is not exported by "node:http"
-import type { OutgoingHttpHeaders } from 'http';
-
-import type { RouteMetadata as NextRouteMetadata } from 'next/dist/export/routes/types';
-import type { CacheHandler, CacheHandlerValue as NextCacheHandlerValue } from 'next/dist/server/lib/incremental-cache';
+import type { OutgoingHttpHeaders } from 'node:http';
+import type {
+    CacheHandler,
+    CacheHandlerValue as NextCacheHandlerValue,
+} from 'next/dist/server/lib/incremental-cache';
 import type FileSystemCache from 'next/dist/server/lib/incremental-cache/file-system-cache';
 import type { Revalidate } from 'next/dist/server/lib/revalidate';
 
@@ -16,8 +16,28 @@ export type {
     CachedFetchValue,
     IncrementalCacheValue,
     IncrementalCacheEntry,
-    IncrementalCacheKindHint,
+    IncrementalCachedPageValue,
+    IncrementalCachedAppPageValue,
+    IncrementalCacheKind as Kek,
+    CachedRouteKind as Lol,
 } from 'next/dist/server/response-cache/types';
+
+export const CachedRouteKind = {
+    APP_PAGE: 'APP_PAGE',
+    APP_ROUTE: 'APP_ROUTE',
+    PAGES: 'PAGES',
+    FETCH: 'FETCH',
+    REDIRECT: 'REDIRECT',
+    IMAGE: 'IMAGE',
+} as const;
+
+export const IncrementalCacheKind = {
+    APP_PAGE: 'APP_PAGE',
+    APP_ROUTE: 'APP_ROUTE',
+    PAGES: 'PAGES',
+    FETCH: 'FETCH',
+    IMAGE: 'IMAGE',
+} as const;
 
 /**
  * A set of time periods and timestamps for controlling cache behavior.
@@ -69,7 +89,11 @@ export type CacheHandlerValue = NextCacheHandlerValue & {
     lifespan: LifespanParameters | null;
 };
 
-export type RouteMetadata = NextRouteMetadata;
+export type RouteMetadata = {
+    status: number | undefined;
+    headers: OutgoingHttpHeaders | undefined;
+    postponed: string | undefined;
+};
 
 export type NonNullableRouteMetadata = {
     [K in keyof RouteMetadata]: NonNullable<RouteMetadata[K]>;
@@ -95,15 +119,6 @@ export type UnwrappedCacheHandler = {
     get(...args: CacheHandlerParametersGetWithTags): Awaited<CacheHandlerReturnTypeGet>;
     set(...args: CacheHandlerParametersSet): Awaited<CacheHandlerReturnTypeSet>;
     revalidateTag(...args: CacheHandlerParametersRevalidateTag): Awaited<CacheHandlerReturnTypeRevalidateTag>;
-};
-
-export type IncrementalCachedPageValue = {
-    kind: 'PAGE';
-    html: string;
-    pageData: object;
-    postponed: string | undefined;
-    headers: OutgoingHttpHeaders | undefined;
-    status: number | undefined;
 };
 
 export type TagsManifest = {

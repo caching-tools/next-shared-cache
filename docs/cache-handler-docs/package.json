@@ -11,14 +11,14 @@
         "start:docs": "next start"
     },
     "dependencies": {
-        "next": "14.2.3",
-        "nextra": "2.13.4",
-        "nextra-theme-docs": "2.13.4",
-        "react": "18.3.1",
-        "react-dom": "18.3.1"
+        "next": "15.0.0-canary.140",
+        "nextra": "3.0.0-alpha.36",
+        "nextra-theme-docs": "3.0.0-alpha.36",
+        "react": "19.0.0-rc-7771d3a7-20240827",
+        "react-dom": "19.0.0-rc-7771d3a7-20240827"
     },
     "devDependencies": {
-        "@next/eslint-plugin-next": "14.2.3",
+        "@next/eslint-plugin-next": "15.0.0-canary.140",
         "@repo/eslint-config": "*",
         "@repo/typescript-config": "*",
         "@types/eslint": "8.56.7",

@@ -1,17 +1,19 @@
-import { promises as fsPromises } from 'node:fs';
+import { type Stats, promises as fsPromises } from 'node:fs';
 import path from 'node:path';
 
-import type {
-    CacheHandlerParametersGet,
-    CacheHandlerParametersRevalidateTag,
-    CacheHandlerParametersSet,
-    CacheHandlerValue,
-    FileSystemCacheContext,
-    IncrementalCachedPageValue,
-    LifespanParameters,
-    CacheHandler as NextCacheHandler,
-    PrerenderManifest,
-    Revalidate,
+import {
+    type CacheHandlerParametersGet,
+    type CacheHandlerParametersRevalidateTag,
+    type CacheHandlerParametersSet,
+    type CacheHandlerValue,
+    CachedRouteKind,
+    type FileSystemCacheContext,
+    type IncrementalCachedPageValue,
+    type LifespanParameters,
+    type Lol,
+    type CacheHandler as NextCacheHandler,
+    type PrerenderManifest,
+    type Revalidate,
 } from '@neshca/next-common';
 
 import { createValidatedAgeEstimationFunction } from './helpers/create-validated-age-estimation-function';
@@ -372,7 +374,7 @@ export class CacheHandler implements NextCacheHandler {
 
     static #serverDistDir: string;
 
-    static async #readPagesRouterPage(cacheKey: string): Promise<CacheHandlerValue | null> {
+    static async #readPagesRouterPage(cacheKey: string, isFallback: boolean): Promise<CacheHandlerValue | null> {
         let cacheHandlerValue: CacheHandlerValue | null = null;
         let pageHtmlHandle: fsPromises.FileHandle | null = null;
 
@@ -392,13 +394,15 @@ export class CacheHandler implements NextCacheHandler {
 
             pageHtmlHandle = await fsPromises.open(pageHtmlPath, 'r');
 
-            const [pageHtmlFile, { mtimeMs }, pageDataFile] = await Promise.all([
+            const readPromises: [Promise<string>, Promise<Stats>, Promise<string> | false] = [
                 pageHtmlHandle.readFile('utf-8'),
                 pageHtmlHandle.stat(),
-                fsPromises.readFile(pageDataPath, 'utf-8'),
-            ]);
+                !isFallback && fsPromises.readFile(pageDataPath, 'utf-8'),
+            ];
 
-            const pageData = JSON.parse(pageDataFile) as object;
+            const [pageHtmlFile, { mtimeMs }, pageDataFile] = await Promise.all(readPromises);
+
+            const pageData = pageDataFile ? (JSON.parse(pageDataFile) as object) : {};
 
             if (CacheHandler.#debug) {
                 console.info(
@@ -415,10 +419,9 @@ export class CacheHandler implements NextCacheHandler {
                 lifespan: null,
                 tags: [],
                 value: {
-                    kind: 'PAGE',
+                    kind: CachedRouteKind.PAGES as unknown as Lol.PAGES,
                     html: pageHtmlFile,
                     pageData,
-                    postponed: undefined,
                     headers: undefined,
                     status: undefined,
                 },
@@ -442,16 +445,23 @@ export class CacheHandler implements NextCacheHandler {
         return cacheHandlerValue;
     }
 
-    static async #writePagesRouterPage(cacheKey: string, pageData: IncrementalCachedPageValue): Promise<void> {
+    static async #writePagesRouterPage(
+        cacheKey: string,
+        pageData: IncrementalCachedPageValue,
+        isFallback: boolean,
+    ): Promise<void> {
         try {
             const pageHtmlPath = path.join(CacheHandler.#serverDistDir, 'pages', `${cacheKey}.html`);
-            const pageDataPath = path.join(CacheHandler.#serverDistDir, 'pages', `${cacheKey}.json`);
 
             await fsPromises.mkdir(path.dirname(pageHtmlPath), { recursive: true });
 
             await Promise.all([
                 fsPromises.writeFile(pageHtmlPath, pageData.html),
-                fsPromises.writeFile(pageDataPath, JSON.stringify(pageData.pageData)),
+                !isFallback &&
+                    fsPromises.writeFile(
+                        path.join(CacheHandler.#serverDistDir, 'pages', `${cacheKey}.json`),
+                        JSON.stringify(pageData.pageData),
+                    ),
             ]);
 
             if (CacheHandler.#debug) {
@@ -735,11 +745,11 @@ export class CacheHandler implements NextCacheHandler {
 
     async get(
         cacheKey: CacheHandlerParametersGet[0],
-        ctx: CacheHandlerParametersGet[1] = {},
+        ctx: CacheHandlerParametersGet[1],
     ): Promise<CacheHandlerValue | null> {
         await CacheHandler.#configureCacheHandler();
 
-        const { softTags = [] } = ctx;
+        const { softTags = [], isFallback = false } = ctx;
 
         if (CacheHandler.#debug) {
             console.info(
@@ -754,12 +764,22 @@ export class CacheHandler implements NextCacheHandler {
             implicitTags: softTags,
         });
 
-        if (cachedData?.value?.kind === 'ROUTE') {
-            cachedData.value.body = Buffer.from(cachedData.value.body as unknown as string, 'base64');
+        switch (cachedData?.value?.kind) {
+            case CachedRouteKind.APP_PAGE as unknown as Lol.APP_PAGE: {
+                cachedData.value.rscData = Buffer.from(cachedData.value.rscData as unknown as string, 'base64');
+                break;
+            }
+            case CachedRouteKind.APP_ROUTE as unknown as Lol.APP_ROUTE: {
+                cachedData.value.body = Buffer.from(cachedData.value.body as unknown as string, 'base64');
+                break;
+            }
+            default: {
+                break;
+            }
         }
 
         if (!cachedData && CacheHandler.#fallbackFalseRoutes.has(cacheKey)) {
-            cachedData = await CacheHandler.#readPagesRouterPage(cacheKey);
+            cachedData = await CacheHandler.#readPagesRouterPage(cacheKey, isFallback);
 
             // if we have a value from the file system, we should set it to the cache store
             if (cachedData) {
@@ -786,7 +806,7 @@ export class CacheHandler implements NextCacheHandler {
             );
         }
 
-        const { revalidate, tags = [] } = ctx;
+        const { revalidate, tags = [], isFallback = false } = ctx;
 
         const lastModified = Date.now();
 
@@ -799,11 +819,24 @@ export class CacheHandler implements NextCacheHandler {
         let value = incrementalCacheValue;
 
         switch (value?.kind) {
-            case 'PAGE': {
+            case CachedRouteKind.APP_PAGE as unknown as Lol.APP_PAGE: {
+                value = {
+                    kind: CachedRouteKind.APP_PAGE as unknown as Lol.APP_PAGE,
+                    headers: value.headers,
+                    html: value.html,
+                    postponed: value.postponed,
+                    // replace the rscData with a base64 encoded string to save space
+                    rscData: value.rscData?.toString('base64') as unknown as Buffer | undefined,
+                    status: value.status,
+                };
                 cacheHandlerValueTags = getTagsFromPageData(value);
                 break;
             }
-            case 'ROUTE': {
+            case CachedRouteKind.PAGES as unknown as Lol.PAGES: {
+                cacheHandlerValueTags = getTagsFromPageData(value);
+                break;
+            }
+            case CachedRouteKind.APP_ROUTE as unknown as Lol.APP_ROUTE: {
                 // create a new object to avoid mutating the original value
                 value = {
                     // replace the body with a base64 encoded string to save space
@@ -829,8 +862,8 @@ export class CacheHandler implements NextCacheHandler {
 
         await CacheHandler.#mergedHandler.set(cacheKey, cacheHandlerValue);
 
-        if (hasFallbackFalse && cacheHandlerValue.value?.kind === 'PAGE') {
-            await CacheHandler.#writePagesRouterPage(cacheKey, cacheHandlerValue.value);
+        if (hasFallbackFalse && cacheHandlerValue.value?.kind === (CachedRouteKind.PAGES as unknown as Lol.PAGES)) {
+            await CacheHandler.#writePagesRouterPage(cacheKey, cacheHandlerValue.value, isFallback);
         }
     }
 

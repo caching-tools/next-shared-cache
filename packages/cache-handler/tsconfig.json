@@ -3,6 +3,7 @@
     "include": ["."],
     "exclude": ["dist", "node_modules"],
     "compilerOptions": {
+        "isolatedModules": false,
         "paths": {
             "@neshca/next-common": ["../../internal/next-common/src/next-common.ts"],
             "@neshca/next-lru-cache/next-cache-handler-value": [
