@@ -16,7 +16,7 @@
         "changeset": "changeset",
         "clean": "turbo run clean --log-order=grouped",
         "codestyle:check": "biome check . && npm run eslint:check && npm run prettier:check",
-        "codestyle:fix": "biome check --apply . && npm run eslint:fix && npm run prettier:fix",
+        "codestyle:fix": "biome check --write . && npm run eslint:fix && npm run prettier:fix",
         "dev": "turbo run dev --log-prefix=none --filter=!diffscribe",
         "dev:backend": "turbo run dev --log-prefix=none --filter=backend",
         "dev:with-redis": "turbo run dev --log-prefix=none --filter=!@neshca/server --filter=!diffscribe",
