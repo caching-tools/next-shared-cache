@@ -62,7 +62,7 @@ CacheHandler.onCreation(async () => {
     name: 'redis-strings-custom',
     // We do not use try/catch blocks in the Handler methods.
     // CacheHandler will handle errors and use the next available Handler.
-    async get(key, implicitTags) {
+    async get(key, { implicitTags }) {
       // Ensure that the client is ready before using it.
       // If the client is not ready, the CacheHandler will use the next available Handler.
       assertClientIsReady();
