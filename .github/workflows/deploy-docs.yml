@@ -3,6 +3,9 @@ name: Deploy docs to Pages
 on:
   push:
     branches: ['canary']
+    paths:
+      - 'docs/cache-handler-docs/**'
+      - '.github/workflows/deploy-docs.yml'
 
   workflow_dispatch:
 
