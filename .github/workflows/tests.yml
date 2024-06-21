@@ -2,8 +2,22 @@ name: Tests
 on:
   push:
     branches: [canary]
+    paths:
+      - 'apps/cache-testing/**'
+      - 'packages/cache-handler/**'
+      - 'internal/next-common/**'
+      - 'internal/next-lru-cache/**'
+      - 'server/**'
+      - '.github/workflows/tests.yml'
   pull_request:
     branches: [canary]
+    paths:
+      - 'apps/cache-testing/**'
+      - 'packages/cache-handler/**'
+      - 'internal/next-common/**'
+      - 'internal/next-lru-cache/**'
+      - 'server/**'
+      - '.github/workflows/tests.yml'
 jobs:
   test:
     name: 'redis-stack'
