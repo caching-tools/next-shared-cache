@@ -28,6 +28,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
+          check-latest: true
+          cache: 'npm'
       - name: Setup Pages
         uses: actions/configure-pages@v3
       - name: Install dependencies
