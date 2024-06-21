@@ -39,6 +39,6 @@
         "redis": "4.6.13",
         "rimraf": "5.0.7",
         "tsx": "4.15.6",
-        "typescript": "5.4.5"
+        "typescript": "5.5.2"
     }
 }
