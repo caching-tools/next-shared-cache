@@ -83,7 +83,7 @@
         "rimraf": "5.0.7",
         "tsup": "8.1.0",
         "tsx": "4.15.6",
-        "typescript": "5.4.5"
+        "typescript": "5.5.2"
     },
     "peerDependencies": {
         "next": ">=13.5.1",
