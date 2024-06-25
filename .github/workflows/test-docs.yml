@@ -5,6 +5,11 @@ on:
     paths:
       - '.github/workflows/test-docs.yml'
       - 'docs/cache-handler-docs/**'
+      - 'internal/eslint-config/**'
+      - 'internal/prettier-config/**'
+      - 'package.json'
+      - 'biome.json'
+      - '.prettierrc.json'
 jobs:
   test:
     name: 'check-docs-build'
