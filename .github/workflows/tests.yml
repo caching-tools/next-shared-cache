@@ -9,6 +9,12 @@ on:
       - 'internal/next-lru-cache/**'
       - 'server/**'
       - '.github/workflows/tests.yml'
+      - 'internal/eslint-config/**'
+      - 'internal/prettier-config/**'
+      - 'package.json'
+      - 'biome.json'
+      - 'turbo.json'
+      - '.prettierrc.json'
   pull_request:
     branches: [canary]
     paths:
@@ -18,6 +24,12 @@ on:
       - 'internal/next-lru-cache/**'
       - 'server/**'
       - '.github/workflows/tests.yml'
+      - 'internal/eslint-config/**'
+      - 'internal/prettier-config/**'
+      - 'package.json'
+      - 'biome.json'
+      - 'turbo.json'
+      - '.prettierrc.json'
 jobs:
   test:
     name: 'redis-stack'
