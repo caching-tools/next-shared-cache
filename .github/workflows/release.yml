@@ -5,6 +5,11 @@ on:
     branches:
       - canary
 
+permissions:
+  contents: write
+  pull-requests: write
+  packages: write
+
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
 jobs:
