@@ -25,7 +25,7 @@
         "start": "tsx ./src/server.ts"
     },
     "dependencies": {
-        "fastify": "4.28.0",
+        "fastify": "4.28.1",
         "pino": "9.2.0"
     },
     "devDependencies": {
