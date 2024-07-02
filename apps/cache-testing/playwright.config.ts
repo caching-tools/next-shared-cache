@@ -6,7 +6,7 @@ export default defineConfig({
     testDir: './tests',
     fullyParallel: false,
     forbidOnly: Boolean(process.env.CI),
-    retries: process.env.CI ? 1 : 0,
+    retries: 0,
     workers: 1,
     reporter: 'html',
     use: { baseURL: 'http://localhost', trace: 'on-first-retry', testIdAttribute: 'data-pw' },

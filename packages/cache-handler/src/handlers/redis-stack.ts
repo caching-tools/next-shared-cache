@@ -37,6 +37,7 @@ export default async function createHandler({
     client,
     keyPrefix = '',
     timeoutMs = 5000,
+    revalidateTagQuerySize = 100,
 }: CreateRedisStackHandlerOptions): Promise<Handler> {
     function assertClientIsReady(): void {
         if (!client.isReady) {
@@ -142,25 +143,28 @@ export default async function createHandler({
 
             let from = 0;
 
-            const querySize = 25;
-
             const keysToDelete: string[] = [];
 
             while (true) {
-                const { documents } = await client.ft.search('idx:tags', `@tag:(${sanitizedTag})`, {
-                    LIMIT: { from, size: querySize },
-                    TIMEOUT: timeoutMs,
-                });
+                const { documents } = await client.ft.search(
+                    getTimeoutRedisCommandOptions(timeoutMs),
+                    'idx:tags',
+                    `@tag:(${sanitizedTag})`,
+                    {
+                        LIMIT: { from, size: revalidateTagQuerySize },
+                        TIMEOUT: timeoutMs,
+                    },
+                );
 
                 for (const { id } of documents) {
                     keysToDelete.push(id);
                 }
 
-                if (documents.length < querySize) {
+                if (documents.length < revalidateTagQuerySize) {
                     break;
                 }
 
-                from += querySize;
+                from += revalidateTagQuerySize;
             }
 
             if (keysToDelete.length === 0) {

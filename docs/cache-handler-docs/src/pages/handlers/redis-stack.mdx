@@ -12,6 +12,7 @@ const redisHandler = await createRedisHandler({
   client,
   keyPrefix: 'prefix:',
   timeoutMs: 1000,
+  revalidateTagQuerySize: 100,
 });
 // ...
 ```
@@ -32,6 +33,11 @@ The `redis-stack` Handler uses Redis with `RedisJSON` and `RedisSearch` modules 
   - `client` - A Redis client instance. The client must be ready before creating the Handler.
   - `keyPrefix` - Optional. Prefix for all keys, useful for namespacing. Defaults to an empty string.
   - `timeoutMs` - Optional. Timeout in milliseconds for Redis operations. Defaults to `5000`.
+  - `revalidateTagQuerySize` - Optional. The number of tags in a single query retrieved from Redis when scanning or searching for tags. Defaults to `100`.
+
+#### `revalidateTagQuerySize`
+
+You can adjust this value to optimize the number of commands sent to Redis when scanning or searching for tags. A higher value will reduce the number of commands sent to Redis, but it will also increase the amount of data transferred over the network. Redis uses TCP and typically has 65,535 bytes as the maximum size of a packet (it can be lower depending on MTU).
 
 ### Return value
 

@@ -39,6 +39,7 @@ export default function createHandler({
     sharedTagsKey = '__sharedTags__',
     timeoutMs = 5000,
     keyExpirationStrategy = 'EXPIREAT',
+    revalidateTagQuerySize = 100,
 }: CreateRedisStringsHandlerOptions): Handler {
     function assertClientIsReady(): void {
         if (!client.isReady) {
@@ -139,21 +140,22 @@ export default function createHandler({
 
             let cursor = 0;
 
-            const querySize = 25;
+            const hScanOptions = { COUNT: revalidateTagQuerySize };
 
-            while (true) {
-                const remoteTagsPortion = await client.hScan(keyPrefix + sharedTagsKey, cursor, { COUNT: querySize });
+            do {
+                const remoteTagsPortion = await client.hScan(
+                    getTimeoutRedisCommandOptions(timeoutMs),
+                    keyPrefix + sharedTagsKey,
+                    cursor,
+                    hScanOptions,
+                );
 
                 for (const { field, value } of remoteTagsPortion.tuples) {
                     tagsMap.set(field, JSON.parse(value));
                 }
 
-                if (remoteTagsPortion.cursor === 0) {
-                    break;
-                }
-
                 cursor = remoteTagsPortion.cursor;
-            }
+            } while (cursor !== 0);
 
             const keysToDelete: string[] = [];
 
@@ -170,11 +172,13 @@ export default function createHandler({
                 return;
             }
 
-            const options = getTimeoutRedisCommandOptions(timeoutMs);
+            const deleteKeysOperation = client.unlink(getTimeoutRedisCommandOptions(timeoutMs), keysToDelete);
 
-            const deleteKeysOperation = client.unlink(options, keysToDelete);
-
-            const updateTagsOperation = client.hDel(options, keyPrefix + sharedTagsKey, tagsToDelete);
+            const updateTagsOperation = client.hDel(
+                { isolated: true, ...getTimeoutRedisCommandOptions(timeoutMs) },
+                keyPrefix + sharedTagsKey,
+                tagsToDelete,
+            );
 
             await Promise.all([deleteKeysOperation, updateTagsOperation]);
         },
