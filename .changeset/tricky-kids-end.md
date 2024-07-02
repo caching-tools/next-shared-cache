@@ -2,6 +2,8 @@
 '@neshca/cache-handler': minor
 ---
 
+Add the new option `revalidateTagQuerySize` to the `redis-stack` and the `redis-strings` Handlers
+
 #### New Features
 
 ##### `@neshca/cache-handle/redis-strings`
