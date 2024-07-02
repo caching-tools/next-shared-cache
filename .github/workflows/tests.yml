@@ -32,11 +32,15 @@ on:
       - '.prettierrc.json'
 jobs:
   test:
-    name: 'redis-stack'
+    strategy:
+      max-parallel: 2
+      matrix:
+        handler: [redis-stack, redis-strings]
+    name: ${{ matrix.handler }}
     timeout-minutes: 10
     runs-on: ubuntu-latest
     env:
-      HANDLER_PATH: ./cache-handler-redis-stack.mjs
+      HANDLER_PATH: ./cache-handler-${{ matrix.handler }}.mjs
       REDIS_URL: redis://localhost:6379
     services:
       redis:
@@ -73,6 +77,6 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: playwright-report
+          name: playwright-report-${{ matrix.handler }}
           path: apps/cache-testing/playwright-report/
           retention-days: 7
