@@ -12,6 +12,7 @@ const redisHandler = createRedisHandler({
   timeoutMs: 1000,
   keyExpirationStrategy: 'EXAT',
   sharedTagsKey: '__sharedTags__',
+  revalidateTagQuerySize: 100,
 });
 // ...
 ```
@@ -30,11 +31,16 @@ The `redis-strings` Handler uses plain Redis as the cache store. It is a simple 
   - `timeoutMs` - Optional. Timeout in milliseconds for Redis operations. Defaults to `5000`.
   - `keyExpirationStrategy` - Optional. It allows you to choose the expiration strategy for cache keys. Defaults to `EXPRIREAT`.
   - `sharedTagsKey` - Optional. Dedicated key for the internal revalidation process. It must not interfere with cache keys from your application. Defaults to `__sharedTags__`.
+  - `revalidateTagQuerySize` - Optional. The number of tags in a single query retrieved from Redis when scanning or searching for tags. Defaults to `100`.
 
 #### `keyExpirationStrategy`
 
 - `'EXAT'`: Uses the `EXAT` option of the `SET` command to set the expiration time. This is more efficient than `EXPIREAT`. Requires Redis server 6.2.0 or newer
 - `'EXPIREAT'`: Uses the `EXPIREAT` command to set the expiration time. This requires an additional command call. Requires Redis server 4.0.0 or newer.
+
+#### `revalidateTagQuerySize`
+
+You can adjust this value to optimize the number of commands sent to Redis when scanning or searching for tags. A higher value will reduce the number of commands sent to Redis, but it will also increase the amount of data transferred over the network. Redis uses TCP and typically has 65,535 bytes as the maximum size of a packet (it can be lower depending on MTU).
 
 ### Return value
 

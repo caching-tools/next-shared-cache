@@ -30,6 +30,20 @@ export type CreateRedisStackHandlerOptions<T = ReturnType<typeof createClient>> 
      * @since 1.0.0
      */
     timeoutMs?: number;
+    /**
+     * Optional. The number of tags in a single query retrieved from Redis when scanning or searching for tags.
+     *
+     * @default 100 // 100 tags
+     *
+     * @since 1.4.0
+     *
+     * @remarks
+     * You can adjust this value to optimize the number of commands sent to Redis when scanning or searching for tags.
+     * A higher value will reduce the number of commands sent to Redis,
+     * but it will also increase the amount of data transferred over the network.
+     * Redis uses TCP and typically has 65,535 bytes as the maximum size of a packet (it can be lower depending on MTU).
+     */
+    revalidateTagQuerySize?: number;
 };
 
 export type CreateRedisStringsHandlerOptions = CreateRedisStackHandlerOptions & {
