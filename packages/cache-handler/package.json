@@ -73,7 +73,7 @@
         "test:watch": "tsx --watch --test src/**/*.test.ts"
     },
     "dependencies": {
-        "lru-cache": "10.3.0"
+        "lru-cache": "10.4.0"
     },
     "devDependencies": {
         "@neshca/next-common": "*",
