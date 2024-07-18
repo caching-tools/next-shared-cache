@@ -33,7 +33,7 @@
         "@neshca/next-lru-cache": "*",
         "@repo/typescript-config": "*",
         "@types/node": "20.14.11",
-        "rimraf": "5.0.7",
+        "rimraf": "6.0.1",
         "tsup": "8.1.2",
         "tsx": "4.16.2",
         "typescript": "5.5.3"
