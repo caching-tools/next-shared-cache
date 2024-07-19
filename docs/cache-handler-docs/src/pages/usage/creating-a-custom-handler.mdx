@@ -167,13 +167,17 @@ CacheHandler.onCreation(async () => {
       // Cursor for the hScan operation.
       let cursor = 0;
 
-      // Query size for the hScan operation.
-      const querySize = 25;
+      // Define a query size for the hScan operation.
+      const hScanOptions = { COUNT: 100 };
 
       // Iterate over all keys in the shared tags.
-      while (true) {
-        // Get a portion of the keys.
-        const remoteTagsPortion = await client.hScan(keyPrefix + sharedTagsKey, cursor, { COUNT: querySize });
+      do {
+        const remoteTagsPortion = await client.hScan(
+          commandOptions({ signal: AbortSignal.timeout(timeoutMs) }),
+          keyPrefix + sharedTagsKey,
+          cursor,
+          hScanOptions,
+        );
 
         // Iterate over all keys in the portion.
         for (const { field, value } of remoteTagsPortion.tuples) {
@@ -181,19 +185,16 @@ CacheHandler.onCreation(async () => {
           tagsMap.set(field, JSON.parse(value));
         }
 
-        // If the cursor is 0, we have reached the end.
-        if (remoteTagsPortion.cursor === 0) {
-          break;
-        }
-
         // Update the cursor for the next iteration.
         cursor = remoteTagsPortion.cursor;
-      }
+
+        // If the cursor is 0, we have reached the end.
+      } while (cursor !== 0);
 
       // Create an array of keys to delete.
       const keysToDelete = [];
 
-      // Create an array of tags to delete form the hash map.
+      // Create an array of tags to delete from the hash map.
       const tagsToDelete = [];
 
       // Iterate over all keys and tags.
@@ -212,14 +213,19 @@ CacheHandler.onCreation(async () => {
         return;
       }
 
-      // Create a new AbortSignal with a timeout for the Redis operation.
-      const options = commandOptions({ signal: AbortSignal.timeout(timeoutMs) });
-
       // Delete the keys from Redis.
-      const deleteKeysOperation = client.unlink(options, keysToDelete);
+      const deleteKeysOperation = client.unlink(
+        commandOptions({ signal: AbortSignal.timeout(timeoutMs) }),
+        keysToDelete,
+      );
 
       // Update the tags in Redis by deleting the revalidated tags.
-      const updateTagsOperation = client.hDel(options, keyPrefix + sharedTagsKey, tagsToDelete);
+      const updateTagsOperation = client.hDel(
+        // Use the isolated option to prevent the command from being executed on the main connection.
+        { isolated: true, ...getTimeoutRedisCommandOptions(timeoutMs) },
+        keyPrefix + sharedTagsKey,
+        tagsToDelete,
+      );
 
       // Wait for all operations to complete.
       await Promise.all([deleteKeysOperation, updateTagsOperation]);
