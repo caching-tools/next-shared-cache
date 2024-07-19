@@ -1,5 +1,23 @@
 # @neshca/cache-handler
 
+## 1.4.2
+
+### Patch Changes
+
+- 092d6f4: Add the ability to disable Redis operations timeout in the `redis-string` and `redis-stack` Handlers.
+
+  #### New Functionality
+
+  ##### `@neshca/cache-handler/redis-strings`
+
+  - Added a condition to check if the `timeoutMs` is zero to disable Redis operations timeout.
+
+  ##### `@neshca/cache-handler/redis-stack`
+
+  - Added a condition to check if the `timeoutMs` is zero to disable Redis operations timeout.
+
+  Thanks to [@ElyDotDev](https://github.com/ElyDotDev) for the contribution.
+
 ## 1.4.1
 
 ### Patch Changes
@@ -10,7 +28,9 @@
 
   ##### `@neshca/cache-handle/redis-stack`
 
-  - Updated the `revalidateTag` method to use `ft.searchNoContent` function. Thanks to [@galtonova](https://github.com/galtonova) for the contribution.
+  - Updated the `revalidateTag` method to use `ft.searchNoContent` function.
+
+  Thanks to [@galtonova](https://github.com/galtonova) for the contribution.
 
 ## 1.4.0
 
