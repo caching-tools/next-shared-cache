@@ -53,9 +53,12 @@ export default {
         ),
     },
     banner: {
-        key: 'version-1.3.0',
+        key: 'version-1.4.2',
         text: (
-            <div>🎉 1.3.0 is out! It features the new keyExpirationStrategy option for the redis-strings Handler!</div>
+            <div>
+                🎉 1.4.2 is out! It features optimizations for the revalidateTag method in the redis-stack Handler and
+                the ability to disable Redis operations timeout in both redis-string and redis-stack Handlers!
+            </div>
         ),
     },
 };
