@@ -32,7 +32,7 @@ The `redis-stack` Handler uses Redis with `RedisJSON` and `RedisSearch` modules 
 - `options` - An object containing the following properties:
   - `client` - A Redis client instance. The client must be ready before creating the Handler.
   - `keyPrefix` - Optional. Prefix for all keys, useful for namespacing. Defaults to an empty string.
-  - `timeoutMs` - Optional. Timeout in milliseconds for Redis operations. Defaults to `5000`.
+  - `timeoutMs` - Optional. Timeout in milliseconds for Redis operations. Defaults to `5000`. For disabling timeouts, set it to `0`.
   - `revalidateTagQuerySize` - Optional. The number of tags in a single query retrieved from Redis when scanning or searching for tags. Defaults to `100`.
 
 #### `revalidateTagQuerySize`

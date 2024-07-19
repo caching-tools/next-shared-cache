@@ -28,6 +28,9 @@ export type CreateRedisStackHandlerOptions<T = ReturnType<typeof createClient>> 
      * @default 5000 // 5000 ms
      *
      * @since 1.0.0
+     *
+     * @remarks
+     * To disable timeout of Redis operations, set this option to 0.
      */
     timeoutMs?: number;
     /**
