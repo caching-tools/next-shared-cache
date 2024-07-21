@@ -44,7 +44,7 @@
         "diffscribe": "*",
         "glob": "11.0.0",
         "prettier": "3.3.3",
-        "turbo": "2.0.7"
+        "turbo": "2.0.9"
     },
     "packageManager": "npm@10.7.0",
     "engines": {
