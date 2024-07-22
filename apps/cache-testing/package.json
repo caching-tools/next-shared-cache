@@ -24,7 +24,7 @@
     "devDependencies": {
         "@neshca/cache-handler": "*",
         "@next/eslint-plugin-next": "14.3.0-canary.44",
-        "@playwright/test": "1.45.2",
+        "@playwright/test": "1.45.3",
         "@repo/eslint-config": "*",
         "@repo/typescript-config": "*",
         "@types/eslint": "8.56.7",
