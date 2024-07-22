@@ -3,9 +3,10 @@ import { Callout } from 'nextra/components';
 # `redis-stack` Handler
 
 ```js
+import { createClient } from 'redis';
 import createRedisHandler from '@neshca/cache-handler/redis-stack';
 
-// ...
+const client = createClient(clientOptions);
 await client.connect();
 
 const redisHandler = await createRedisHandler({
@@ -14,7 +15,6 @@ const redisHandler = await createRedisHandler({
   timeoutMs: 1000,
   revalidateTagQuerySize: 100,
 });
-// ...
 ```
 
 The `redis-stack` Handler uses Redis with `RedisJSON` and `RedisSearch` modules as the cache store. It is a full-featured cache handler that supports JSON objects and full-text search, offering a trade-off between performance and flexibility. While it may sacrifice some speed compared to the [`redis-strings`](/handlers/redis-strings) Handler, it empowers you to manage cache on demand more efficiently and faster. It also allows for more versatile cache usage from your application, such as creating custom revalidating strategies and functions. The `redis-stack` Handler is suitable for applications that require advanced cache management and search capabilities.

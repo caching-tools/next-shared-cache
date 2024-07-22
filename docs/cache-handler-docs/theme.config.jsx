@@ -53,11 +53,20 @@ export default {
         ),
     },
     banner: {
-        key: 'version-1.4.2',
+        key: 'version-1.5.0',
         text: (
             <div>
-                🎉 1.4.2 is out! It features optimizations for the revalidateTag method in the redis-stack Handler and
-                the ability to disable Redis operations timeout in both redis-string and redis-stack Handlers!
+                🎉 1.5.0 is out! It features the new{' '}
+                <a
+                    style={{
+                        color: 'lightgreen',
+                        fontFamily: 'monospace',
+                    }}
+                    href="https://caching-tools.github.io/next-shared-cache/handlers/experimental-redis-cluster"
+                >
+                    experimental-redis-cluster
+                </a>{' '}
+                Handler for Redis Cluster support!
             </div>
         ),
     },

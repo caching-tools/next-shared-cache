@@ -2,7 +2,7 @@
 
 **Flexible API to replace the default Next.js cache, accommodating custom cache solutions for multi-instance self-hosted deployments**
 
-🎉 1.4.2 is out! It features optimizations for the `revalidateTag` method in the `redis-stack` Handler and the ability to disable Redis operations timeout in both `redis-string` and `redis-stack` Handlers. Thanks to the community for their valuable contributions!
+🎉 1.5.0 is out! It features the new [`experimental-redis-cluster`](https://caching-tools.github.io/next-shared-cache/handlers/experimental-redis-cluster) Handler for Redis Cluster support!
 
 Check out the [changelog](https://github.com/caching-tools/next-shared-cache/blob/canary/packages/cache-handler/CHANGELOG.md)
 
