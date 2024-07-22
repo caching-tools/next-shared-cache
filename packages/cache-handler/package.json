@@ -73,6 +73,7 @@
         "test:watch": "tsx --watch --test src/**/*.test.ts"
     },
     "dependencies": {
+        "cluster-key-slot": "1.1.2",
         "lru-cache": "10.3.0"
     },
     "devDependencies": {

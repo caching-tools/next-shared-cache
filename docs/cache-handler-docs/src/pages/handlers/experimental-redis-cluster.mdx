@@ -1,33 +1,40 @@
-# `redis-strings` Handler
+import { Callout } from 'nextra/components';
+
+# `experimental-redis-cluster` Handler
 
 ```js
-import { createClient } from 'redis';
-import createRedisHandler from '@neshca/cache-handler/redis-strings';
+import { createCluster } from 'redis';
+import createClusterHandler from '@neshca/cache-handler/experimental-redis-cluster';
 
-const client = createClient(clientOptions);
+const cluster = createCluster(clusterOptions);
+await cluster.connect();
 
-await client.connect();
-
-const redisHandler = createRedisHandler({
-  client,
-  keyPrefix: 'prefix:',
+const redisHandler = createClusterHandler({
+  cluster,
+  keyPrefix: 'JSON:',
   timeoutMs: 1000,
   keyExpirationStrategy: 'EXAT',
   sharedTagsKey: '__sharedTags__',
   revalidateTagQuerySize: 100,
 });
+// ...
 ```
 
-The `redis-strings` Handler uses plain Redis as the cache store. It is a simple and fast cache handler that is suitable for most applications. This Handler is ideal for applications that require fast and efficient cache management without the need for advanced features like full-text search for custom revalidation strategies.
+<Callout type="warning" emoji="⚠️">
+  This Handler is currently experimental and subject to change or removal in future updates without a major version
+  increment. Use with caution.
+</Callout>
+
+The `experimental-redis-cluster` Handler uses the Redis Cluster as the cache store. It is a simple and fast cache handler that is suitable for most applications. This Handler is ideal for applications that require fast and efficient cache management without the need for advanced features like full-text search for custom revalidation strategies.
 
 ## API
 
-`@neshca/cache-handler/redis-strings` exports a function that creates a new `Handler` instance for the `redis-strings` Handler.
+`@neshca/cache-handler/experimental-redis-cluster` exports a function that creates a new `Handler` instance for the `experimental-redis-cluster` Handler.
 
 ### Parameters
 
 - `options` - An object containing the following properties:
-  - `client` - A Redis client instance. The client must be ready before creating the Handler.
+  - `cluster` - A Redis Cluster instance.
   - `keyPrefix` - Optional. Prefix for all keys, useful for namespacing. Defaults to an empty string.
   - `timeoutMs` - Optional. Timeout in milliseconds for Redis operations. Defaults to `5000`. For disabling timeouts, set it to `0`.
   - `keyExpirationStrategy` - Optional. It allows you to choose the expiration strategy for cache keys. Defaults to `EXPRIREAT`.
@@ -45,4 +52,4 @@ You can adjust this value to optimize the number of commands sent to Redis when 
 
 ### Return value
 
-A new `Handler` instance for the `redis-strings` Handler.
+A new `Handler` instance for the `experimental-redis-cluster` Handler.

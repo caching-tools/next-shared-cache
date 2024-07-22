@@ -9,11 +9,11 @@ import { isImplicitTag } from '../helpers/is-implicit-tag';
 export type { CreateRedisStackHandlerOptions };
 
 /**
- * Creates a Handler using Redis client.
+ * Creates a Handler for handling cache operations using Redis JSON.
  *
  * This function initializes a Handler for managing cache operations using Redis.
- * It supports Redis Client. The handler includes
- * methods to get, set, and manage cache values and revalidated tags.
+ * It supports Redis Client. The resulting Handler includes
+ * methods to get, set, and manage cache values fot on-demand revalidation.
  *
  * @param options - The configuration options for the Redis Stack Handler. See {@link CreateRedisStackHandlerOptions}.
  *
@@ -21,9 +21,10 @@ export type { CreateRedisStackHandlerOptions };
  *
  * @example
  * ```js
- * const redisClient = createRedisClient(...);
- * const handler = await createHandler({
- *   client: redisClient,
+ * const client = createClient(clientOptions);
+ *
+ * const redisHandler = await createHandler({
+ *   client,
  *   keyPrefix: 'myApp:',
  * });
  * ```

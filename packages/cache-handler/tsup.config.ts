@@ -9,5 +9,5 @@ export const tsup = defineConfig({
     format: ['cjs', 'esm'],
     dts: { resolve: true },
     target: 'node18',
-    noExternal: ['lru-cache'],
+    noExternal: ['lru-cache', 'cluster-key-slot'],
 });
