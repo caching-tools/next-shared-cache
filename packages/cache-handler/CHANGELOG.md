@@ -1,5 +1,23 @@
 # @neshca/cache-handler
 
+## 1.5.0
+
+### Minor Changes
+
+- 6558891: Add `experimental-redis-cluster` Handler.
+
+  #### New Features
+
+  ##### `@neshca/cache-handler/experimental-redis-cluster`
+
+  - Add `experimental-redis-cluster` Handler and related documentation.
+
+  #### Improvements
+
+  ##### `@neshca/cache-handler/redis-stack` and `@neshca/cache-handler/redis-strings`
+
+  - Improve documentation and JSDoc comments.
+
 ## 1.4.2
 
 ### Patch Changes
