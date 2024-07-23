@@ -32,7 +32,7 @@
         "@neshca/next-common": "*",
         "@neshca/next-lru-cache": "*",
         "@repo/typescript-config": "*",
-        "@types/node": "20.14.11",
+        "@types/node": "20.14.12",
         "rimraf": "6.0.1",
         "tsup": "8.2.2",
         "tsx": "4.16.2",
