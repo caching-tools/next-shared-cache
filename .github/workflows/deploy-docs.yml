@@ -31,13 +31,16 @@ jobs:
           check-latest: true
           cache: 'npm'
       - name: Setup Pages
-        uses: actions/configure-pages@v3
+        uses: actions/configure-pages@v5
+        with:
+          static_site_generator: next
+          generator_config_file: ./docs/cache-handler-docs/next.config.js
       - name: Install dependencies
         run: npm ci
       - name: Build with Next.js
         run: npm run build:docs
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v2
+        uses: actions/upload-pages-artifact@v3
         with:
           path: ./docs/cache-handler-docs/out
 
@@ -50,4 +53,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v2
+        uses: actions/deploy-pages@v4
