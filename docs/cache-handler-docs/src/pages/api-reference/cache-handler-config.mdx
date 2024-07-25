@@ -13,7 +13,7 @@ type CacheHandlerConfig = {
 
 An array of cache handlers that conform to the Handler interface. Multiple caches can be used to implement various caching strategies or layers. See [`Handler`](/api-reference/handler) API reference for more information.
 
-If a handler is `undefined` or `null`, it will be ignored. It may be useful when you don't want to use a particular cache layer in a specific case. For example, you may want to [opt out of using your remote cache during the build](/configuration/opt-out-cache-on-build).
+If a handler is `undefined` or `null`, it will be ignored. It may be useful when you don't want to use a particular cache layer in a specific case. For example, you may want to [opt out of using your remote cache during the build](/usage/opt-out-cache-on-build).
 
 In the example below, we use a local cache and a Redis cache. If the Redis cache is not available, we will use only the local cache.
 
