@@ -39,4 +39,3 @@ We welcome contributions! Check out our [Contributing Guide](./docs/contributing
 ## License
 
 This project is licensed under the [MIT License](./LICENSE).
-
