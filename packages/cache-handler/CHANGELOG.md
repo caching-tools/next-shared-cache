@@ -1,5 +1,11 @@
 # @neshca/cache-handler
 
+## 1.5.1
+
+### Patch Changes
+
+- 41cf0c8: Rewrite README
+
 ## 1.5.0
 
 ### Minor Changes
