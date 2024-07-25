@@ -222,7 +222,7 @@ CacheHandler.onCreation(async () => {
       // Update the tags in Redis by deleting the revalidated tags.
       const updateTagsOperation = client.hDel(
         // Use the isolated option to prevent the command from being executed on the main connection.
-        { isolated: true, ...getTimeoutRedisCommandOptions(timeoutMs) },
+        { isolated: true, ...commandOptions({ signal: AbortSignal.timeout(timeoutMs) }) },
         keyPrefix + sharedTagsKey,
         tagsToDelete,
       );
