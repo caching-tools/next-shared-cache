@@ -11,12 +11,12 @@
     },
     "dependencies": {
         "fastify": "4.28.1",
-        "pino": "9.3.1"
+        "pino": "9.3.2"
     },
     "devDependencies": {
         "@repo/typescript-config": "*",
         "@types/node": "20.14.12",
-        "pino-pretty": "11.2.1",
+        "pino-pretty": "11.2.2",
         "rimraf": "6.0.1",
         "tsx": "4.16.2",
         "typescript": "5.5.4"
