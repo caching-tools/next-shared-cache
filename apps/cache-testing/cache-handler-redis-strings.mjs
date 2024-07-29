@@ -17,7 +17,12 @@ CacheHandler.onCreation(async () => {
         name: `cache-handler:${PREFIX}${process.env.PORT ?? process.pid}`,
     });
 
-    client.on('error', () => {});
+    // Redis won't work without error handling. https://github.com/redis/node-redis?tab=readme-ov-file#events
+    client.on('error', (error) => {
+        if (typeof process.env.NEXT_PRIVATE_DEBUG_CACHE !== 'undefined') {
+            console.error('Redis client error:', error);
+        }
+    });
 
     console.info('Connecting Redis client...');
     await client.connect();
