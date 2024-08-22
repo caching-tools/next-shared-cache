@@ -1,6 +1,8 @@
-const path = require('node:path');
+// @ts-check
 
-const cacheHandler = require.resolve(process.env.HANDLER_PATH ?? './cache-handler-redis-stack.mjs');
+import path from 'node:path';
+
+const cacheHandler = path.resolve(process.env.HANDLER_PATH ?? './cache-handler-redis-stack.mjs');
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -13,8 +15,8 @@ const nextConfig = {
         // PPR should only be configured via the PPR_ENABLED env variable due to conditional logic in tests.
         ppr: process.env.PPR_ENABLED === 'true',
         largePageDataBytes: 1024 * 1024, // 1MB
-        outputFileTracingRoot: path.join(__dirname, '../../'),
+        outputFileTracingRoot: path.join(import.meta.dirname, '../../'),
     },
 };
 
-module.exports = nextConfig;
+export default nextConfig;

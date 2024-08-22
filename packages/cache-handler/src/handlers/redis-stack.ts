@@ -1,8 +1,9 @@
-import { SchemaFieldTypes } from 'redis';
+import { ErrorReply, SchemaFieldTypes } from 'redis';
 
+import { randomBytes } from 'node:crypto';
 import type { CacheHandlerValue, Handler } from '../cache-handler';
 import type { CreateRedisStackHandlerOptions, RedisJSON } from '../common-types';
-import { REVALIDATED_TAGS_KEY } from '../constants';
+import { REVALIDATED_TAGS_KEY, TIME_ONE_YEAR } from '../constants';
 import { getTimeoutRedisCommandOptions } from '../helpers/get-timeout-redis-command-options';
 import { isImplicitTag } from '../helpers/is-implicit-tag';
 
@@ -17,13 +18,13 @@ export type { CreateRedisStackHandlerOptions };
  *
  * @param options - The configuration options for the Redis Stack Handler. See {@link CreateRedisStackHandlerOptions}.
  *
- * @returns A promise that resolves to object representing the cache, with methods for cache operations.
+ * @returns An object representing the cache, with methods for cache operations.
  *
  * @example
  * ```js
  * const client = createClient(clientOptions);
  *
- * const redisHandler = await createHandler({
+ * const redisHandler = createHandler({
  *   client,
  *   keyPrefix: 'myApp:',
  * });
@@ -34,12 +35,12 @@ export type { CreateRedisStackHandlerOptions };
  * - the `set` method allows setting a value in the cache.
  * - the `revalidateTag` methods are used for handling tag-based cache revalidation.
  */
-export default async function createHandler({
+export default function createHandler({
     client,
     keyPrefix = '',
     timeoutMs = 5000,
     revalidateTagQuerySize = 100,
-}: CreateRedisStackHandlerOptions): Promise<Handler> {
+}: CreateRedisStackHandlerOptions): Handler {
     function assertClientIsReady(): void {
         if (!client.isReady) {
             throw new Error('Redis client is not ready');
@@ -50,20 +51,27 @@ export default async function createHandler({
         return str.replace(/[^a-zA-Z0-9]/gi, '_');
     }
 
-    assertClientIsReady();
+    const indexName = `idx:tags-${randomBytes(32).toString('hex')}`;
 
-    try {
-        await client.ft.create(
-            'idx:tags',
-            {
-                '$.tags': { type: SchemaFieldTypes.TEXT, AS: 'tag' },
-            },
-            {
-                ON: 'JSON',
-            },
-        );
-    } catch (_e) {
-        // Index already exists
+    async function createIndexIfNotExists(): Promise<void> {
+        try {
+            await client.ft.create(
+                indexName,
+                {
+                    '$.tags': { type: SchemaFieldTypes.TEXT, AS: 'tag' },
+                },
+                {
+                    ON: 'JSON',
+                    TEMPORARY: TIME_ONE_YEAR,
+                },
+            );
+        } catch (error) {
+            if (error instanceof ErrorReply && error.message === 'Index already exists') {
+                return;
+            }
+
+            throw error;
+        }
     }
 
     const revalidatedTagsKey = keyPrefix + REVALIDATED_TAGS_KEY;
@@ -129,6 +137,8 @@ export default async function createHandler({
         async revalidateTag(tag) {
             assertClientIsReady();
 
+            await createIndexIfNotExists();
+
             const sanitizedTag = sanitizeTag(tag);
 
             // If the tag is an implicit tag, we need to mark it as revalidated.
@@ -149,7 +159,7 @@ export default async function createHandler({
             while (true) {
                 const { documents: documentIds } = await client.ft.searchNoContent(
                     getTimeoutRedisCommandOptions(timeoutMs),
-                    'idx:tags',
+                    indexName,
                     `@tag:(${sanitizedTag})`,
                     {
                         LIMIT: { from, size: revalidateTagQuerySize },
