@@ -6,8 +6,7 @@ import {
     type StaticGenerationStore,
     staticGenerationAsyncStorage,
 } from '@neshca/next-common';
-
-const CACHE_ONE_YEAR = 31536000;
+import { TIME_ONE_YEAR } from '../constants';
 
 function getDerivedTags(pathname: string): string[] {
     const derivedTags: string[] = ['/layout'];
@@ -322,7 +321,7 @@ export function neshCache<Arguments extends unknown[], Result extends Promise<un
                     headers: {},
                     url: 'neshCache',
                 },
-                revalidate: revalidate || CACHE_ONE_YEAR,
+                revalidate: revalidate || TIME_ONE_YEAR,
             },
             { revalidate, tags, fetchCache: true, fetchIdx, fetchUrl: 'neshCache' },
         );

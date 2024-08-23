@@ -57,9 +57,9 @@ CacheHandler.onCreation(async () => {
     /** @type {import("@neshca/cache-handler").Handler | null} */
     let handler;
 
-    if (client?.isReady) {
-        // Create the `redis-stack` Handler if the client is available and connected.
-        handler = await createRedisHandler({
+    if (client) {
+        // Create the `redis-stack` Handler if the client is available.
+        handler = createRedisHandler({
             client,
             keyPrefix: 'JSON:',
             timeoutMs: 1000,

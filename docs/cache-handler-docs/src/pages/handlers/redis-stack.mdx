@@ -9,7 +9,7 @@ import createRedisHandler from '@neshca/cache-handler/redis-stack';
 const client = createClient(clientOptions);
 await client.connect();
 
-const redisHandler = await createRedisHandler({
+const redisHandler = createRedisHandler({
   client,
   keyPrefix: 'prefix:',
   timeoutMs: 1000,
@@ -41,4 +41,4 @@ You can adjust this value to optimize the number of commands sent to Redis when 
 
 ### Return value
 
-A Promise that resolves to a new `Handler` instance for the `redis-stack` Handler.
+A new `Handler` instance for the `redis-stack` Handler.
