@@ -53,20 +53,20 @@ export default {
         ),
     },
     banner: {
-        key: 'version-1.5.0',
+        key: 'version-1.6.0',
         text: (
             <div>
-                🎉 1.5.0 is out! It features the new{' '}
+                🎉 1.6.0 is out! It features synchronous{' '}
                 <a
                     style={{
                         color: 'lightgreen',
                         fontFamily: 'monospace',
                     }}
-                    href="https://caching-tools.github.io/next-shared-cache/handlers/experimental-redis-cluster"
+                    href="https://caching-tools.github.io/next-shared-cache/handlers/redis-stack"
                 >
-                    experimental-redis-cluster
+                    redis-stack
                 </a>{' '}
-                Handler for Redis Cluster support!
+                Handler creation function!
             </div>
         ),
     },

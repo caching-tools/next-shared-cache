@@ -8,7 +8,9 @@
 
 ## Latest Release
 
-🎉 **Version 1.5.0** is here! Now featuring the [`experimental-redis-cluster`](https://caching-tools.github.io/next-shared-cache/handlers/experimental-redis-cluster) handler for Redis Cluster support!
+🎉 **Version 1.6.0** is here! Now featuring synchronous [`redis-stack`](https://caching-tools.github.io/next-shared-cache/handlers/redis-stack) Handler creation function.
+
+Do not forget the [`experimental-redis-cluster`](https://caching-tools.github.io/next-shared-cache/handlers/experimental-redis-cluster) Handler for Redis Cluster support from a previous release.
 
 Check out the [changelog](https://github.com/caching-tools/next-shared-cache/blob/canary/packages/cache-handler/CHANGELOG.md) for more details.
 
