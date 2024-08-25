@@ -83,7 +83,7 @@
         "@types/node": "22.5.0",
         "rimraf": "6.0.1",
         "tsup": "8.2.4",
-        "tsx": "4.17.0",
+        "tsx": "4.18.0",
         "typescript": "5.5.4"
     },
     "peerDependencies": {
