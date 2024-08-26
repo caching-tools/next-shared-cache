@@ -136,7 +136,7 @@ export type Handler = {
      * This method is optional and supposed to be used only when the cache store does not support time based key eviction.
      * This method will be automatically called by the `CacheHandler` class when the retrieved cache entry is stale.
      *
-     * @param key - The unique string identifier for the cache entry.
+     * @param key - The unique string identifier for the cache entry with prefix if present.
      *
      * @returns A Promise that resolves when the cache entry has been successfully deleted.
      *
@@ -264,6 +264,32 @@ export type CacheCreationContext = {
  * @since 1.0.0
  */
 export type OnCreationHook = (context: CacheCreationContext) => Promise<CacheHandlerConfig> | CacheHandlerConfig;
+
+/**
+ * Deletes an entry from all handlers.
+ *
+ * @param handlers - The list of handlers.
+ * @param key - The key to delete.
+ * @param debug - Whether to log debug messages.
+ *
+ * @returns A Promise that resolves when all handlers have finished deleting the entry.
+ */
+async function removeEntryFromHandlers(handlers: Handler[], key: string, debug: boolean): Promise<void> {
+    const operationsResults = await Promise.allSettled(handlers.map((handler) => handler.delete?.(key)));
+
+    if (!debug) {
+        return;
+    }
+
+    operationsResults.forEach((handlerResult, index) => {
+        if (handlerResult.status === 'rejected') {
+            console.warn(
+                `Handler "${handlers[index]?.name}" failed to delete value for key "${key}".`,
+                handlerResult.reason,
+            );
+        }
+    });
+}
 
 export class CacheHandler implements NextCacheHandler {
     /**
@@ -484,13 +510,13 @@ export class CacheHandler implements NextCacheHandler {
             }
         } catch (_error) {}
 
-        const handlersList: Handler[] = handlers.filter((handler): handler is Handler => Boolean(handler));
+        const handlersList: Handler[] = handlers.filter((handler) => !!handler);
 
         CacheHandler.#cacheListLength = handlersList.length;
 
         CacheHandler.#mergedHandler = {
             async get(key, meta) {
-                for await (const handler of handlersList) {
+                for (const handler of handlersList) {
                     try {
                         let cacheHandlerValue = await handler.get(key, meta);
 
@@ -499,14 +525,12 @@ export class CacheHandler implements NextCacheHandler {
                             cacheHandlerValue.lifespan.expireAt < Math.floor(Date.now() / 1000)
                         ) {
                             cacheHandlerValue = null;
-                            await handler.delete?.(key).catch((deleteError) => {
-                                if (CacheHandler.#debug) {
-                                    console.warn(
-                                        `Handler "${handler.name}" failed to delete value for key "${key}".`,
-                                        deleteError,
-                                    );
-                                }
-                            });
+
+                            if (CacheHandler.#debug) {
+                                console.info(`get from "${handler.name}"`, key, 'expired. Deleting from all Handlers');
+                            }
+
+                            await removeEntryFromHandlers(handlersList, key, CacheHandler.#debug);
                         }
 
                         if (CacheHandler.#debug) {
@@ -524,41 +548,40 @@ export class CacheHandler implements NextCacheHandler {
                 return null;
             },
             async set(key, cacheHandlerValue) {
-                await Promise.all(
-                    handlersList.map((handler) => {
-                        try {
-                            return handler.set(key, {
-                                lastModified: cacheHandlerValue.lastModified,
-                                lifespan: cacheHandlerValue.lifespan,
-                                tags: cacheHandlerValue.tags,
-                                value: cacheHandlerValue.value,
-                                age: cacheHandlerValue.age,
-                                cacheState: cacheHandlerValue.cacheState,
-                            });
-                        } catch (error) {
-                            if (CacheHandler.#debug) {
-                                console.warn(`Handler "${handler.name}" failed to set value for key "${key}".`, error);
-                            }
-                        }
-
-                        return Promise.resolve();
-                    }),
+                const operationsResults = await Promise.allSettled(
+                    handlersList.map((handler) => handler.set(key, { ...cacheHandlerValue })),
                 );
+
+                if (!CacheHandler.#debug) {
+                    return;
+                }
+
+                operationsResults.forEach((handlerResult, index) => {
+                    if (handlerResult.status === 'rejected') {
+                        console.warn(
+                            `Handler "${handlersList[index]?.name}" failed to set value for key "${key}".`,
+                            handlerResult.reason,
+                        );
+                    }
+                });
             },
             async revalidateTag(tag) {
-                await Promise.all(
-                    handlersList.map((handler) => {
-                        try {
-                            return handler.revalidateTag(tag);
-                        } catch (error) {
-                            if (CacheHandler.#debug) {
-                                console.warn(`Handler "${handler.name}" failed to revalidate tag "${tag}".`, error);
-                            }
-                        }
-
-                        return Promise.resolve();
-                    }),
+                const operationsResults = await Promise.allSettled(
+                    handlersList.map((handler) => handler.revalidateTag(tag)),
                 );
+
+                if (!CacheHandler.#debug) {
+                    return;
+                }
+
+                operationsResults.forEach((handlerResult, index) => {
+                    if (handlerResult.status === 'rejected') {
+                        console.warn(
+                            `Handler "${handlersList[index]?.name}" failed to revalidate tag "${tag}".`,
+                            handlerResult.reason,
+                        );
+                    }
+                });
             },
         };
     }

@@ -186,5 +186,8 @@ export default function createHandler({
 
             await client.unlink(options, keysToDelete);
         },
+        async delete(key) {
+            await client.unlink(getTimeoutRedisCommandOptions(timeoutMs), key);
+        },
     };
 }

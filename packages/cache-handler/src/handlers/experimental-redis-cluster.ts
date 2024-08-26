@@ -222,5 +222,8 @@ export default function createHandler({
 
             await Promise.allSettled([...unlinkPromises, updateTagsOperation]);
         },
+        async delete(key) {
+            await cluster.unlink(getTimeoutRedisCommandOptions(timeoutMs), key);
+        },
     };
 }
