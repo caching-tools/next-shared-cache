@@ -1,5 +1,11 @@
 # @neshca/cache-handler
 
+## 1.6.1
+
+### Patch Changes
+
+- 435a4fe: Fix delete functionality for all built-in Handlers and enhance debug logging.
+
 ## 1.6.0
 
 ### Minor Changes
