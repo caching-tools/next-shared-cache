@@ -626,7 +626,8 @@ export class CacheHandler implements NextCacheHandler {
 
                             cacheHandlerValue = null;
 
-                            await removeEntryFromHandlers(handlersList, key, CacheHandler.#debug);
+                            // remove the entry from all handlers in background
+                            removeEntryFromHandlers(handlersList, key, CacheHandler.#debug);
                         }
 
                         if (cacheHandlerValue && CacheHandler.#debug) {
