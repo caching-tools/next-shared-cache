@@ -275,6 +275,15 @@ export type OnCreationHook = (context: CacheCreationContext) => Promise<CacheHan
  * @returns A Promise that resolves when all handlers have finished deleting the entry.
  */
 async function removeEntryFromHandlers(handlers: Handler[], key: string, debug: boolean): Promise<void> {
+    if (debug) {
+        console.info(
+            '[CacheHandler] [method: %s] [key: %s] %s',
+            'delete',
+            key,
+            'Started deleting entry from Handlers.',
+        );
+    }
+
     const operationsResults = await Promise.allSettled(handlers.map((handler) => handler.delete?.(key)));
 
     if (!debug) {
@@ -284,8 +293,19 @@ async function removeEntryFromHandlers(handlers: Handler[], key: string, debug: 
     operationsResults.forEach((handlerResult, index) => {
         if (handlerResult.status === 'rejected') {
             console.warn(
-                `Handler "${handlers[index]?.name}" failed to delete value for key "${key}".`,
-                handlerResult.reason,
+                '[CacheHandler] [handler: %s] [method: %s] [key: %s] %s',
+                handlers[index]?.name ?? `unknown-${index}`,
+                'delete',
+                key,
+                `Error: ${handlerResult.reason}`,
+            );
+        } else {
+            console.info(
+                '[CacheHandler] [handler: %s] [method: %s] [key: %s] %s',
+                handlers[index]?.name ?? `unknown-${index}`,
+                'delete',
+                key,
+                'Successfully deleted value.',
             );
         }
     });
@@ -356,6 +376,16 @@ export class CacheHandler implements NextCacheHandler {
         let cacheHandlerValue: CacheHandlerValue | null = null;
         let pageHtmlHandle: fsPromises.FileHandle | null = null;
 
+        if (CacheHandler.#debug) {
+            console.info(
+                '[CacheHandler] [handler: %s] [method: %s] [key: %s] %s',
+                'file system',
+                'get',
+                cacheKey,
+                'Started retrieving value.',
+            );
+        }
+
         try {
             const pageHtmlPath = path.join(CacheHandler.#serverDistDir, 'pages', `${cacheKey}.html`);
             const pageDataPath = path.join(CacheHandler.#serverDistDir, 'pages', `${cacheKey}.json`);
@@ -370,6 +400,16 @@ export class CacheHandler implements NextCacheHandler {
 
             const pageData = JSON.parse(pageDataFile) as object;
 
+            if (CacheHandler.#debug) {
+                console.info(
+                    '[CacheHandler] [handler: %s] [method: %s] [key: %s] %s',
+                    'file system',
+                    'get',
+                    cacheKey,
+                    'Successfully retrieved value.',
+                );
+            }
+
             cacheHandlerValue = {
                 lastModified: mtimeMs,
                 lifespan: null,
@@ -383,8 +423,18 @@ export class CacheHandler implements NextCacheHandler {
                     status: undefined,
                 },
             };
-        } catch (_) {
+        } catch (error) {
             cacheHandlerValue = null;
+
+            if (CacheHandler.#debug) {
+                console.warn(
+                    '[CacheHandler] [handler: %s] [method: %s] [key: %s] %s',
+                    'file system',
+                    'get',
+                    cacheKey,
+                    `Error: ${error}`,
+                );
+            }
         } finally {
             await pageHtmlHandle?.close();
         }
@@ -392,7 +442,7 @@ export class CacheHandler implements NextCacheHandler {
         return cacheHandlerValue;
     }
 
-    static async #writePagesRouterPage(cacheKey: string, pageData: IncrementalCachedPageValue): Promise<boolean> {
+    static async #writePagesRouterPage(cacheKey: string, pageData: IncrementalCachedPageValue): Promise<void> {
         try {
             const pageHtmlPath = path.join(CacheHandler.#serverDistDir, 'pages', `${cacheKey}.html`);
             const pageDataPath = path.join(CacheHandler.#serverDistDir, 'pages', `${cacheKey}.json`);
@@ -404,9 +454,25 @@ export class CacheHandler implements NextCacheHandler {
                 fsPromises.writeFile(pageDataPath, JSON.stringify(pageData.pageData)),
             ]);
 
-            return true;
-        } catch (_error) {
-            return false;
+            if (CacheHandler.#debug) {
+                console.info(
+                    '[CacheHandler] [handler: %s] [method: %s] [key: %s] %s',
+                    'file system',
+                    'set',
+                    cacheKey,
+                    'Successfully set value.',
+                );
+            }
+        } catch (error) {
+            if (CacheHandler.#debug) {
+                console.warn(
+                    '[CacheHandler] [handler: %s] [method: %s] [key: %s] %s',
+                    'file system',
+                    'set',
+                    cacheKey,
+                    `Error: ${error}`,
+                );
+            }
         }
     }
 
@@ -460,7 +526,14 @@ export class CacheHandler implements NextCacheHandler {
 
     static async #configureCacheHandler(): Promise<void> {
         if (CacheHandler.#mergedHandler) {
+            if (CacheHandler.#debug) {
+                console.info('[CacheHandler] %s', 'Using existing CacheHandler configuration.');
+            }
             return;
+        }
+
+        if (CacheHandler.#debug) {
+            console.info('[CacheHandler] %s', 'Creating new CacheHandler configuration.');
         }
 
         const { serverDistDir, dev } = CacheHandler.#context;
@@ -474,6 +547,10 @@ export class CacheHandler implements NextCacheHandler {
         }
         // Retrieve cache configuration by invoking the onCreation hook with the provided context
         const config = CacheHandler.#onCreationHook({ serverDistDir, dev, buildId });
+
+        if (CacheHandler.#debug) {
+            console.info('[CacheHandler] %s', 'Cache configuration retrieved from onCreation hook.');
+        }
 
         // Wait for the cache configuration to be resolved
         const { handlers, ttl = {} } = await config;
@@ -490,7 +567,10 @@ export class CacheHandler implements NextCacheHandler {
 
         // Notify the user that the cache is not used in development mode
         if (dev) {
-            console.warn('Next.js does not use the cache in development mode. Use production mode to enable caching.');
+            console.warn(
+                '[CacheHandler] %s',
+                'Next.js does not use the cache in development mode. Use production mode to enable caching.',
+            );
         }
 
         try {
@@ -517,6 +597,16 @@ export class CacheHandler implements NextCacheHandler {
         CacheHandler.#mergedHandler = {
             async get(key, meta) {
                 for (const handler of handlersList) {
+                    if (CacheHandler.#debug) {
+                        console.info(
+                            '[CacheHandler] [handler: %s] [method: %s] [key: %s] %s',
+                            handler.name,
+                            'get',
+                            key,
+                            'Started retrieving value.',
+                        );
+                    }
+
                     try {
                         let cacheHandlerValue = await handler.get(key, meta);
 
@@ -524,23 +614,41 @@ export class CacheHandler implements NextCacheHandler {
                             cacheHandlerValue?.lifespan &&
                             cacheHandlerValue.lifespan.expireAt < Math.floor(Date.now() / 1000)
                         ) {
-                            cacheHandlerValue = null;
-
                             if (CacheHandler.#debug) {
-                                console.info(`get from "${handler.name}"`, key, 'expired. Deleting from all Handlers');
+                                console.info(
+                                    '[CacheHandler] [handler: %s] [method: %s] [key: %s] %s',
+                                    handler.name,
+                                    'get',
+                                    key,
+                                    'Entry expired.',
+                                );
                             }
+
+                            cacheHandlerValue = null;
 
                             await removeEntryFromHandlers(handlersList, key, CacheHandler.#debug);
                         }
 
-                        if (CacheHandler.#debug) {
-                            console.info(`get from "${handler.name}"`, key, Boolean(cacheHandlerValue));
+                        if (cacheHandlerValue && CacheHandler.#debug) {
+                            console.info(
+                                '[CacheHandler] [handler: %s] [method: %s] [key: %s] %s',
+                                handler.name,
+                                'get',
+                                key,
+                                'Successfully retrieved value.',
+                            );
                         }
 
                         return cacheHandlerValue;
                     } catch (error) {
                         if (CacheHandler.#debug) {
-                            console.warn(`Handler "${handler.name}" failed to get value for key "${key}".`, error);
+                            console.warn(
+                                '[CacheHandler] [handler: %s] [method: %s] [key: %s] %s',
+                                handler.name,
+                                'get',
+                                key,
+                                `Error: ${error}`,
+                            );
                         }
                     }
                 }
@@ -559,8 +667,19 @@ export class CacheHandler implements NextCacheHandler {
                 operationsResults.forEach((handlerResult, index) => {
                     if (handlerResult.status === 'rejected') {
                         console.warn(
-                            `Handler "${handlersList[index]?.name}" failed to set value for key "${key}".`,
-                            handlerResult.reason,
+                            '[CacheHandler] [handler: %s] [method: %s] [key: %s] %s',
+                            handlersList[index]?.name ?? `unknown-${index}`,
+                            'set',
+                            key,
+                            `Error: ${handlerResult.reason}`,
+                        );
+                    } else {
+                        console.info(
+                            '[CacheHandler] [handler: %s] [method: %s] [key: %s] %s',
+                            handlersList[index]?.name ?? `unknown-${index}`,
+                            'set',
+                            key,
+                            'Successfully set value.',
                         );
                     }
                 });
@@ -577,17 +696,40 @@ export class CacheHandler implements NextCacheHandler {
                 operationsResults.forEach((handlerResult, index) => {
                     if (handlerResult.status === 'rejected') {
                         console.warn(
-                            `Handler "${handlersList[index]?.name}" failed to revalidate tag "${tag}".`,
-                            handlerResult.reason,
+                            '[CacheHandler] [handler: %s] [method: %s] [tag: %s] %s',
+                            handlersList[index]?.name ?? `unknown-${index}`,
+                            'revalidateTag',
+                            tag,
+                            `Error: ${handlerResult.reason}`,
+                        );
+                    } else {
+                        console.info(
+                            '[CacheHandler] [handler: %s] [method: %s] [tag: %s] %s',
+                            handlersList[index]?.name ?? `unknown-${index}`,
+                            'revalidateTag',
+                            tag,
+                            'Successfully revalidated tag.',
                         );
                     }
                 });
             },
         };
+
+        if (CacheHandler.#debug) {
+            console.info(
+                '[CacheHandler] [handlers: [%s]] %s',
+                handlersList.map((handler) => handler.name).join(', '),
+                'Successfully created CacheHandler configuration.',
+            );
+        }
     }
 
     private constructor(context: FileSystemCacheContext) {
         CacheHandler.#context = context;
+
+        if (CacheHandler.#debug) {
+            console.info('[CacheHandler] %s', 'Instance created with provided context.');
+        }
     }
 
     async get(
@@ -596,7 +738,16 @@ export class CacheHandler implements NextCacheHandler {
     ): Promise<CacheHandlerValue | null> {
         await CacheHandler.#configureCacheHandler();
 
-        const { tags = [], kindHint, softTags = [] } = ctx;
+        const { softTags = [] } = ctx;
+
+        if (CacheHandler.#debug) {
+            console.info(
+                '[CacheHandler] [method: %s] [key: %s] %s',
+                'get',
+                cacheKey,
+                'Started retrieving value in order.',
+            );
+        }
 
         let cachedData: CacheHandlerValue | null | undefined = await CacheHandler.#mergedHandler.get(cacheKey, {
             implicitTags: softTags,
@@ -608,10 +759,6 @@ export class CacheHandler implements NextCacheHandler {
 
         if (!cachedData && CacheHandler.#fallbackFalseRoutes.has(cacheKey)) {
             cachedData = await CacheHandler.#readPagesRouterPage(cacheKey);
-
-            if (CacheHandler.#debug) {
-                console.info('get from file system', cacheKey, tags, kindHint, 'got any value', Boolean(cachedData));
-            }
 
             // if we have a value from the file system, we should set it to the cache store
             if (cachedData) {
@@ -628,6 +775,15 @@ export class CacheHandler implements NextCacheHandler {
         ctx: CacheHandlerParametersSet[2],
     ): Promise<void> {
         await CacheHandler.#configureCacheHandler();
+
+        if (CacheHandler.#debug) {
+            console.info(
+                '[CacheHandler] [method: %s] [key: %s] %s',
+                'set',
+                cacheKey,
+                'Started setting value in parallel.',
+            );
+        }
 
         const { revalidate, tags = [] } = ctx;
 
@@ -672,20 +828,8 @@ export class CacheHandler implements NextCacheHandler {
 
         await CacheHandler.#mergedHandler.set(cacheKey, cacheHandlerValue);
 
-        if (CacheHandler.#debug) {
-            console.info('set to external cache store', cacheKey);
-        }
-
         if (hasFallbackFalse && cacheHandlerValue.value?.kind === 'PAGE') {
-            const wasWritten = await CacheHandler.#writePagesRouterPage(cacheKey, cacheHandlerValue.value);
-
-            if (CacheHandler.#debug && !wasWritten) {
-                console.warn('Unable to write to the file system', cacheKey);
-            }
-
-            if (CacheHandler.#debug && wasWritten) {
-                console.info('set to file system', cacheKey);
-            }
+            await CacheHandler.#writePagesRouterPage(cacheKey, cacheHandlerValue.value);
         }
     }
 
@@ -695,15 +839,16 @@ export class CacheHandler implements NextCacheHandler {
         const tags = typeof tag === 'string' ? [tag] : tag;
 
         if (CacheHandler.#debug) {
-            console.info('revalidateTag', tag);
+            console.info(
+                '[CacheHandler] [method: %s] [tags: [%s]] %s',
+                'revalidateTag',
+                tags.join(', '),
+                'Started revalidating tag in parallel.',
+            );
         }
 
         for (const tag of tags) {
             await CacheHandler.#mergedHandler.revalidateTag(tag);
-        }
-
-        if (CacheHandler.#debug) {
-            console.info('updated external revalidated tags');
         }
     }
 
