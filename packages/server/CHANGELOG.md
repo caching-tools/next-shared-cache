@@ -1,5 +1,11 @@
 # @neshca/server
 
+## 1.1.2
+
+### Patch Changes
+
+- 435a4fe: Implement delete functionality.
+
 ## 1.1.1
 
 ### Patch Changes
