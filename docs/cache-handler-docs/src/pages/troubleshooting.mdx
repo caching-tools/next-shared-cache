@@ -56,9 +56,15 @@ npm run start
 A verbose output should appear in your server console when the application starts and any page is opened in your browser:
 
 ```
-using custom cache handler @neshca/cache-handler with 1 Handlers
-get from "redis-stack" ba7bea0a3991dc2cbf8e068da71c2a2aa8c0e6f902fe695c1badf1e994acc43a false
-set to external cache store 8f058e8d96c4010b07abddd0f9f26ebd9ed71e2ccfb18eca348fc57a6e86f986
+using custom cache handler @neshca/cache-handler is not configured yet
+[CacheHandler] Instance created with provided context.
+[CacheHandler] Creating new CacheHandler configuration.
+Connecting Redis client...
+[CacheHandler] Cache configuration retrieved from onCreation hook.
+Redis client connected.
+[CacheHandler] [handlers: [redis-stack]] Successfully created CacheHandler configuration.
+[CacheHandler] [method: get] [key: /app/with-params/dynamic-true/200] Started retrieving value in order.
+[CacheHandler] [handler: redis-stack] [method: get] [key: /app/with-params/dynamic-true/200] Started retrieving value.
 ```
 
 Note: During the build stage, it's normal to see `@neshca/cache-handler is not configured yet` several times.
