@@ -1,11 +1,9 @@
 import assert from 'node:assert/strict';
+import { type IncrementalCacheEntry, NEXT_CACHE_IMPLICIT_TAG_ID, type Revalidate } from '@neshca/next-common';
 import {
-    type IncrementalCacheEntry,
-    NEXT_CACHE_IMPLICIT_TAG_ID,
-    type Revalidate,
     type StaticGenerationStore,
     staticGenerationAsyncStorage,
-} from '@neshca/next-common';
+} from 'next/dist/client/components/static-generation-async-storage.external.js';
 import { TIME_ONE_YEAR } from '../constants';
 
 function getDerivedTags(pathname: string): string[] {
