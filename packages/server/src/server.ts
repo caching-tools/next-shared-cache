@@ -90,6 +90,20 @@ server.get('/clear-cache', async (_request, reply): Promise<void> => {
     await reply.code(200).send(true);
 });
 
+server.delete('/:key', async (request, reply): Promise<void> => {
+    const { key } = request.params as { key?: string };
+
+    if (!key) {
+        await reply.code(200).send(false);
+
+        return;
+    }
+
+    lruCacheStore.delete(key);
+
+    await reply.code(200).send(true);
+});
+
 server
     .listen({ port, host })
     .then((address) => {

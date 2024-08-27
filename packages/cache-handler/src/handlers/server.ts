@@ -107,5 +107,20 @@ export default function createHandler({ baseUrl, timeoutMs }: ServerCacheHandler
                 throw new Error(`revalidateTag error: ${response.status}`);
             }
         },
+        async delete(key) {
+            const url = new URL(`/${key}`, baseUrl);
+
+            const response = await fetch(url, {
+                method: 'DELETE',
+                // @ts-expect-error -- act as an internal fetch call
+                next: {
+                    internal: true,
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error(`delete error: ${response.status}`);
+            }
+        },
     };
 }
