@@ -65,6 +65,8 @@ jobs:
         run: npm run playwright:install -w apps/cache-testing
       - name: Build
         run: npm run build
+      - name: Build docs
+        run: npm run build:docs
       - name: Check code style
         run: npm run codestyle:check
       - name: Run unit tests

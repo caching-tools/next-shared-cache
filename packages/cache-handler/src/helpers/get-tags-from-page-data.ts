@@ -1,4 +1,4 @@
-import type { IncrementalCachedPageValue } from '@neshca/next-common';
+import type { IncrementalCachedAppPageValue, IncrementalCachedPageValue } from '@neshca/next-common';
 
 /**
  * Retrieves the cache tags from the given page data.
@@ -7,7 +7,7 @@ import type { IncrementalCachedPageValue } from '@neshca/next-common';
  *
  * @returns An array of cache tags without the internal Next.js tags.
  */
-export function getTagsFromPageData(data: IncrementalCachedPageValue): string[] {
+export function getTagsFromPageData(data: IncrementalCachedPageValue | IncrementalCachedAppPageValue): string[] {
     const headers = data.headers?.['x-next-cache-tags'];
     const pageTags = typeof headers === 'string' ? headers.split(',') : [];
 
