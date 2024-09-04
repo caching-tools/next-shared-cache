@@ -8,11 +8,11 @@ updates:
       - 'better-salmon'
     versioning-strategy: increase
     open-pull-requests-limit: 20
-    ignore:
-      - dependency-name: 'next'
-        versions: ['14.x.x']
-      - dependency-name: '@next/eslint-plugin-next'
-        versions: ['14.x.x']
+    # ignore:
+    #   - dependency-name: 'next'
+    #     versions: ['14.x.x']
+    #   - dependency-name: '@next/eslint-plugin-next'
+    #     versions: ['14.x.x']
     groups:
       next-js:
         patterns:
