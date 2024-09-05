@@ -17,6 +17,8 @@ updates:
         versions: ['8.x.x']
       - dependency-name: '@typescript-eslint/parser'
         versions: ['8.x.x']
+      - dependency-name: 'lru-cache'
+        versions: ['11.x.x']
     groups:
       next-js:
         patterns:
