@@ -74,7 +74,7 @@
     },
     "dependencies": {
         "cluster-key-slot": "1.1.2",
-        "lru-cache": "10.3.0"
+        "lru-cache": "10.4.3"
     },
     "devDependencies": {
         "@neshca/next-common": "*",
