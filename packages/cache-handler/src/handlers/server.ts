@@ -22,6 +22,8 @@ export type ServerCacheHandlerOptions = {
  * It includes methods to get, set, and manage cache values and revalidated tags,
  * leveraging server-side storage.
  *
+ * @deprecated This Handler is deprecated since @neshca/cache-handler version 1.7.0 and will be removed in the next major release.
+ *
  * @param options - The configuration options for the server Handler. See {@link ServerCacheHandlerOptions}.
  *
  * @returns An object representing the cache, with methods for cache operations.

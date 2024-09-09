@@ -16,6 +16,7 @@ const nextConfig = {
         ppr: process.env.PPR_ENABLED === 'true',
         largePageDataBytes: 1024 * 1024, // 1MB
         outputFileTracingRoot: path.join(import.meta.dirname, '../../'),
+        instrumentationHook: true,
     },
 };
 

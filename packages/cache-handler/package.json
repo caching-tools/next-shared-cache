@@ -35,6 +35,10 @@
             "require": "./dist/functions/functions.cjs",
             "import": "./dist/functions/functions.js"
         },
+        "./instrumentation": {
+            "require": "./dist/instrumentation/instrumentation.cjs",
+            "import": "./dist/instrumentation/instrumentation.js"
+        },
         "./*": {
             "require": "./dist/handlers/*.cjs",
             "import": "./dist/handlers/*.js"
@@ -62,6 +66,9 @@
             ],
             "local-lru": [
                 "dist/handlers/local-lru.d.ts"
+            ],
+            "instrumentation": [
+                "dist/instrumentation/instrumentation.d.ts"
             ]
         }
     },

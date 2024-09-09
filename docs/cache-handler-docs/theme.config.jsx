@@ -53,20 +53,19 @@ export default {
         ),
     },
     banner: {
-        key: 'version-1.6.0',
+        key: 'version-1.7.0',
         text: (
             <div>
-                🎉 1.6.0 is out! It features synchronous{' '}
+                🎉 Version 1.7.0 is out! It has{' '}
                 <a
+                    href="/usage/populating-cache-on-start"
                     style={{
                         color: 'lightgreen',
-                        fontFamily: 'monospace',
                     }}
-                    href="https://caching-tools.github.io/next-shared-cache/handlers/redis-stack"
                 >
-                    redis-stack
+                    a new instrumentation hook
                 </a>{' '}
-                Handler creation function!
+                to pre-populate the cache with pre-rendered pages on startup.
             </div>
         ),
     },

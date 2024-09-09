@@ -1,5 +1,7 @@
 ## `@neshca/server`
 
+**This package is deprecated since `@neshca/cache-handler` version 1.7.0 and will be removed in the next major release.**
+
 Efficient and simple HTTP caching server with LRU eviction, tailored for seamless integration with `@neshca/cache-handler/server` Handler.
 
 ### Overview

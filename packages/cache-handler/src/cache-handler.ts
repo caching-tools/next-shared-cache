@@ -15,7 +15,7 @@ import type {
 } from '@neshca/next-common';
 
 import { createValidatedAgeEstimationFunction } from './helpers/create-validated-age-estimation-function';
-import { getTagsFromPageData } from './helpers/get-tags-from-page-data';
+import { getTagsFromHeaders } from './helpers/get-tags-from-headers';
 
 export type { CacheHandlerValue };
 
@@ -113,7 +113,7 @@ export type Handler = {
      * Read more about the `lifespan` parameter: {@link LifespanParameters}.
      *
      * ### LifespanParameters
-     * If no `revalidate` option or `revalidate: false` is set in your [`getStaticProps`](https://nextjs.org/docs/pages/api-reference/functions/get-static-props#revalidate)
+     * If no `revalidate` option or `revalidate: false` is set in your [`getStaticProps` ↗](https://nextjs.org/docs/pages/api-reference/functions/get-static-props#revalidate)
      * the `lifespan` parameter will be `null` and you should consider the cache entry as always fresh and never stale.
      *
      * Use the absolute time (`expireAt`) to set and expiration time for the cache entry in your cache store to be in sync with the file system cache.
@@ -123,7 +123,7 @@ export type Handler = {
     set: (key: string, value: CacheHandlerValue) => Promise<void>;
     /**
      * Deletes all cache entries that are associated with the specified tag.
-     * See [fetch `options.next.tags` and `revalidateTag`](https://nextjs.org/docs/app/building-your-application/caching#fetch-optionsnexttags-and-revalidatetag)
+     * See [fetch `options.next.tags` and `revalidateTag` ↗](https://nextjs.org/docs/app/building-your-application/caching#fetch-optionsnexttags-and-revalidatetag)
      *
      * @param tag - A string representing the cache tag associated with the data you want to revalidate.
      * Must be less than or equal to 256 characters. This value is case-sensitive.
@@ -392,13 +392,11 @@ export class CacheHandler implements NextCacheHandler {
 
             pageHtmlHandle = await fsPromises.open(pageHtmlPath, 'r');
 
-            const [pageHtmlFile, { mtimeMs }, pageDataFile] = await Promise.all([
+            const [pageHtmlFile, { mtimeMs }, pageData] = await Promise.all([
                 pageHtmlHandle.readFile('utf-8'),
                 pageHtmlHandle.stat(),
-                fsPromises.readFile(pageDataPath, 'utf-8'),
+                fsPromises.readFile(pageDataPath, 'utf-8').then((data) => JSON.parse(data) as object),
             ]);
-
-            const pageData = JSON.parse(pageDataFile) as object;
 
             if (CacheHandler.#debug) {
                 console.info(
@@ -479,9 +477,9 @@ export class CacheHandler implements NextCacheHandler {
     /**
      * Returns the cache control parameters based on the last modified timestamp and revalidate option.
      *
-     * @param lastModified The last modified timestamp in milliseconds.
+     * @param lastModified - The last modified timestamp in milliseconds.
      *
-     * @param revalidate The revalidate option, representing the maximum age of stale data in seconds.
+     * @param revalidate - The revalidate option, representing the maximum age of stale data in seconds.
      *
      * @returns The cache control parameters including expire age, expire at, last modified at, stale age, stale at and revalidate.
      *
@@ -725,7 +723,10 @@ export class CacheHandler implements NextCacheHandler {
         }
     }
 
-    private constructor(context: FileSystemCacheContext) {
+    /**
+     * Creates a new CacheHandler instance. Constructor is intended for internal use only.
+     */
+    constructor(context: FileSystemCacheContext) {
         CacheHandler.#context = context;
 
         if (CacheHandler.#debug) {
@@ -773,7 +774,7 @@ export class CacheHandler implements NextCacheHandler {
     async set(
         cacheKey: CacheHandlerParametersSet[0],
         incrementalCacheValue: CacheHandlerParametersSet[1],
-        ctx: CacheHandlerParametersSet[2],
+        ctx: CacheHandlerParametersSet[2] & { neshca_lastModified?: number },
     ): Promise<void> {
         await CacheHandler.#configureCacheHandler();
 
@@ -786,13 +787,18 @@ export class CacheHandler implements NextCacheHandler {
             );
         }
 
-        const { revalidate, tags = [] } = ctx;
+        const { revalidate, tags = [], neshca_lastModified } = ctx;
 
-        const lastModified = Date.now();
+        const lastModified = Math.round(neshca_lastModified ?? Date.now());
 
         const hasFallbackFalse = CacheHandler.#fallbackFalseRoutes.has(cacheKey);
 
         const lifespan = hasFallbackFalse ? null : CacheHandler.#getLifespanParameters(lastModified, revalidate);
+
+        // If expireAt is in the past, do not cache
+        if (lifespan !== null && Date.now() > lifespan.expireAt * 1000) {
+            return;
+        }
 
         let cacheHandlerValueTags = tags;
 
@@ -800,7 +806,7 @@ export class CacheHandler implements NextCacheHandler {
 
         switch (value?.kind) {
             case 'PAGE': {
-                cacheHandlerValueTags = getTagsFromPageData(value);
+                cacheHandlerValueTags = getTagsFromHeaders(value.headers ?? {});
                 break;
             }
             case 'ROUTE': {
