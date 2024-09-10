@@ -27,7 +27,7 @@ The provided callback will be wrapped in a normalizing function to ensure that t
 
 - `staleAge` - The stale age in seconds. Defaults to 1 year.
 
-  The stale age is the time you have provided in the `revalidate` option in your [`getStaticProps`](https://nextjs.org/docs/pages/api-reference/functions/get-static-props#revalidate) or in the [`fetch`](https://nextjs.org/docs/app/building-your-application/data-fetching/fetching-caching-and-revalidating#time-based-revalidation) method. If you did not specify the `revalidate` option, the stale age will be the default stale age.
+  The stale age is the time you have provided in the `revalidate` option in your [`getStaticProps` ↗](https://nextjs.org/docs/pages/api-reference/functions/get-static-props#revalidate) or in the [`fetch` ↗](https://nextjs.org/docs/app/building-your-application/data-fetching/fetching-caching-and-revalidating#time-based-revalidation) method. If you did not specify the `revalidate` option, the stale age will be the default stale age.
 
   After the stale age, the cache entry is considered stale, can be served from the cache, and should be revalidated. Revalidation is handled by the `CacheHandler` class.
 

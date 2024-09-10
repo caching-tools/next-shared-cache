@@ -50,7 +50,7 @@ A Promise that resolves when the value has been successfully set in the cache.
 
 Sets or updates a value in the cache store. The `CacheHandler` class calls this method when a cache entry is created or updated. The method should return a Promise that resolves when the value has been successfully set in the cache. It will be called for each Handler from the `handlers` array in parallel.
 
-You should consider the `lifespan` parameter when setting the cache entry. If no `revalidate` option or `revalidate: false` is set in your [`getStaticProps`](https://nextjs.org/docs/pages/api-reference/functions/get-static-props#revalidate), the `lifespan` parameter will be `null` and you should consider the cache entry as always fresh and never stale.
+You should consider the `lifespan` parameter when setting the cache entry. If no `revalidate` option or `revalidate: false` is set in your [`getStaticProps` ↗](https://nextjs.org/docs/pages/api-reference/functions/get-static-props#revalidate), the `lifespan` parameter will be `null` and you should consider the cache entry as always fresh and never stale.
 
 Use the absolute time (`expireAt`) to set an expiration time for the cache entry in your cache store to be in sync with the file system cache.
 
@@ -66,9 +66,9 @@ A Promise that resolves when the cache entry has been successfully deleted.
 
 #### Overview
 
-This method is called by the `CacheHandler` class when [`revalidateTag`](https://nextjs.org/docs/app/api-reference/functions/revalidateTag) is called. It should delete all cache entries that are associated with the specified tag. It will be called for each Handler from the `handlers` array in parallel.
+This method is called by the `CacheHandler` class when [`revalidateTag` ↗](https://nextjs.org/docs/app/api-reference/functions/revalidateTag) is called. It should delete all cache entries that are associated with the specified tag. It will be called for each Handler from the `handlers` array in parallel.
 
-The tag list is stored in the `CacheHandlerValue` object and can be accessed via the `tags` property. If you use a remote cache store like Redis, it will be too expensive to retrieve all keys just to check tags. So, you may want to store tags in a separate set inside your cache store or [create an index](https://redis.io/docs/interact/search-and-query/indexing/) for tags.
+The tag list is stored in the `CacheHandlerValue` object and can be accessed via the `tags` property. If you use a remote cache store like Redis, it will be too expensive to retrieve all keys just to check tags. So, you may want to store tags in a separate set inside your cache store or [create an index ↗](https://redis.io/docs/interact/search-and-query/indexing/) for tags.
 
 ### `delete`
 

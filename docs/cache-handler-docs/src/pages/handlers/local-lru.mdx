@@ -13,7 +13,7 @@ const localHandler = createLocalHandler({
 // ...
 ```
 
-The `local-lru` Handler uses a [`lru-cache`](https://www.npmjs.com/package/lru-cache) instance as the cache store. It stores the cache in memory and evicts the least recently used entries when the cache reaches its limits. You can use this Handler as a fallback cache when the shared cache is unavailable.
+The `local-lru` Handler uses a [`lru-cache` ↗](https://www.npmjs.com/package/lru-cache) instance as the cache store. It stores the cache in memory and evicts the least recently used entries when the cache reaches its limits. You can use this Handler as a fallback cache when the shared cache is unavailable.
 
 <Callout type="info">
   The `local-lru` Handler stores the cache in memory. Make sure to set the limits according to your server's memory

@@ -8,7 +8,7 @@
 
 ## Latest Release
 
-🎉 **Version 1.6.0** is here! Now featuring synchronous [`redis-stack`](https://caching-tools.github.io/next-shared-cache/handlers/redis-stack) Handler creation function.
+🎉 **Version 1.7.0** has been released! It now includes the [`registerInitialCache` instrumentation hook ↗](https://caching-tools.github.io/next-shared-cache/usage/populating-cache-on-start), which allows the cache to be pre-populated with the initial data when the application starts.
 
 Do not forget the [`experimental-redis-cluster`](https://caching-tools.github.io/next-shared-cache/handlers/experimental-redis-cluster) Handler for Redis Cluster support from a previous release.
 
@@ -27,7 +27,7 @@ Check out the [changelog](https://github.com/caching-tools/next-shared-cache/blo
 
 ## Overview
 
-Welcome to `@neshca/cache-handler`, a specialized ISR/Data cache API crafted for Next.js applications. This library simplifies configuring shared cache strategies in distributed environments, such as multiple, independent application instances. It offers a flexible and easy-to-integrate solution for custom cache strategies, especially for Redis.
+Welcome to `@neshca/cache-handler` (pronounced /ˈnæʃkʌ/), a specialized ISR/Data cache API crafted for Next.js applications. This library simplifies configuring shared cache strategies in distributed environments, such as multiple, independent application instances. It offers a flexible and easy-to-integrate solution for custom cache strategies, especially for Redis.
 
 ### Features
 

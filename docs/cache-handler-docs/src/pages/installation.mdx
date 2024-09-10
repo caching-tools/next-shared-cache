@@ -89,8 +89,13 @@ pnpm create next-app --example cache-handler-redis cache-handler-redis-app
    export default CacheHandler;
    ```
 
+   <Callout type="info">
+     Do not import <code>@neshca/cache-handler</code> to your client components or pages. It is only meant to be used in{' '}
+     <code>cache-handler.mjs</code> files.
+   </Callout>
+
 3. **Integrate with Next.js**:  
-   Update your `next.config.js` to utilize the cache handler, ensuring it's only active in production:
+    Update your `next.config.js` to utilize the cache handler, ensuring it's only active in production:
 
    ```js filename="next.config.js" copy
    const nextConfig = {
@@ -100,15 +105,37 @@ pnpm create next-app --example cache-handler-redis cache-handler-redis-app
            incrementalCacheHandlerPath:
                process.env.NODE_ENV === 'production' ? require.resolve('./cache-handler.mjs') : undefined,
        }, */
+     experimental: {
+       // This is required for the experimental feature of pre-populating the cache with the initial data
+       instrumentationHook: true,
+     },
    };
 
    module.exports = nextConfig;
    ```
 
-<Callout type="info">
-  Do not import <code>@neshca/cache-handler</code> to your components or pages. It is only meant to be used in{' '}
-  <code>cache-handler.mjs</code> files.
-</Callout>
+4. **Populate the Cache with Prerendered Pages**:
+   Next.js pre-renders pages during the build process and stores them on the disk. This procedure bypasses the `CacheHandler`, so pre-rendered pages and routes are not added to the CacheHandler cache stores. To populate the cache with the initial data, you can utilize the `registerInitialCache` function from `@neshca/cache-handler/instrumentation`:
+
+   ```js filename="instrumentation.ts" copy
+   export async function register() {
+     if (process.env.NEXT_RUNTIME === 'nodejs') {
+       const { registerInitialCache } = await import('@neshca/cache-handler/instrumentation');
+       // Assuming that your CacheHandler configuration is in the root of the project and the instrumentation is in the src directory.
+       // Please adjust the path accordingly.
+       // CommonJS CacheHandler configuration is also supported.
+       const CacheHandler = (await import('../cache-handler.mjs')).default;
+       await registerInitialCache(CacheHandler);
+     }
+   }
+   ```
+
+   <Callout type="info">
+     Use <code>NEXT_RUNTIME</code> environment variable to ensure that the instrumentation is only executed in Node.js.
+     Use dynamic import to avoid bundling issues.
+   </Callout>
+
+   This instrumentation will fill the cache with the initial data when the application starts. The duration of this process may vary based on the number and size of pages, routes, and fetch calls. For more information refer to the [Populating the Cache with the initial data](/usage/populating-cache-on-start) section.
 
 ### Running Your Application
 

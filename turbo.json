@@ -1,7 +1,7 @@
 {
     "$schema": "https://turbo.build/schema.json",
     "globalDependencies": ["**/.env.*local"],
-    "globalEnv": ["CI", "NODE_ENV", "NEXT_PUBLIC_BASE_URL"],
+    "globalEnv": ["CI", "NODE_ENV", "NEXT_PUBLIC_BASE_URL", "NEXT_RUNTIME"],
     "tasks": {
         "build": {
             "dependsOn": ["^build"],
