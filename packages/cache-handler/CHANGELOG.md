@@ -1,5 +1,11 @@
 # @neshca/cache-handler
 
+## 1.7.0
+
+### Minor Changes
+
+- 978c3e2: Add `registerInitialCache` instrumentation hook for pre-populating the cache with the initial data on application start.
+
 ## 1.6.1
 
 ### Patch Changes
