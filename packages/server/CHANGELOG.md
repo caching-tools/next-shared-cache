@@ -1,5 +1,11 @@
 # @neshca/server
 
+## 1.2.0
+
+### Minor Changes
+
+- 978c3e2: Make `@neshca/server` deprecated. `@neshca/cache-handler/server` will be removed in the next major release.
+
 ## 1.1.2
 
 ### Patch Changes
