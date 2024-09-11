@@ -36,7 +36,8 @@ Welcome to `@neshca/cache-handler` (pronounced /ˈnæʃkʌ/), a specialized ISR/
 - **On-Demand Revalidation**: Simplifies revalidation across all application replicas.
 - **TTL Management**: Automatic cache cleanup to keep storage space efficient.
 - **Support for Next.js Routers**: Full support and one setup for the Pages and the App Router.
-- **`neshCache` Function**: Utilize the [`neshCache`](https://caching-tools.github.io/next-shared-cache/functions/nesh-cache) function to replace `unstable_cache` for more control over caching.
+- **`neshCache` Function**: Utilize the [`neshCache` ↗](https://caching-tools.github.io/next-shared-cache/functions/nesh-cache) function to replace `unstable_cache` for more control over caching.
+- **Pre-populate the Cache with Initial Data**: Automatically pre-populate the cache with the initial data when the application starts using the [instrumentation hook ↗](https://caching-tools.github.io/next-shared-cache/usage/populating-cache-on-start).
 
 ## Getting Started
 
