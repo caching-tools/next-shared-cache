@@ -10,6 +10,10 @@ import { getTagsFromHeaders } from '../helpers/get-tags-from-headers';
 
 type CacheHandlerType = typeof import('../cache-handler').CacheHandler;
 
+type Router = 'pages' | 'app';
+
+const PRERENDER_MANIFEST_VERSION = 4;
+
 /**
  * Options for the `registerInitialCache` instrumentation.
  *
@@ -78,6 +82,7 @@ export type RegisterInitialCacheOptions = {
  * @since 1.7.0
  */
 export async function registerInitialCache(CacheHandler: CacheHandlerType, options: RegisterInitialCacheOptions = {}) {
+    const debug = typeof process.env.NEXT_PRIVATE_DEBUG_CACHE !== 'undefined';
     const nextJsPath = path.join(process.cwd(), '.next');
     const prerenderManifestPath = path.join(nextJsPath, PRERENDER_MANIFEST);
     const serverDistDir = path.join(nextJsPath, SERVER_DIRECTORY);
@@ -93,19 +98,21 @@ export async function registerInitialCache(CacheHandler: CacheHandlerType, optio
         const prerenderManifestData = await fsPromises.readFile(prerenderManifestPath, 'utf-8');
         prerenderManifest = JSON.parse(prerenderManifestData) as PrerenderManifest;
 
-        if (prerenderManifest.version !== 4) {
-            throw new Error('Invalid prerender manifest version. Expected version 4.');
+        if (prerenderManifest.version !== PRERENDER_MANIFEST_VERSION) {
+            throw new Error(
+                `Invalid prerender manifest version. Expected version ${PRERENDER_MANIFEST_VERSION}. Please check if the Next.js version is compatible with the CacheHandler version.`,
+            );
         }
     } catch (error) {
-        console.warn(
-            '[CacheHandler] [%s] %s %s',
-            'instrumentation.cache',
-            'Failed to read prerender manifest',
-            `Error: ${error}`,
-        );
-    }
+        if (debug) {
+            console.warn(
+                '[CacheHandler] [%s] %s %s',
+                'instrumentation.cache',
+                'Failed to read prerender manifest',
+                `Error: ${error}`,
+            );
+        }
 
-    if (!prerenderManifest) {
         return;
     }
 
@@ -114,50 +121,98 @@ export async function registerInitialCache(CacheHandler: CacheHandlerType, optio
         dev: process.env.NODE_ENV === 'development',
     };
 
-    const cacheHandler = new CacheHandler(context as ConstructorParameters<typeof CacheHandler>[0]);
+    let cacheHandler: InstanceType<CacheHandlerType>;
 
-    type Router = 'pages' | 'app';
-    type CacheKind = 'PAGE' | 'ROUTE';
+    try {
+        cacheHandler = new CacheHandler(context as ConstructorParameters<typeof CacheHandler>[0]);
+    } catch (error) {
+        if (debug) {
+            console.warn(
+                '[CacheHandler] [%s] %s %s',
+                'instrumentation.cache',
+                'Failed to create CacheHandler instance',
+                `Error: ${error}`,
+            );
+        }
 
-    async function setCacheForRoute(route: string, router: Router, cacheKind: CacheKind, revalidate: Revalidate) {
-        const pathToRouteFiles = path.join(serverDistDir, router, route);
+        return;
+    }
 
-        if (cacheKind === 'ROUTE') {
-            let lastModified: number | undefined;
+    async function setRouteCache(cachePath: string, router: Router, revalidate: Revalidate) {
+        const pathToRouteFiles = path.join(serverDistDir, router, cachePath);
 
-            try {
-                const stats = await fsPromises.stat(`${pathToRouteFiles}.body`);
-                lastModified = stats.mtimeMs;
-            } catch (_) {
-                return;
+        let lastModified: number | undefined;
+
+        try {
+            const stats = await fsPromises.stat(`${pathToRouteFiles}.body`);
+            lastModified = stats.mtimeMs;
+        } catch (error) {
+            if (debug) {
+                console.warn(
+                    '[CacheHandler] [%s] %s %s',
+                    'instrumentation.cache',
+                    'Failed to read route body file',
+                    `Error: ${error}`,
+                );
             }
 
-            const [body, meta] = await Promise.all([
+            return;
+        }
+
+        let body: Buffer;
+        let meta: RouteMetadata;
+
+        try {
+            [body, meta] = await Promise.all([
                 fsPromises.readFile(`${pathToRouteFiles}.body`),
                 fsPromises
                     .readFile(`${pathToRouteFiles}.meta`, 'utf-8')
                     .then((data) => JSON.parse(data) as RouteMetadata),
             ]);
 
-            try {
-                if (!(meta.headers && meta.status)) {
-                    return;
-                }
-
-                await cacheHandler.set(
-                    route,
-                    {
-                        kind: 'ROUTE',
-                        body,
-                        headers: meta.headers,
-                        status: meta.status,
-                    },
-                    { revalidate, neshca_lastModified: lastModified, tags: getTagsFromHeaders(meta.headers) },
-                );
-            } catch (_) {
-                return;
+            if (!(meta.headers && meta.status)) {
+                throw new Error('Invalid route metadata. Missing headers or status.');
             }
+        } catch (error) {
+            if (debug) {
+                console.warn(
+                    '[CacheHandler] [%s] %s %s',
+                    'instrumentation.cache',
+                    'Failed to read route body or metadata file, or parse metadata',
+                    `Error: ${error}`,
+                );
+            }
+
+            return;
         }
+
+        try {
+            await cacheHandler.set(
+                cachePath,
+                {
+                    kind: 'ROUTE',
+                    body,
+                    headers: meta.headers,
+                    status: meta.status,
+                },
+                { revalidate, neshca_lastModified: lastModified, tags: getTagsFromHeaders(meta.headers) },
+            );
+        } catch (error) {
+            if (debug) {
+                console.warn(
+                    '[CacheHandler] [%s] %s %s',
+                    'instrumentation.cache',
+                    'Failed to set route cache. Please check if the CacheHandler is configured correctly',
+                    `Error: ${error}`,
+                );
+            }
+
+            return;
+        }
+    }
+
+    async function setPageCache(cachePath: string, router: Router, revalidate: Revalidate) {
+        const pathToRouteFiles = path.join(serverDistDir, router, cachePath);
 
         const isAppRouter = router === 'app';
 
@@ -166,7 +221,15 @@ export async function registerInitialCache(CacheHandler: CacheHandlerType, optio
         try {
             const stats = await fsPromises.stat(`${pathToRouteFiles}.html`);
             lastModified = stats.mtimeMs;
-        } catch (_) {
+        } catch (error) {
+            if (debug) {
+                console.warn(
+                    '[CacheHandler] [%s] %s %s',
+                    'instrumentation.cache',
+                    'Failed to read page html file',
+                    `Error: ${error}`,
+                );
+            }
             return;
         }
 
@@ -186,13 +249,22 @@ export async function registerInitialCache(CacheHandler: CacheHandlerType, optio
                           .then((data) => JSON.parse(data) as RouteMetadata)
                     : undefined,
             ]);
-        } catch (_) {
+        } catch (error) {
+            if (debug) {
+                console.warn(
+                    '[CacheHandler] [%s] %s %s',
+                    'instrumentation.cache',
+                    'Failed to read page html, page data, or metadata file, or parse metadata',
+                    `Error: ${error}`,
+                );
+            }
+
             return;
         }
 
         try {
             await cacheHandler.set(
-                route,
+                cachePath,
                 {
                     kind: 'PAGE',
                     html,
@@ -203,28 +275,27 @@ export async function registerInitialCache(CacheHandler: CacheHandlerType, optio
                 },
                 { revalidate, neshca_lastModified: lastModified },
             );
-        } catch (_) {
+        } catch (error) {
+            if (debug) {
+                console.warn(
+                    '[CacheHandler] [%s] %s %s',
+                    'instrumentation.cache',
+                    'Failed to set page cache. Please check if the CacheHandler is configured correctly',
+                    `Error: ${error}`,
+                );
+            }
+
             return;
         }
     }
 
-    for (const [route, { dataRoute, initialRevalidateSeconds }] of Object.entries(prerenderManifest.routes)) {
-        let router: Router | undefined;
-        let cacheKind: CacheKind | undefined;
-
+    for (const [cachePath, { dataRoute, initialRevalidateSeconds }] of Object.entries(prerenderManifest.routes)) {
         if (populatePages && dataRoute?.endsWith('.json')) {
-            router = 'pages';
-            cacheKind = 'PAGE';
+            await setPageCache(cachePath, 'pages', initialRevalidateSeconds);
         } else if (populatePages && dataRoute?.endsWith('.rsc')) {
-            router = 'app';
-            cacheKind = 'PAGE';
+            await setPageCache(cachePath, 'app', initialRevalidateSeconds);
         } else if (populateRoutes && dataRoute === null) {
-            router = 'app';
-            cacheKind = 'ROUTE';
-        }
-
-        if (router && cacheKind) {
-            await setCacheForRoute(route, router, cacheKind, initialRevalidateSeconds);
+            await setRouteCache(cachePath, 'app', initialRevalidateSeconds);
         }
     }
 
@@ -232,7 +303,22 @@ export async function registerInitialCache(CacheHandler: CacheHandlerType, optio
         return;
     }
 
-    const fetchFiles = await fsPromises.readdir(fetchCacheDir);
+    let fetchFiles: string[];
+
+    try {
+        fetchFiles = await fsPromises.readdir(fetchCacheDir);
+    } catch (error) {
+        if (debug) {
+            console.warn(
+                '[CacheHandler] [%s] %s %s',
+                'instrumentation.cache',
+                'Failed to read cache/fetch-cache directory',
+                `Error: ${error}`,
+            );
+        }
+
+        return;
+    }
 
     for (const fetchCacheKey of fetchFiles) {
         const filePath = path.join(fetchCacheDir, fetchCacheKey);
@@ -242,21 +328,54 @@ export async function registerInitialCache(CacheHandler: CacheHandlerType, optio
         try {
             const stats = await fsPromises.stat(filePath);
             lastModified = stats.mtimeMs;
-        } catch (_) {
+        } catch (error) {
+            if (debug) {
+                console.warn(
+                    '[CacheHandler] [%s] %s %s',
+                    'instrumentation.cache',
+                    'Failed to read fetch cache file',
+                    `Error: ${error}`,
+                );
+            }
             return;
         }
 
-        const fetchCache = await fsPromises
-            .readFile(filePath, 'utf-8')
-            .then((data) => JSON.parse(data) as CachedFetchValue);
+        let fetchCache: CachedFetchValue;
+        try {
+            fetchCache = await fsPromises
+                .readFile(filePath, 'utf-8')
+                .then((data) => JSON.parse(data) as CachedFetchValue);
+        } catch (error) {
+            if (debug) {
+                console.warn(
+                    '[CacheHandler] [%s] %s %s',
+                    'instrumentation.cache',
+                    'Failed to parse fetch cache file',
+                    `Error: ${error}`,
+                );
+            }
+
+            return;
+        }
 
         // HACK: By default, Next.js sets the revalidate option to CACHE_ONE_YEAR if the revalidate option is set
         const revalidate = fetchCache.revalidate === CACHE_ONE_YEAR ? false : fetchCache.revalidate;
 
-        await cacheHandler.set(fetchCacheKey, fetchCache, {
-            revalidate,
-            neshca_lastModified: lastModified,
-            tags: fetchCache.tags,
-        });
+        try {
+            await cacheHandler.set(fetchCacheKey, fetchCache, {
+                revalidate,
+                neshca_lastModified: lastModified,
+                tags: fetchCache.tags,
+            });
+        } catch (error) {
+            if (debug) {
+                console.warn(
+                    '[CacheHandler] [%s] %s %s',
+                    'instrumentation.cache',
+                    'Failed to set fetch cache. Please check if the CacheHandler is configured correctly',
+                    `Error: ${error}`,
+                );
+            }
+        }
     }
 }
