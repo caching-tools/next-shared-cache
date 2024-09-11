@@ -1,5 +1,11 @@
 # @neshca/cache-handler
 
+## 1.7.1
+
+### Patch Changes
+
+- 432a918: Fix an error when working with the `fetch-cache` in the `registerInitialCache`.
+
 ## 1.7.0
 
 ### Minor Changes
