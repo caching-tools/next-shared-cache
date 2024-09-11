@@ -33,6 +33,37 @@ export async function register() {
 
 This instrumentation will fill the cache with the initial data when the application starts. The duration of this process may vary based on the number and size of pages, routes, and fetch calls.
 
+### Using `output: 'standalone'` in `next.config.js`
+
+If you use the `output: 'standalone'` option in your `next.config.js` file, you must copy the `fetch-cache` directory to the `standalone` directory. Otherwise, the instrumentation will not pre-populate the cache with the initial fetch calls data.
+
+To copy the `fetch-cache` directory, run the following command in your project root directory:
+
+```sh
+mkdir -p .next/standalone/.next/cache/fetch-cache
+cp .next/cache/fetch-cache/* .next/standalone/.next/cache/fetch-cache/
+```
+
+Or using `Dockerfile`:
+
+```dockerfile
+COPY .next/cache/fetch-cache/ .next/standalone/.next/cache/fetch-cache/
+```
+
+#### Caveats
+
+When using the `output: 'standalone'` option in a monorepo, you may need to adjust the paths in the above command to match your project structure.
+
+For example, they may look like this:
+
+```sh
+mkdir -p .next/standalone/<path-to-your-app-in-the-monorepo>/.next/cache/fetch-cache
+cp .next/cache/fetch-cache/* .next/standalone/<path-to-your-app-in-the-monorepo>/.next/cache/fetch-cache/
+```
+
+You may also need to configure `outputFileTracingRoot` in your `next.config.js` to work locally. Refer to the [Next.js `output: standalone` option ↗](https://nextjs.org/docs/app/api-reference/next-config-js/output) for more information.
+
 ### Usful links
 
 - [Instrumentation Next.js documentation ↗](https://nextjs.org/docs/app/building-your-application/optimizing/instrumentation)
+- [Next.js `output: standalone` option ↗](https://nextjs.org/docs/app/api-reference/next-config-js/output)
