@@ -12,7 +12,10 @@
                 "noApproximativeNumericConstant": "error",
                 "noMisrefactoredShorthandAssign": "error",
                 "useAwait": "error",
-                "noDuplicateTestHooks": "error"
+                "noDuplicateTestHooks": "error",
+                "noEvolvingTypes": "error",
+                "noMisplacedAssertion": "error",
+                "useNumberToFixedDigitsArgument": "error"
             },
             "correctness": {
                 "noUndeclaredVariables": "error",
@@ -20,7 +23,8 @@
                 "noUnusedImports": "error",
                 "noUnusedPrivateClassMembers": "error",
                 "noConstantMathMinMaxClamp": "error",
-                "noFlatMapIdentity": "error"
+                "noFlatMapIdentity": "error",
+                "noUnusedFunctionParameters": "error"
             },
             "style": {
                 "noNamespace": "error",
@@ -42,26 +46,22 @@
                         "filenameCases": ["kebab-case"]
                     }
                 },
-                "useNodeAssertStrict": "error"
+                "useNodeAssertStrict": "error",
+                "noDoneCallback": "error",
+                "useThrowNewError": "error",
+                "noYodaExpression": "error"
             },
             "nursery": {
-                "noDoneCallback": "error",
-                "noDuplicateElseIf": "error",
-                "noEvolvingTypes": "error",
-                "noMisplacedAssertion": "error",
-                "useNumberToFixedDigitsArgument": "error",
-                "useThrowNewError": "error",
-                "useTopLevelRegex": "error",
-                "noYodaExpression": "error",
-                "noUnusedFunctionParameters": "error",
-                "noUselessUndefinedInitialization": "error"
+                "noDuplicateElseIf": "error"
             },
             "complexity": {
                 "useSimplifiedLogicExpression": "error",
-                "noUselessTernary": "error"
+                "noUselessTernary": "error",
+                "noUselessUndefinedInitialization": "error"
             },
             "performance": {
-                "noReExportAll": "error"
+                "noReExportAll": "error",
+                "useTopLevelRegex": "error"
             }
         }
     },
@@ -95,7 +95,7 @@
         },
         {
             "include": ["*.test.ts"],
-            "linter": { "rules": { "nursery": { "useTopLevelRegex": "off" } } }
+            "linter": { "rules": { "performance": { "useTopLevelRegex": "off" } } }
         }
     ]
 }
