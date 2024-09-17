@@ -1,5 +1,11 @@
 # @neshca/cache-handler
 
+## 1.7.2
+
+### Patch Changes
+
+- be27549: Add error handling for `keyExpirationStrategy` and `prerenderManifest` parsing.
+
 ## 1.7.1
 
 ### Patch Changes
