@@ -6,65 +6,37 @@
     "linter": {
         "enabled": true,
         "rules": {
-            "recommended": true,
+            "all": true,
             "suspicious": {
-                "noConsoleLog": "error",
-                "noApproximativeNumericConstant": "error",
-                "noMisrefactoredShorthandAssign": "error",
-                "useAwait": "error",
-                "noDuplicateTestHooks": "error",
-                "noEvolvingTypes": "error",
-                "noMisplacedAssertion": "error",
-                "useNumberToFixedDigitsArgument": "error"
-            },
-            "correctness": {
-                "noUndeclaredVariables": "error",
-                "noUnusedVariables": "error",
-                "noUnusedImports": "error",
-                "noUnusedPrivateClassMembers": "error",
-                "noConstantMathMinMaxClamp": "error",
-                "noFlatMapIdentity": "error",
-                "noUnusedFunctionParameters": "error"
+                "noConsole": {
+                    "level": "error",
+                    "options": { "allow": ["assert", "error", "info", "warn"] }
+                }
             },
             "style": {
-                "noNamespace": "error",
-                "noNegationElse": "error",
-                "noParameterProperties": "error",
-                "noRestrictedGlobals": "error",
-                "noShoutyConstants": "error",
-                "useBlockStatements": "error",
-                "useCollapsedElseIf": "error",
-                "useShorthandArrayType": "error",
-                "useShorthandAssign": "error",
-                "useSingleCaseStatement": "error",
-                "useImportType": "error",
-                "useNumberNamespace": "error",
-                "useShorthandFunctionType": "error",
                 "useFilenamingConvention": {
                     "level": "error",
                     "options": {
                         "filenameCases": ["kebab-case"]
                     }
                 },
-                "useNodeAssertStrict": "error",
-                "noDoneCallback": "error",
-                "useThrowNewError": "error",
-                "noYodaExpression": "error"
+                "noDefaultExport": "off",
+                "useNamingConvention": "off"
             },
-            "nursery": {
-                "noDuplicateElseIf": "error"
+            "correctness": {
+                "noNodejsModules": "off",
+                "noUndeclaredDependencies": "off",
+                "useImportExtensions": "off"
             },
             "complexity": {
-                "useSimplifiedLogicExpression": "error",
-                "noUselessTernary": "error",
-                "noUselessUndefinedInitialization": "error"
+                "noExcessiveCognitiveComplexity": "off"
             },
             "performance": {
-                "noReExportAll": "error",
-                "useTopLevelRegex": "error"
+                "noBarrelFile": "off"
             }
         }
     },
+
     "formatter": {
         "enabled": true,
         "lineWidth": 120,
@@ -96,6 +68,10 @@
         {
             "include": ["*.test.ts"],
             "linter": { "rules": { "performance": { "useTopLevelRegex": "off" } } }
+        },
+        {
+            "include": ["*.js", "*.cjs"],
+            "linter": { "rules": { "nursery": { "noCommonJs": "off" } } }
         }
     ]
 }

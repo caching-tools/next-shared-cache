@@ -19,6 +19,8 @@ import { getTagsFromHeaders } from './helpers/get-tags-from-headers';
 
 export type { CacheHandlerValue };
 
+const PRERENDER_MANIFEST_VERSION = 4;
+
 /**
  * Represents an internal Next.js metadata for a `get` method.
  * This metadata is available in the `get` method of the cache handler.
@@ -579,6 +581,12 @@ export class CacheHandler implements NextCacheHandler {
 
             const prerenderManifest = JSON.parse(prerenderManifestData) as PrerenderManifest;
 
+            if (prerenderManifest.version !== PRERENDER_MANIFEST_VERSION) {
+                throw new Error(
+                    `Invalid prerender manifest version. Expected version ${PRERENDER_MANIFEST_VERSION}. Please check if the Next.js version is compatible with the CacheHandler version.`,
+                );
+            }
+
             for (const [route, { srcRoute, dataRoute }] of Object.entries(prerenderManifest.routes)) {
                 const isPagesRouter = dataRoute?.endsWith('.json');
 
@@ -586,7 +594,16 @@ export class CacheHandler implements NextCacheHandler {
                     CacheHandler.#fallbackFalseRoutes.add(route);
                 }
             }
-        } catch (_error) {}
+        } catch (_error) {
+            if (CacheHandler.#debug) {
+                console.warn(
+                    '[CacheHandler] [%s] %s %s',
+                    'instrumentation.cache',
+                    'Failed to read prerender manifest. Pages from the Pages Router with `fallback: false` will return 404 errors.',
+                    `Error: ${_error}`,
+                );
+            }
+        }
 
         const handlersList: Handler[] = handlers.filter((handler) => !!handler);
 

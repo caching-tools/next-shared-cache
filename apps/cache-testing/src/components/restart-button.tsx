@@ -6,7 +6,7 @@ export function RestartButton(): JSX.Element {
     const [restartState, setRestartState] = useState('');
 
     function restart(): void {
-        void fetch('/api/restart-app').then((result) => {
+        fetch('/api/restart-app').then((result) => {
             if (!result.ok) {
                 setRestartState('Fail to restart');
             }

@@ -22,6 +22,9 @@ export async function refreshPageCache(page: Page, by: 'tag' | 'path') {
             await revalidateByPath(page);
             break;
         }
+        default: {
+            throw new Error(`Invalid by: ${by}`);
+        }
     }
 
     await page.reload();
