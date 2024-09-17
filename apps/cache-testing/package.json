@@ -17,12 +17,14 @@
         "start": "dotenv -e .env.local -v SERVER_STARTED=1 node .next/standalone/apps/cache-testing/server.js"
     },
     "dependencies": {
+        "@neshca/cache-handler": "*",
+        "axios": "1.7.7",
         "next": "14.2.11",
         "react": "18.3.1",
-        "react-dom": "18.3.1"
+        "react-dom": "18.3.1",
+        "redis": "4.7.0"
     },
     "devDependencies": {
-        "@neshca/cache-handler": "*",
         "@next/eslint-plugin-next": "14.2.11",
         "@playwright/test": "1.47.1",
         "@repo/eslint-config": "*",
@@ -31,12 +33,10 @@
         "@types/node": "22.5.4",
         "@types/react": "18.3.5",
         "@types/react-dom": "18.3.0",
-        "axios": "1.7.7",
         "dotenv-cli": "7.4.2",
         "eslint": "8.57.0",
         "fastify": "4.28.1",
         "pm2": "5.4.2",
-        "redis": "4.7.0",
         "rimraf": "6.0.1",
         "tsx": "4.19.1",
         "typescript": "5.6.2"

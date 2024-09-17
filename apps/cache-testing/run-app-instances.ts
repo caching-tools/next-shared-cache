@@ -2,6 +2,7 @@
 
 import { scheduler } from 'node:timers/promises';
 import Fastify from 'fastify';
+// biome-ignore lint/style/noNamespaceImport: pm2 works only with Namespace import
 import * as pm2Default from 'pm2';
 
 const { default: pm2 } = pm2Default as unknown as { default: typeof import('pm2') };
@@ -67,11 +68,11 @@ app.get('/restart/:port', async (request, reply) => {
         if (restartError) {
             console.error(restartError);
 
-            void reply.code(500).send({ status: 'error' });
+            reply.code(500).send({ status: 'error' });
         }
 
         // workaround for unstable tests
-        void scheduler.wait(1000).then(async () => {
+        scheduler.wait(1000).then(async () => {
             await reply.code(200).send({ restarted: name });
         });
     });

@@ -28,7 +28,7 @@ export function RevalidateButton({
             searchParams.set(type, pathname);
         }
 
-        void fetch(`/api/revalidate-${nextApi}?${searchParams.toString()}`).then(async (result) => {
+        fetch(`/api/revalidate-${nextApi}?${searchParams.toString()}`).then(async (result) => {
             if (!result.ok) {
                 setRevalidation('Fail to revalidate');
 

@@ -72,6 +72,9 @@ server.get('/count/:routerType/:preRendered:/:fallback/:page', async (request, r
                 .send(result);
             break;
         }
+        default: {
+            throw new Error(`Invalid page: ${page}`);
+        }
     }
 });
 

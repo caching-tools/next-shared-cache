@@ -144,11 +144,15 @@ export default function createHandler({
                         : undefined;
                     break;
                 }
+                default: {
+                    throw new Error(`Invalid keyExpirationStrategy: ${keyExpirationStrategy}`);
+                }
             }
 
-            const setTagsOperation = cacheHandlerValue.tags.length
-                ? cluster.hSet(options, keyPrefix + sharedTagsKey, key, JSON.stringify(cacheHandlerValue.tags))
-                : undefined;
+            const setTagsOperation =
+                cacheHandlerValue.tags.length > 0
+                    ? cluster.hSet(options, keyPrefix + sharedTagsKey, key, JSON.stringify(cacheHandlerValue.tags))
+                    : undefined;
 
             await Promise.all([setOperation, expireOperation, setTagsOperation]);
         },
