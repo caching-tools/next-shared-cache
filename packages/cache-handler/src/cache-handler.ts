@@ -196,6 +196,21 @@ export type CacheHandlerConfig = {
      * @since 1.0.0
      */
     ttl?: Partial<TTLParameters>;
+    /**
+     * The mode for retrieving cache values.
+     *
+     * - `'ordered'`: Retrieves cache values in the order of the {@link CacheHandlerConfig.handlers} array.
+     * In case of cache miss returns `null`.
+     * In case of error passes the `get` operation to the next Handler.
+     * - `'all'`: Retrieves cache values in parallel.
+     * Returns `null` if all cache values are not available or every Handler throws an error.
+     * If multiple cache values are available, returns the newest one.
+     *
+     * @default 'ordered'
+     *
+     * @since 1.8.0
+     */
+    getMode?: 'ordered' | 'all';
 };
 
 /**
@@ -553,7 +568,7 @@ export class CacheHandler implements NextCacheHandler {
         }
 
         // Wait for the cache configuration to be resolved
-        const { handlers, ttl = {} } = await config;
+        const { handlers, ttl = {}, getMode = 'ordered' } = await config;
 
         const { defaultStaleAge, estimateExpireAge } = ttl;
 
@@ -605,73 +620,129 @@ export class CacheHandler implements NextCacheHandler {
             }
         }
 
-        const handlersList: Handler[] = handlers.filter((handler) => !!handler);
+        async function getOrdered(key: string, meta: HandlerGetMeta) {
+            for (const handler of handlersList) {
+                if (CacheHandler.#debug) {
+                    console.info(
+                        '[CacheHandler] [handler: %s] [method: %s] [key: %s] %s',
+                        handler.name,
+                        'get',
+                        key,
+                        'Started retrieving value.',
+                    );
+                }
 
-        CacheHandler.#cacheListLength = handlersList.length;
+                try {
+                    let cacheHandlerValue = await handler.get(key, meta);
 
-        CacheHandler.#mergedHandler = {
-            async get(key, meta) {
-                for (const handler of handlersList) {
-                    if (CacheHandler.#debug) {
-                        console.info(
-                            '[CacheHandler] [handler: %s] [method: %s] [key: %s] %s',
-                            handler.name,
-                            'get',
-                            key,
-                            'Started retrieving value.',
-                        );
-                    }
-
-                    try {
-                        let cacheHandlerValue = await handler.get(key, meta);
-
-                        if (
-                            cacheHandlerValue?.lifespan &&
-                            cacheHandlerValue.lifespan.expireAt < Math.floor(Date.now() / 1000)
-                        ) {
-                            if (CacheHandler.#debug) {
-                                console.info(
-                                    '[CacheHandler] [handler: %s] [method: %s] [key: %s] %s',
-                                    handler.name,
-                                    'get',
-                                    key,
-                                    'Entry expired.',
-                                );
-                            }
-
-                            cacheHandlerValue = null;
-
-                            // remove the entry from all handlers in background
-                            removeEntryFromHandlers(handlersList, key, CacheHandler.#debug);
-                        }
-
-                        if (cacheHandlerValue && CacheHandler.#debug) {
+                    if (
+                        cacheHandlerValue?.lifespan &&
+                        cacheHandlerValue.lifespan.expireAt < Math.floor(Date.now() / 1000)
+                    ) {
+                        if (CacheHandler.#debug) {
                             console.info(
                                 '[CacheHandler] [handler: %s] [method: %s] [key: %s] %s',
                                 handler.name,
                                 'get',
                                 key,
-                                'Successfully retrieved value.',
+                                'Entry expired.',
                             );
                         }
 
-                        return cacheHandlerValue;
-                    } catch (error) {
-                        if (CacheHandler.#debug) {
-                            console.warn(
-                                '[CacheHandler] [handler: %s] [method: %s] [key: %s] %s',
-                                handler.name,
-                                'get',
-                                key,
-                                `Error: ${error}`,
-                            );
-                        }
+                        cacheHandlerValue = null;
+
+                        // remove the entry from all handlers in background
+                        removeEntryFromHandlers(handlersList, key, CacheHandler.#debug);
+                    }
+
+                    if (cacheHandlerValue && CacheHandler.#debug) {
+                        console.info(
+                            '[CacheHandler] [handler: %s] [method: %s] [key: %s] %s',
+                            handler.name,
+                            'get',
+                            key,
+                            'Successfully retrieved value.',
+                        );
+                    }
+
+                    return cacheHandlerValue;
+                } catch (error) {
+                    if (CacheHandler.#debug) {
+                        console.warn(
+                            '[CacheHandler] [handler: %s] [method: %s] [key: %s] %s',
+                            handler.name,
+                            'get',
+                            key,
+                            `Error: ${error}`,
+                        );
                     }
                 }
+            }
 
-                return null;
-            },
-            async set(key, cacheHandlerValue) {
+            return null;
+        }
+
+        async function getAll(key: string, meta: HandlerGetMeta) {
+            const operationsResults = await Promise.allSettled(handlersList.map((handler) => handler.get(key, meta)));
+
+            let newestCacheHandlerValue: CacheHandlerValue | undefined | null = null;
+            let newestCacheHandlerIndex: number | undefined;
+
+            for (const [index, handlerResult] of operationsResults.entries()) {
+                if (handlerResult.status === 'fulfilled') {
+                    if (!handlerResult.value) {
+                        continue;
+                    }
+
+                    if (
+                        handlerResult.value.lastModified >
+                        (newestCacheHandlerValue?.lastModified ?? Number.NEGATIVE_INFINITY)
+                    ) {
+                        newestCacheHandlerValue = handlerResult.value;
+                        newestCacheHandlerIndex = index;
+                    }
+                } else if (CacheHandler.#debug) {
+                    console.warn(
+                        '[CacheHandler] [handler: %s] [method: %s] [key: %s] %s',
+                        handlersList.at(index)?.name ?? `unknown-${index}`,
+                        'get',
+                        key,
+                        `Error: ${handlerResult.reason}`,
+                    );
+                }
+            }
+
+            if (
+                typeof newestCacheHandlerIndex === 'number' &&
+                newestCacheHandlerValue?.lifespan &&
+                newestCacheHandlerValue.lifespan.expireAt < Math.floor(Date.now() / 1000)
+            ) {
+                if (CacheHandler.#debug) {
+                    console.info(
+                        '[CacheHandler] [handler: %s] [method: %s] [key: %s] %s',
+                        handlersList.at(newestCacheHandlerIndex)?.name ?? `unknown-${newestCacheHandlerIndex}`,
+                        'get',
+                        key,
+                        'Entry expired.',
+                    );
+                }
+
+                // remove the entry from all handlers in background
+                removeEntryFromHandlers(handlersList, key, CacheHandler.#debug);
+
+                newestCacheHandlerValue = null;
+            }
+
+            return newestCacheHandlerValue;
+        }
+
+        const handlersList: Handler[] = handlers.filter((handler) => !!handler);
+
+        CacheHandler.#cacheListLength = handlersList.length;
+
+        CacheHandler.#mergedHandler = {
+            get: getMode === 'ordered' ? getOrdered : getAll,
+            set: async (key, cacheHandlerValue) => {
                 const operationsResults = await Promise.allSettled(
                     handlersList.map((handler) => handler.set(key, { ...cacheHandlerValue })),
                 );
@@ -684,7 +755,7 @@ export class CacheHandler implements NextCacheHandler {
                     if (handlerResult.status === 'rejected') {
                         console.warn(
                             '[CacheHandler] [handler: %s] [method: %s] [key: %s] %s',
-                            handlersList[index]?.name ?? `unknown-${index}`,
+                            handlersList.at(index)?.name ?? `unknown-${index}`,
                             'set',
                             key,
                             `Error: ${handlerResult.reason}`,
@@ -692,7 +763,7 @@ export class CacheHandler implements NextCacheHandler {
                     } else {
                         console.info(
                             '[CacheHandler] [handler: %s] [method: %s] [key: %s] %s',
-                            handlersList[index]?.name ?? `unknown-${index}`,
+                            handlersList.at(index)?.name ?? `unknown-${index}`,
                             'set',
                             key,
                             'Successfully set value.',
@@ -700,7 +771,7 @@ export class CacheHandler implements NextCacheHandler {
                     }
                 });
             },
-            async revalidateTag(tag) {
+            revalidateTag: async (tag) => {
                 const operationsResults = await Promise.allSettled(
                     handlersList.map((handler) => handler.revalidateTag(tag)),
                 );
@@ -713,7 +784,7 @@ export class CacheHandler implements NextCacheHandler {
                     if (handlerResult.status === 'rejected') {
                         console.warn(
                             '[CacheHandler] [handler: %s] [method: %s] [tag: %s] %s',
-                            handlersList[index]?.name ?? `unknown-${index}`,
+                            handlersList.at(index)?.name ?? `unknown-${index}`,
                             'revalidateTag',
                             tag,
                             `Error: ${handlerResult.reason}`,
@@ -721,7 +792,7 @@ export class CacheHandler implements NextCacheHandler {
                     } else {
                         console.info(
                             '[CacheHandler] [handler: %s] [method: %s] [tag: %s] %s',
-                            handlersList[index]?.name ?? `unknown-${index}`,
+                            handlersList.at(index)?.name ?? `unknown-${index}`,
                             'revalidateTag',
                             tag,
                             'Successfully revalidated tag.',
