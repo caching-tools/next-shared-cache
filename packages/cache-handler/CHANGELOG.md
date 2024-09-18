@@ -1,5 +1,11 @@
 # @neshca/cache-handler
 
+## 1.7.3
+
+### Patch Changes
+
+- 972ed99: Add `.npmignore` file to exclude unnecessary files from the package.
+
 ## 1.7.2
 
 ### Patch Changes
