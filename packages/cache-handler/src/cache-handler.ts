@@ -14,6 +14,7 @@ import type {
     Revalidate,
 } from '@neshca/next-common';
 
+import type { Tracer } from '@opentelemetry/api';
 import { createValidatedAgeEstimationFunction } from './helpers/create-validated-age-estimation-function';
 import { getTagsFromHeaders } from './helpers/get-tags-from-headers';
 
@@ -196,6 +197,7 @@ export type CacheHandlerConfig = {
      * @since 1.0.0
      */
     ttl?: Partial<TTLParameters>;
+    tracer?: Tracer;
 };
 
 /**
@@ -373,6 +375,8 @@ export class CacheHandler implements NextCacheHandler {
     static #onCreationHook: OnCreationHook;
 
     static #serverDistDir: string;
+
+    static #tracer: Tracer | null = null;
 
     static async #readPagesRouterPage(cacheKey: string): Promise<CacheHandlerValue | null> {
         let cacheHandlerValue: CacheHandlerValue | null = null;
@@ -553,7 +557,9 @@ export class CacheHandler implements NextCacheHandler {
         }
 
         // Wait for the cache configuration to be resolved
-        const { handlers, ttl = {} } = await config;
+        const { handlers, ttl = {}, tracer = null } = await config;
+
+        CacheHandler.#tracer = tracer;
 
         const { defaultStaleAge, estimateExpireAge } = ttl;
 
@@ -755,6 +761,10 @@ export class CacheHandler implements NextCacheHandler {
         cacheKey: CacheHandlerParametersGet[0],
         ctx: CacheHandlerParametersGet[1] = {},
     ): Promise<CacheHandlerValue | null> {
+        const span = CacheHandler.#tracer?.startSpan('get-cache', {
+            attributes: { key: cacheKey },
+        });
+
         await CacheHandler.#configureCacheHandler();
 
         const { softTags = [] } = ctx;
@@ -782,8 +792,16 @@ export class CacheHandler implements NextCacheHandler {
             // if we have a value from the file system, we should set it to the cache store
             if (cachedData) {
                 await CacheHandler.#mergedHandler.set(cacheKey, cachedData);
+
+                span?.setAttribute('from-file-system', true);
             }
         }
+
+        if (cachedData?.value) {
+            span?.setAttribute('kind', cachedData.value.kind);
+        }
+
+        span?.end();
 
         return cachedData ?? null;
     }
@@ -793,6 +811,10 @@ export class CacheHandler implements NextCacheHandler {
         incrementalCacheValue: CacheHandlerParametersSet[1],
         ctx: CacheHandlerParametersSet[2] & { neshca_lastModified?: number },
     ): Promise<void> {
+        const span = CacheHandler.#tracer?.startSpan('set-cache', {
+            attributes: { key: cacheKey, kind: incrementalCacheValue?.kind ?? 'null' },
+        });
+
         await CacheHandler.#configureCacheHandler();
 
         if (CacheHandler.#debug) {
@@ -814,6 +836,9 @@ export class CacheHandler implements NextCacheHandler {
 
         // If expireAt is in the past, do not cache
         if (lifespan !== null && Date.now() > lifespan.expireAt * 1000) {
+            span?.setAttribute('already-expired', true);
+            span?.end();
+
             return;
         }
 
@@ -853,14 +878,21 @@ export class CacheHandler implements NextCacheHandler {
         await CacheHandler.#mergedHandler.set(cacheKey, cacheHandlerValue);
 
         if (hasFallbackFalse && cacheHandlerValue.value?.kind === 'PAGE') {
+            span?.addEvent('Writing cache to file system');
             await CacheHandler.#writePagesRouterPage(cacheKey, cacheHandlerValue.value);
         }
+
+        span?.end();
     }
 
     async revalidateTag(tag: CacheHandlerParametersRevalidateTag[0]): Promise<void> {
-        await CacheHandler.#configureCacheHandler();
-
         const tags = typeof tag === 'string' ? [tag] : tag;
+
+        const span = CacheHandler.#tracer?.startSpan('revalidate-tag', {
+            attributes: { tags: tags.join(', ') },
+        });
+
+        await CacheHandler.#configureCacheHandler();
 
         if (CacheHandler.#debug) {
             console.info(
@@ -874,6 +906,8 @@ export class CacheHandler implements NextCacheHandler {
         for (const tag of tags) {
             await CacheHandler.#mergedHandler.revalidateTag(tag);
         }
+
+        span?.end();
     }
 
     resetRequestCache(): void {

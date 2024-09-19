@@ -2,6 +2,7 @@
 
 import { CacheHandler } from '@neshca/cache-handler';
 import createRedisHandler from '@neshca/cache-handler/redis-strings';
+import { BasicTracerProvider, ConsoleSpanExporter, SimpleSpanProcessor } from '@opentelemetry/sdk-trace-base';
 import { createClient } from 'redis';
 
 CacheHandler.onCreation(async () => {
@@ -33,9 +34,17 @@ CacheHandler.onCreation(async () => {
         keyPrefix: PREFIX,
     });
 
+    const provider = new BasicTracerProvider();
+
+    provider.addSpanProcessor(new SimpleSpanProcessor(new ConsoleSpanExporter()));
+    provider.register();
+
+    const tracer = provider.getTracer('cache-handler');
+
     return {
         handlers: [redisHandler],
         ttl: { defaultStaleAge: 60, estimateExpireAge: (staleAge) => staleAge * 2 },
+        tracer,
     };
 });
 
