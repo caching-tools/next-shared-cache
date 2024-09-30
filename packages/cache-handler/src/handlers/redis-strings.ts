@@ -94,13 +94,11 @@ export default function createHandler({
 
             const options = getTimeoutRedisCommandOptions(timeoutMs);
 
-            let setOperation: Promise<string | null>;
-
             let expireOperation: Promise<boolean> | undefined;
 
             switch (keyExpirationStrategy) {
                 case 'EXAT': {
-                    setOperation = client.set(
+                    await client.set(
                         options,
                         keyPrefix + key,
                         JSON.stringify(cacheHandlerValue),
@@ -113,7 +111,7 @@ export default function createHandler({
                     break;
                 }
                 case 'EXPIREAT': {
-                    setOperation = client.set(options, keyPrefix + key, JSON.stringify(cacheHandlerValue));
+                    await client.set(options, keyPrefix + key, JSON.stringify(cacheHandlerValue));
 
                     expireOperation = cacheHandlerValue.lifespan
                         ? client.expireAt(options, keyPrefix + key, cacheHandlerValue.lifespan.expireAt)
@@ -130,7 +128,7 @@ export default function createHandler({
                     ? client.hSet(options, keyPrefix + sharedTagsKey, key, JSON.stringify(cacheHandlerValue.tags))
                     : undefined;
 
-            await Promise.all([setOperation, expireOperation, setTagsOperation]);
+            await Promise.all([expireOperation, setTagsOperation]);
         },
         async revalidateTag(tag) {
             assertClientIsReady();

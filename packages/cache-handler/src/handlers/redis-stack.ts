@@ -121,18 +121,16 @@ export default function createHandler({
 
             const options = getTimeoutRedisCommandOptions(timeoutMs);
 
-            const setCacheValue = client.json.set(
+            await client.json.set(
                 options,
                 keyPrefix + key,
                 '.',
                 cacheHandlerValue as unknown as RedisJSON,
             );
 
-            const expireCacheValue = cacheHandlerValue.lifespan
-                ? client.expireAt(options, keyPrefix + key, cacheHandlerValue.lifespan.expireAt)
-                : undefined;
-
-            await Promise.all([setCacheValue, expireCacheValue]);
+            if (cacheHandlerValue.lifespan) {
+                await client.expireAt(options, keyPrefix + key, cacheHandlerValue.lifespan.expireAt);
+            }
         },
         async revalidateTag(tag) {
             assertClientIsReady();
