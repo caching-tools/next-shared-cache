@@ -38,7 +38,7 @@
     },
     "devDependencies": {
         "@actions/core": "1.11.1",
-        "@biomejs/biome": "1.9.2",
+        "@biomejs/biome": "1.9.3",
         "@repo/prettier-config": "*",
         "@repo/typescript-config": "*",
         "diffscribe": "*",
