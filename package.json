@@ -34,7 +34,7 @@
         "version-packages": "changeset version && npm run codestyle:fix"
     },
     "dependencies": {
-        "@changesets/cli": "2.27.8"
+        "@changesets/cli": "2.27.9"
     },
     "devDependencies": {
         "@actions/core": "1.11.1",
