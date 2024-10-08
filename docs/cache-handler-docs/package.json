@@ -2,6 +2,7 @@
     "name": "cache-handler-docs",
     "version": "0.1.0",
     "private": true,
+    "type": "module",
     "scripts": {
         "build:docs": "next build",
         "clean": "rimraf ./.next ./.turbo ./node_modules ./out",
