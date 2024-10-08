@@ -11,7 +11,7 @@
         "clean": "rimraf ./.turbo ./node_modules"
     },
     "dependencies": {
-        "next": "14.2.13"
+        "next": "14.2.14"
     },
     "devDependencies": {
         "@repo/typescript-config": "*",
