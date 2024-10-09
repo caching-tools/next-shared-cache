@@ -1,5 +1,11 @@
 # @neshca/cache-handler
 
+## 1.7.4
+
+### Patch Changes
+
+- 3cd218c: Fix `neshCache` JSDocs time interval description. It was incorrectly stated in milliseconds. Now it is stated in seconds.
+
 ## 1.7.3
 
 ### Patch Changes
