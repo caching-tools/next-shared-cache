@@ -16,7 +16,7 @@ This is an object that controls how the cache behaves. It can contain the follow
 
 - `tags` - An array of tags to associate with the cached result. Tags are used to revalidate the cache using the `revalidateTag` and `revalidatePath` functions.
 
-- `revalidate` - The revalidation interval in milliseconds. Must be a positive integer or `false` to disable revalidation. Defaults to `export const revalidate = time;` in the current route.
+- `revalidate` - The revalidation interval in seconds. Must be a positive integer or `false` to disable revalidation. Defaults to `export const revalidate = time;` in the current route.
 
 - `argumentsSerializer` - A function that serializes the arguments passed to the callback function. Use it to create a cache key. Defaults to `JSON.stringify(args)`.
 
