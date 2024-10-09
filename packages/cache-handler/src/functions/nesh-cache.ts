@@ -114,7 +114,7 @@ type NeshCacheOptions<Arguments extends unknown[], Result> = {
      */
     tags?: string[];
     /**
-     * The revalidation interval in milliseconds.
+     * The revalidation interval in seconds.
      * Must be a positive integer or `false` to disable revalidation.
      *
      * @default revalidate // of the current route
@@ -175,7 +175,7 @@ type CommonNeshCacheOptions<Arguments extends unknown[], Result> = Omit<
  * @param options.tags - An array of tags to associate with the cached result.
  * Tags are used to revalidate the cache using the `revalidateTag` function.
  *
- * @param options.revalidate - The revalidation interval in milliseconds.
+ * @param options.revalidate - The revalidation interval in seconds.
  * Must be a positive integer or `false` to disable revalidation.
  * Defaults to `export const revalidate = time;` in the current route.
  *
