@@ -2,6 +2,7 @@
     "name": "cache-handler-docs",
     "version": "0.1.0",
     "private": true,
+    "type": "module",
     "scripts": {
         "build:docs": "next build",
         "clean": "rimraf ./.next ./.turbo ./node_modules ./out",
@@ -12,8 +13,8 @@
     },
     "dependencies": {
         "next": "14.2.14",
-        "nextra": "2.13.4",
-        "nextra-theme-docs": "2.13.4",
+        "nextra": "3.0.7",
+        "nextra-theme-docs": "3.0.7",
         "react": "18.3.1",
         "react-dom": "18.3.1"
     },

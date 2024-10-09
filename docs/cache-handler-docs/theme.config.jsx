@@ -3,8 +3,10 @@ import { useConfig } from 'nextra-theme-docs';
 
 function Head() {
     const { asPath } = useRouter();
-    const { frontMatter } = useConfig();
+    const { frontMatter, title } = useConfig();
     const url = `https://caching-tools.github.io/next-shared-cache${asPath}`;
+
+    const currentTitle = asPath === '/' ? '@neshca/cache-handler' : `${title} — @neshca/cache-handler`;
 
     return (
         <>
@@ -17,6 +19,7 @@ function Head() {
             <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
             <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
             <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+            <title>{currentTitle}</title>
         </>
     );
 }
@@ -27,22 +30,9 @@ export default {
         link: 'https://github.com/caching-tools/next-shared-cache',
     },
     docsRepositoryBase: 'https://github.com/caching-tools/next-shared-cache/tree/canary/docs/cache-handler-docs',
-    useNextSeoProps() {
-        const { asPath } = useRouter();
-
-        if (asPath !== '/') {
-            return {
-                titleTemplate: '%s — @neshca/cache-handler',
-            };
-        }
-
-        return {
-            titleTemplate: '@neshca/cache-handler',
-        };
-    },
     head: Head,
     footer: {
-        text: (
+        content: (
             <span>
                 MIT {new Date().getFullYear()} ©{' '}
                 <a href="https://github.com/caching-tools/next-shared-cache" rel="noreferrer noopener" target="_blank">
@@ -54,7 +44,7 @@ export default {
     },
     banner: {
         key: 'version-1.7.0',
-        text: (
+        content: (
             <div>
                 🎉 Version 1.7.0 is out! It has{' '}
                 <a
