@@ -36,6 +36,7 @@ CacheHandler.onCreation(async () => {
     return {
         handlers: [redisHandler],
         ttl: { defaultStaleAge: 60, estimateExpireAge: (staleAge) => staleAge * 2 },
+        getMode: 'all',
     };
 });
 

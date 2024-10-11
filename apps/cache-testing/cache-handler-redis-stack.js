@@ -72,8 +72,9 @@ CacheHandler.onCreation(async () => {
     }
 
     return {
-        handlers: [handler],
+        handlers: [handler, createLruHandler()],
         ttl: { defaultStaleAge: 60, estimateExpireAge: (staleAge) => staleAge * 2 },
+        getMode: 'all',
     };
 });
 
