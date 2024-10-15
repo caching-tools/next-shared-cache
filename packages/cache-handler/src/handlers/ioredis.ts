@@ -149,7 +149,9 @@ export default function createHandler({
                 );
 
                 for (let i = 0; i < fieldsAndValues.length; i += 2) {
-                    tagsMap.set(fieldsAndValues[i]!, JSON.parse(fieldsAndValues[i + 1]!));
+                    if (fieldsAndValues[i] && fieldsAndValues[i + 1]) {
+                        tagsMap.set(fieldsAndValues[i] as string, JSON.parse(fieldsAndValues[i + 1]  as string));
+                    }
                 }
 
                 cursor = newCursor;
