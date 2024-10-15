@@ -61,6 +61,9 @@
             "redis-strings": [
                 "dist/handlers/redis-strings.d.ts"
             ],
+            "ioredis": [
+                "dist/handlers/ioredis.d.ts"
+            ],
             "server": [
                 "dist/handlers/server.d.ts"
             ],
@@ -94,6 +97,7 @@
         "typescript": "5.6.3"
     },
     "peerDependencies": {
+        "ioredis": ">=5.4.1",
         "next": ">=13.5.1",
         "redis": ">=4.6"
     },
