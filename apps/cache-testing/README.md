@@ -27,8 +27,8 @@ After the sources have been built, and with your `.env.local` modified to levera
 npm run build:app
 ```
 
-Finally, from within this `apps/cache-testing` directory, you can run the tests with:
+Finally, you can run the tests with:
 
 ```
-npx playwright test
+npm run e2e
 ```
