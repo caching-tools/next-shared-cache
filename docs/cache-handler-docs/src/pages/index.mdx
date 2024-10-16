@@ -12,6 +12,8 @@ Next.js applications are often deployed in a self-hosted distributed environment
 - **TTL Management**: Automatic cache cleanup to keep storage space efficient.
 - **Support for Next.js Routers**: Full support and one setup for the Pages and the App Router.
 - **`neshCache` Function**: Utilize the [`neshCache`](/functions/nesh-cache) function to replace `unstable_cache` for more control over caching.
+- **`neshClassicCache` Function**: Use the CacheHandler in the Pages Router to cache the result of expensive operations in the `getServerSideProps` and API routes.
+- **Pre-populate the Cache with Initial Data**: Automatically pre-populate the cache with the initial data when the application starts using the [instrumentation hook ↗](/usage/populating-cache-on-start).
 
 ## Getting Started
 

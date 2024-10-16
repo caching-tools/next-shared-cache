@@ -1,1 +1,1 @@
-export { registerInitialCache, type RegisterInitialCacheOptions } from './instrumentation.cache';
+export { registerInitialCache, type RegisterInitialCacheOptions } from './register-initial-cache';
