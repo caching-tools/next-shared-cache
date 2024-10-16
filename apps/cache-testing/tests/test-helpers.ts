@@ -29,3 +29,28 @@ export async function refreshPageCache(page: Page, by: 'tag' | 'path') {
 
     await page.reload();
 }
+
+export async function revalidateByApi(
+    path: string,
+    base: string,
+    router: 'app' | 'pages' = 'app',
+    by: 'path' | 'tag' = 'tag',
+): Promise<{ revalidated: boolean; now: string }> {
+    const url = new URL(`/api/revalidate-${router}`, base);
+
+    url.searchParams.append(by, path);
+
+    const response = await fetch(url);
+
+    if (!response.ok) {
+        throw new Error('Failed to revalidate');
+    }
+
+    const json = (await response.json()) as { revalidated: boolean; now: string };
+
+    if (!json.revalidated) {
+        throw new Error('Failed to revalidate');
+    }
+
+    return json;
+}

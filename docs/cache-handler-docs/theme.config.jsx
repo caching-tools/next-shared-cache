@@ -43,19 +43,19 @@ export default {
         ),
     },
     banner: {
-        key: 'version-1.7.0',
+        key: 'version-1.8.0',
         content: (
             <div>
-                🎉 Version 1.7.0 is out! It has{' '}
+                🎉 Version 1.8.0 is out! Use shared cache for the Next.js Pages API routes and getServerSideProps with{' '}
                 <a
-                    href="/usage/populating-cache-on-start"
+                    href="/functions/nesh-classic-cache"
                     style={{
                         color: 'lightgreen',
+                        fontFamily: 'monospace',
                     }}
                 >
-                    a new instrumentation hook
-                </a>{' '}
-                to pre-populate the cache with pre-rendered pages on startup.
+                    neshClassicCache
+                </a>
             </div>
         ),
     },

@@ -40,7 +40,6 @@ jobs:
     timeout-minutes: 10
     runs-on: ubuntu-latest
     env:
-      HANDLER_PATH: ./cache-handler-${{ matrix.handler }}.mjs
       REDIS_URL: redis://localhost:6379
     services:
       redis:
@@ -59,6 +58,12 @@ jobs:
           node-version-file: '.nvmrc'
           check-latest: true
           cache: 'npm'
+      - name: Replace Path with Sed
+        run: |
+          if [ "${{ matrix.handler }}" == "redis-strings" ]; then
+            sed -i 's/cache-handler-redis-stack/cache-handler-redis-strings/g' apps/cache-testing/next.config.mjs
+            sed -i 's/cache-handler-redis-stack/cache-handler-redis-strings/g' apps/cache-testing/src/instrumentation.ts
+          fi
       - name: Install dependencies
         run: npm ci
       - name: Install Playwright Browsers

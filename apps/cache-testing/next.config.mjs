@@ -2,7 +2,7 @@
 
 import path from 'node:path';
 
-const cacheHandler = path.resolve(process.env.HANDLER_PATH ?? './cache-handler-redis-stack.mjs');
+const cacheHandler = path.resolve('./cache-handler-redis-stack.mjs');
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
