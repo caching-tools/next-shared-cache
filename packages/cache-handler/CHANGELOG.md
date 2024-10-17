@@ -1,5 +1,11 @@
 # @neshca/cache-handler
 
+## 1.8.1
+
+### Patch Changes
+
+- 3a91160: Refactor monorepo setup and release workflow. No functional changes.
+
 ## 1.8.0
 
 ### Minor Changes
