@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import type { Revalidate } from '@neshca/next-common';
+import type { Revalidate } from '@repo/next-common';
 import { staticGenerationAsyncStorage } from 'next/dist/client/components/static-generation-async-storage.external.js';
 import type { IncrementalCache } from 'next/dist/server/lib/incremental-cache';
 import type { CacheHandler } from '../cache-handler';

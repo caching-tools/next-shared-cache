@@ -12,7 +12,7 @@ import type {
     CacheHandler as NextCacheHandler,
     PrerenderManifest,
     Revalidate,
-} from '@neshca/next-common';
+} from '@repo/next-common';
 
 import { createValidatedAgeEstimationFunction } from './helpers/create-validated-age-estimation-function';
 import { getTagsFromHeaders } from './helpers/get-tags-from-headers';

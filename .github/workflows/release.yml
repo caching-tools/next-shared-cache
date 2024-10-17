@@ -1,5 +1,6 @@
 name: Release
-
+env:
+  CI: true
 on:
   push:
     branches:
@@ -27,12 +28,23 @@ jobs:
           cache: 'npm'
       - name: Install Dependencies
         run: npm ci
+      - name: Build packages
+        run: npm run build:packages
+      - name: Check code style
+        run: npm run codestyle:check
+      - name: Creating .npmrc
+        run: |
+          cat << EOF > "$HOME/.npmrc"
+            //registry.npmjs.org/:_authToken=$NPM_TOKEN
+          EOF
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Create Release Pull Request or Publish to npm
         id: changesets
         uses: changesets/action@v1
         with:
-          publish: npm run release
-          version: npm run version-packages
+          publish: npm run ci:publish
+          version: npm run ci:version
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

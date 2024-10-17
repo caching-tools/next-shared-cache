@@ -1,6 +1,6 @@
 import { promises as fsPromises } from 'node:fs';
 import path from 'node:path';
-import type { CachedFetchValue, Revalidate, RouteMetadata } from '@neshca/next-common';
+import type { CachedFetchValue, Revalidate, RouteMetadata } from '@repo/next-common';
 import { PRERENDER_MANIFEST, SERVER_DIRECTORY } from 'next/constants';
 import type { PrerenderManifest } from 'next/dist/build';
 import { CACHE_ONE_YEAR } from 'next/dist/lib/constants';

@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { type IncrementalCacheEntry, NEXT_CACHE_IMPLICIT_TAG_ID, type Revalidate } from '@neshca/next-common';
+import { type IncrementalCacheEntry, NEXT_CACHE_IMPLICIT_TAG_ID, type Revalidate } from '@repo/next-common';
 import {
     type StaticGenerationStore,
     staticGenerationAsyncStorage,

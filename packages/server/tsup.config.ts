@@ -10,6 +10,6 @@ export const tsup = defineConfig(() => {
         outDir: 'dist',
         format: 'esm',
         target: 'node18',
-        noExternal: ['@neshca/next-lru-cache/string'],
+        noExternal: ['@repo/next-lru-cache/string'],
     };
 });
