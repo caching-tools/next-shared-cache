@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
-import { NEXT_CACHE_IMPLICIT_TAG_ID } from '@neshca/next-common';
-import createCacheStore from '@neshca/next-lru-cache/next-cache-handler-value';
+import { NEXT_CACHE_IMPLICIT_TAG_ID } from '@repo/next-common';
+import createCacheStore from '@repo/next-lru-cache/next-cache-handler-value';
 import Fastify from 'fastify';
 import { pino } from 'pino';
 

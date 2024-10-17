@@ -1,15 +1,14 @@
 {
-    "name": "cache-handler-docs",
-    "version": "0.1.0",
+    "name": "@repo/cache-handler-docs",
+    "version": "0.0.0",
     "private": true,
     "type": "module",
     "scripts": {
         "build:docs": "next build",
-        "clean": "rimraf ./.next ./.turbo ./node_modules ./out",
         "dev:docs": "next dev",
         "eslint:check": "next lint",
         "eslint:fix": "next lint --fix",
-        "start:docs": "next start"
+        "start:docs": "serve out"
     },
     "dependencies": {
         "next": "14.2.15",
@@ -27,6 +26,7 @@
         "@types/react": "18.3.11",
         "@types/react-dom": "18.3.1",
         "eslint": "8.57.1",
+        "serve": "14.2.4",
         "typescript": "5.6.3"
     }
 }

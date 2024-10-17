@@ -1,5 +1,6 @@
 name: Deploy docs to Pages
-
+env:
+  CI: true
 on:
   push:
     branches: ['canary']

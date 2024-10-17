@@ -21,7 +21,7 @@ const args = process.argv.slice(2).reduce<Record<string, string>>((acc, arg) => 
 const { hostname = 'localhost', ports = '3000' } = args;
 
 function getNameByPort(port: string): string {
-    return `@neshca/cache-testing-${port}`;
+    return `@repo/cache-testing-${port}`;
 }
 
 pm2.connect(true, (connectError?: Error) => {
