@@ -8,9 +8,9 @@
 
 ## Latest Release
 
-🎉 **Version 1.7.0** has been released! It now includes the [`registerInitialCache` instrumentation hook ↗](https://caching-tools.github.io/next-shared-cache/usage/populating-cache-on-start), which allows the cache to be pre-populated with the initial data when the application starts.
+🎉 **Version 1.8.0** has been released! It now includes the [`neshClassicCache` function ↗](https://caching-tools.github.io/next-shared-cache/functions/nesh-classic-cache), that allows you to cache the results of expensive operations in the `getServerSideProps` and API routes.
 
-Do not forget the [`experimental-redis-cluster`](https://caching-tools.github.io/next-shared-cache/handlers/experimental-redis-cluster) Handler for Redis Cluster support from a previous release.
+Do not forget the [`registerInitialCache` instrumentation hook ↗](https://caching-tools.github.io/next-shared-cache/usage/populating-cache-on-start), that allows the cache to be pre-populated with the initial data when the application starts.
 
 Check out the [changelog](https://github.com/caching-tools/next-shared-cache/blob/canary/packages/cache-handler/CHANGELOG.md) for more details.
 
@@ -37,6 +37,7 @@ Welcome to `@neshca/cache-handler` (pronounced /ˈnæʃkʌ/), a specialized ISR/
 - **TTL Management**: Automatic cache cleanup to keep storage space efficient.
 - **Support for Next.js Routers**: Full support and one setup for the Pages and the App Router.
 - **`neshCache` Function**: Utilize the [`neshCache` ↗](https://caching-tools.github.io/next-shared-cache/functions/nesh-cache) function to replace `unstable_cache` for more control over caching.
+- **`neshClassicCache` Function**: Use the CacheHandler in the Pages Router to cache the result of expensive operations in the `getServerSideProps` and API routes.
 - **Pre-populate the Cache with Initial Data**: Automatically pre-populate the cache with the initial data when the application starts using the [instrumentation hook ↗](https://caching-tools.github.io/next-shared-cache/usage/populating-cache-on-start).
 
 ## Getting Started

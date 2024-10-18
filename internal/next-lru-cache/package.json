@@ -1,5 +1,5 @@
 {
-    "name": "@neshca/next-lru-cache",
+    "name": "@repo/next-lru-cache",
     "version": "0.0.0",
     "private": true,
     "license": "MIT",
@@ -7,17 +7,13 @@
     "exports": {
         "./*": "./src/cache-types/*.ts"
     },
-    "scripts": {
-        "clean": "rimraf ./.turbo ./node_modules"
-    },
     "dependencies": {
         "lru-cache": "10.4.3"
     },
     "devDependencies": {
-        "@neshca/next-common": "*",
+        "@repo/next-common": "*",
         "@repo/typescript-config": "*",
-        "@types/node": "22.7.5",
-        "rimraf": "6.0.1",
+        "@types/node": "22.7.6",
         "typescript": "5.6.3"
     }
 }

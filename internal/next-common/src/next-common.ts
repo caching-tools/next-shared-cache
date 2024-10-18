@@ -1,13 +1,10 @@
 // biome-ignore lint/style/useNodejsImportProtocol: RollupError: "OutgoingHttpHeaders" is not exported by "node:http"
 import type { OutgoingHttpHeaders } from 'http';
-
-import type { RouteMetadata as NextRouteMetadata } from 'next/dist/export/routes/types';
 import type { CacheHandler, CacheHandlerValue as NextCacheHandlerValue } from 'next/dist/server/lib/incremental-cache';
 import type FileSystemCache from 'next/dist/server/lib/incremental-cache/file-system-cache';
-import type { Revalidate } from 'next/dist/server/lib/revalidate';
+import type { IncrementalCacheValue } from 'next/dist/server/response-cache/types';
 
 export type { PrerenderManifest } from 'next/dist/build';
-export type { Revalidate } from 'next/dist/server/lib/revalidate';
 export type { CacheHandler, CacheHandlerContext } from 'next/dist/server/lib/incremental-cache';
 export type {
     CachedRedirectValue,
@@ -16,8 +13,15 @@ export type {
     CachedFetchValue,
     IncrementalCacheValue,
     IncrementalCacheEntry,
-    IncrementalCacheKindHint,
 } from 'next/dist/server/response-cache/types';
+
+export type NextRouteMetadata = {
+    status: number | undefined;
+    headers: OutgoingHttpHeaders | undefined;
+    postponed: string | undefined;
+};
+
+export type Revalidate = false | number;
 
 /**
  * A set of time periods and timestamps for controlling cache behavior.
@@ -97,14 +101,9 @@ export type UnwrappedCacheHandler = {
     revalidateTag(...args: CacheHandlerParametersRevalidateTag): Awaited<CacheHandlerReturnTypeRevalidateTag>;
 };
 
-export type IncrementalCachedPageValue = {
-    kind: 'PAGE';
-    html: string;
-    pageData: object;
-    postponed: string | undefined;
-    headers: OutgoingHttpHeaders | undefined;
-    status: number | undefined;
-};
+type ExtractIncrementalCacheKind<T, Kind> = T extends { kind: Kind } ? T : never;
+
+export type IncrementalCachedPageValue = ExtractIncrementalCacheKind<IncrementalCacheValue, 'PAGE'>;
 
 export type TagsManifest = {
     version: 1;

@@ -1,6 +1,6 @@
 import nextra from 'nextra';
 
-const basePath = process.env.NODE_ENV === 'development' ? undefined : '/next-shared-cache';
+const basePath = process.env.CI ? '/next-shared-cache' : '';
 
 const withNextra = nextra({
     theme: 'nextra-theme-docs',
@@ -13,6 +13,6 @@ export default withNextra({
     basePath,
     images: { unoptimized: true },
     env: {
-        NEXT_PUBLIC_BASE_URL: basePath ?? '',
+        NEXT_PUBLIC_BASE_URL: basePath,
     },
 });

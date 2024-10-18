@@ -1,67 +1,23 @@
 import assert from 'node:assert/strict';
-import { type IncrementalCacheEntry, NEXT_CACHE_IMPLICIT_TAG_ID, type Revalidate } from '@repo/next-common';
-import {
-    type StaticGenerationStore,
-    staticGenerationAsyncStorage,
-} from 'next/dist/client/components/static-generation-async-storage.external.js';
+import { createHash } from 'node:crypto';
+import type { Revalidate } from '@repo/next-common';
+import { staticGenerationAsyncStorage } from 'next/dist/client/components/static-generation-async-storage.external.js';
+import type { IncrementalCache } from 'next/dist/server/lib/incremental-cache';
+import type { CacheHandler } from '../cache-handler';
 import { TIME_ONE_YEAR } from '../constants';
 
-function getDerivedTags(pathname: string): string[] {
-    const derivedTags: string[] = ['/layout'];
-
-    if (!pathname.startsWith('/')) {
-        return derivedTags;
-    }
-
-    const pathnameParts = pathname.split('/');
-
-    for (let i = 1; i < pathnameParts.length + 1; i++) {
-        let curPathname = pathnameParts.slice(0, i).join('/');
-
-        if (curPathname) {
-            if (!(curPathname.endsWith('/page') || curPathname.endsWith('/route'))) {
-                curPathname = `${curPathname}${curPathname.endsWith('/') ? '' : '/'}layout`;
-            }
-
-            derivedTags.push(curPathname);
-        }
-    }
-
-    return derivedTags;
+declare global {
+    var __incrementalCache: IncrementalCache | undefined;
 }
 
-function addImplicitTags(staticGenerationStore: StaticGenerationStore) {
-    const newTags: string[] = [];
+function hashCacheKey(url: string): string {
+    // this should be bumped anytime a fix is made to cache entries
+    // that should bust the cache
+    const MAIN_KEY_PREFIX = 'nesh-pages-cache-v1';
 
-    const { pagePath, urlPathname } = staticGenerationStore;
+    const cacheString = JSON.stringify([MAIN_KEY_PREFIX, url]);
 
-    if (!Array.isArray(staticGenerationStore.tags)) {
-        staticGenerationStore.tags = [];
-    }
-
-    if (pagePath) {
-        const derivedTags = getDerivedTags(pagePath);
-
-        for (let tag of derivedTags) {
-            tag = `${NEXT_CACHE_IMPLICIT_TAG_ID}${tag}`;
-            if (!staticGenerationStore.tags?.includes(tag)) {
-                staticGenerationStore.tags.push(tag);
-            }
-            newTags.push(tag);
-        }
-    }
-
-    if (urlPathname) {
-        const parsedPathname = new URL(urlPathname, 'http://n').pathname;
-
-        const tag = `${NEXT_CACHE_IMPLICIT_TAG_ID}${parsedPathname}`;
-        if (!staticGenerationStore.tags?.includes(tag)) {
-            staticGenerationStore.tags.push(tag);
-        }
-        newTags.push(tag);
-    }
-
-    return newTags;
+    return createHash('sha256').update(cacheString).digest('hex');
 }
 
 /**
@@ -107,7 +63,14 @@ type Callback<Arguments extends unknown[], Result> = (...args: Arguments) => Res
 /**
  * An object containing options for the cache.
  */
-type NeshCacheOptions<Arguments extends unknown[], Result> = {
+type NeshClassicCacheOptions<Arguments extends unknown[], Result> = {
+    /**
+     * The response context object.
+     * It is used to set the cache headers.
+     */
+    responseContext?: object & {
+        setHeader(name: string, value: number | string | readonly string[]): unknown;
+    };
     /**
      * An array of tags to associate with the cached result.
      * Tags are used to revalidate the cache using the `revalidateTag` function.
@@ -155,13 +118,14 @@ type NeshCacheOptions<Arguments extends unknown[], Result> = {
 /**
  * An object containing common options for the cache.
  */
-type CommonNeshCacheOptions<Arguments extends unknown[], Result> = Omit<
-    NeshCacheOptions<Arguments, Result>,
-    'cacheKey'
+type CommonNeshClassicCacheOptions<Arguments extends unknown[], Result> = Omit<
+    NeshClassicCacheOptions<Arguments, Result>,
+    'cacheKey' | 'responseContext'
 >;
 
 /**
- * Experimental implementation of the "`unstable_cache`" function with more control over caching.
+ * Experimental implementation of the "`unstable_cache`" for classic Next.js Pages Router.
+ * It allows to cache data in the `getServerSideProps` and API routes.
  *
  * The API may change in the future. Use with caution.
  *
@@ -171,6 +135,9 @@ type CommonNeshCacheOptions<Arguments extends unknown[], Result> = Omit<
  * @param callback - The callback function to be cached.
  *
  * @param options - An object containing options for the cache.
+ *
+ * @param options.responseContext - The response context object.
+ * It is used to set the cache headers.
  *
  * @param options.tags - An array of tags to associate with the cached result.
  * Tags are used to revalidate the cache using the `revalidateTag` function.
@@ -192,40 +159,88 @@ type CommonNeshCacheOptions<Arguments extends unknown[], Result> = Omit<
  * First argument is the cache options which can be used to override the common options.
  * In addition, there is a `cacheKey` option that can be used to provide a custom cache key.
  *
- * @throws If the `neshCache` function is not used in a Next.js app directory or if the `revalidate` option is invalid.
+ * @throws If the `neshClassicCache` function is not used in a Next.js Pages directory or if the `revalidate` option is invalid.
+ *
+ * @example file: `src/pages/api/api-example.js`
+ *
+ * ```js
+ * import { neshClassicCache } from '@neshca/cache-handler/functions';
+ * import axios from 'axios';
+ *
+ * export const config = {
+ *   runtime: 'nodejs',
+ * };
+ *
+ * async function getViaAxios(url) {
+ *   try {
+ *     return (await axios.get(url.href)).data;
+ *   } catch (_error) {
+ *     return null;
+ *   }
+ * }
+ *
+ * const cachedAxios = neshClassicCache(getViaAxios);
+ *
+ * export default async function handler(request, response) {
+ *   if (request.method !== 'GET') {
+ *     return response.status(405).send(null);
+ *   }
+ *
+ *   const revalidate = 5;
+ *
+ *   const url = new URL('https://api.example.com/data.json');
+ *
+ *   // Add tags to be able to revalidate the cache
+ *   const data = await cachedAxios({ revalidate, tags: [url.pathname], responseContext: response }, url);
+ *
+ *   if (!data) {
+ *     response.status(404).send('Not found');
+ *
+ *     return;
+ *   }
+ *
+ *   response.json(data);
+ * }
+ * ```
  *
  * @remarks
- * - This function is intended to be used in a Next.js app directory.
+ * - This function is intended to be used in a Next.js Pages directory.
  *
- * @since 1.2.0
+ * @since 1.8.0
  */
-export function neshCache<Arguments extends unknown[], Result extends Promise<unknown>>(
+export function neshClassicCache<Arguments extends unknown[], Result extends Promise<unknown>>(
     callback: Callback<Arguments, Result>,
-    commonOptions?: CommonNeshCacheOptions<Arguments, Result>,
+    commonOptions?: CommonNeshClassicCacheOptions<Arguments, Result>,
 ) {
     if (commonOptions?.resultSerializer && !commonOptions?.resultDeserializer) {
-        throw new Error('neshCache: if you provide a resultSerializer, you must provide a resultDeserializer.');
+        throw new Error('neshClassicCache: if you provide a resultSerializer, you must provide a resultDeserializer.');
     }
 
     if (commonOptions?.resultDeserializer && !commonOptions?.resultSerializer) {
-        throw new Error('neshCache: if you provide a resultDeserializer, you must provide a resultSerializer.');
+        throw new Error('neshClassicCache: if you provide a resultDeserializer, you must provide a resultSerializer.');
     }
 
-    const commonTags = commonOptions?.tags ?? [];
     const commonRevalidate = commonOptions?.revalidate ?? false;
     const commonArgumentsSerializer = commonOptions?.argumentsSerializer ?? serializeArguments;
     const commonResultSerializer = commonOptions?.resultSerializer ?? serializeResult;
     const commonResultDeserializer = commonOptions?.resultDeserializer ?? deserializeResult;
 
     async function cachedCallback(
-        options: NeshCacheOptions<Arguments, Result>,
+        options: NeshClassicCacheOptions<Arguments, Result>,
         ...args: Arguments
     ): Promise<Result | null> {
         const store = staticGenerationAsyncStorage.getStore();
 
-        assert(store?.incrementalCache, 'neshCache must be used in a Next.js app directory.');
+        assert(!store?.incrementalCache, 'neshClassicCache must be used in a Next.js Pages directory.');
+
+        const cacheHandler = globalThis?.__incrementalCache?.cacheHandler as
+            | InstanceType<typeof CacheHandler>
+            | undefined;
+
+        assert(cacheHandler, 'neshClassicCache must be used in a Next.js Pages directory.');
 
         const {
+            responseContext,
             tags = [],
             revalidate = commonRevalidate,
             cacheKey,
@@ -236,93 +251,63 @@ export function neshCache<Arguments extends unknown[], Result extends Promise<un
 
         assert(
             revalidate === false || (revalidate > 0 && Number.isInteger(revalidate)),
-            'neshCache: revalidate must be a positive integer or false.',
+            'neshClassicCache: revalidate must be a positive integer or false.',
         );
 
-        if (store.fetchCache === 'force-no-store' || store.isDraftMode || store.incrementalCache.dev) {
-            return await callback(...args);
-        }
+        responseContext?.setHeader('Cache-Control', `public, s-maxage=${revalidate}, stale-while-revalidate`);
 
-        const uniqueTags = new Set(store.tags);
+        const uniqueTags = new Set<string>();
 
-        const combinedTags = [...tags, ...commonTags];
-
-        for (const tag of combinedTags) {
+        for (const tag of tags) {
             if (typeof tag === 'string') {
                 uniqueTags.add(tag);
             } else {
-                console.warn(`neshCache: Invalid tag: ${tag}. Skipping it. Expected a string.`);
+                console.warn(`neshClassicCache: Invalid tag: ${tag}. Skipping it. Expected a string.`);
             }
         }
 
         const allTags = Array.from(uniqueTags);
 
-        // TODO: Find out why this is necessary
-        store.tags = allTags;
-        store.revalidate = revalidate;
-        const fetchIdx = store.nextFetchId ?? 1;
-        store.nextFetchId = fetchIdx + 1;
+        const key = hashCacheKey(`nesh-classic-cache-${cacheKey ?? argumentsSerializer(args)}`);
 
-        const key = await store.incrementalCache.fetchCacheKey(`nesh-cache-${cacheKey ?? argumentsSerializer(args)}`);
+        const cacheData = await cacheHandler.get(key, {
+            revalidate,
+            tags: allTags,
+            kindHint: 'fetch',
+            fetchUrl: 'neshClassicCache',
+        });
 
-        const handleUnlock = await store.incrementalCache.lock(key);
-
-        let cacheData: IncrementalCacheEntry | null = null;
-
-        try {
-            cacheData = await store.incrementalCache.get(key, {
-                revalidate,
-                tags: allTags,
-                softTags: addImplicitTags(store),
-                kindHint: 'fetch',
-                fetchIdx,
-                fetchUrl: 'neshCache',
-            });
-        } catch (error) {
-            await handleUnlock();
-
-            throw error;
-        }
-
-        if (cacheData?.value?.kind === 'FETCH' && cacheData.isStale === false) {
-            await handleUnlock();
-
+        if (
+            cacheData?.value?.kind === 'FETCH' &&
+            cacheData.lifespan &&
+            cacheData.lifespan.staleAt > Date.now() / 1000
+        ) {
             return resultDeserializer(cacheData.value.data.body);
         }
 
-        let data: Result;
+        const data: Result = await callback(...args);
 
-        try {
-            data = await staticGenerationAsyncStorage.run(
-                {
-                    ...store,
-                    // force any nested fetches to bypass cache so they revalidate
-                    // when the unstable_cache call is revalidated
-                    fetchCache: 'force-no-store',
-                },
-                callback,
-                ...args,
-            );
-        } catch (error) {
-            // biome-ignore lint/complexity/noUselessCatch: we need to rethrow the error
-            throw error;
-        } finally {
-            await handleUnlock();
-        }
-
-        store.incrementalCache.set(
+        cacheHandler.set(
             key,
             {
                 kind: 'FETCH',
                 data: {
                     body: resultSerializer(data),
                     headers: {},
-                    url: 'neshCache',
+                    url: 'neshClassicCache',
                 },
                 revalidate: revalidate || TIME_ONE_YEAR,
             },
-            { revalidate, tags, fetchCache: true, fetchIdx, fetchUrl: 'neshCache' },
+            { revalidate, tags, fetchCache: true, fetchUrl: 'neshClassicCache' },
         );
+
+        if (
+            cacheData?.value?.kind === 'FETCH' &&
+            cacheData?.lifespan &&
+            cacheData.lifespan.expireAt > Date.now() / 1000
+        ) {
+            return resultDeserializer(cacheData.value.data.body);
+        }
 
         return data;
     }

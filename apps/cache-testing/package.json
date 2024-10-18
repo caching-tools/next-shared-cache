@@ -1,14 +1,12 @@
 {
-    "name": "cache-testing",
+    "name": "@repo/cache-testing",
     "version": "0.0.0",
     "private": true,
     "license": "MIT",
     "scripts": {
         "build": "next build && ./create-instances.sh",
-        "clean": "rimraf ./.next ./dist ./.turbo ./node_modules ./playwright-report ./test-results",
         "cluster:start": "pm2 start cluster.config.js --env production",
         "cluster:stop": "pm2 kill",
-        "dev:app": "next dev",
         "e2e": "playwright test --config=./playwright.config.ts",
         "e2e:ui": "playwright test --ui --config=./playwright.config.ts",
         "eslint:check": "next lint",
@@ -26,18 +24,17 @@
     },
     "devDependencies": {
         "@next/eslint-plugin-next": "14.2.15",
-        "@playwright/test": "1.48.0",
+        "@playwright/test": "1.48.1",
         "@repo/eslint-config": "*",
         "@repo/typescript-config": "*",
         "@types/eslint": "8.56.12",
-        "@types/node": "22.7.5",
+        "@types/node": "22.7.6",
         "@types/react": "18.3.11",
         "@types/react-dom": "18.3.1",
         "dotenv-cli": "7.4.2",
         "eslint": "8.57.1",
         "fastify": "5.0.0",
         "pm2": "5.4.2",
-        "rimraf": "6.0.1",
         "tsx": "4.19.1",
         "typescript": "5.6.3"
     }

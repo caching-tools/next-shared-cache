@@ -1,11 +1,9 @@
 import { promises as fsPromises } from 'node:fs';
 import path from 'node:path';
-import type { CachedFetchValue } from '@neshca/next-common';
+import type { CachedFetchValue, Revalidate, RouteMetadata } from '@repo/next-common';
 import { PRERENDER_MANIFEST, SERVER_DIRECTORY } from 'next/constants';
 import type { PrerenderManifest } from 'next/dist/build';
-import type { RouteMetadata } from 'next/dist/export/routes/types';
 import { CACHE_ONE_YEAR } from 'next/dist/lib/constants';
-import type { Revalidate } from 'next/dist/server/lib/revalidate';
 import { getTagsFromHeaders } from '../helpers/get-tags-from-headers';
 
 type CacheHandlerType = typeof import('../cache-handler').CacheHandler;
@@ -107,7 +105,7 @@ export async function registerInitialCache(CacheHandler: CacheHandlerType, optio
         if (debug) {
             console.warn(
                 '[CacheHandler] [%s] %s %s',
-                'instrumentation.cache',
+                'registerInitialCache',
                 'Failed to read prerender manifest',
                 `Error: ${error}`,
             );
@@ -129,7 +127,7 @@ export async function registerInitialCache(CacheHandler: CacheHandlerType, optio
         if (debug) {
             console.warn(
                 '[CacheHandler] [%s] %s %s',
-                'instrumentation.cache',
+                'registerInitialCache',
                 'Failed to create CacheHandler instance',
                 `Error: ${error}`,
             );
@@ -150,7 +148,7 @@ export async function registerInitialCache(CacheHandler: CacheHandlerType, optio
             if (debug) {
                 console.warn(
                     '[CacheHandler] [%s] %s %s',
-                    'instrumentation.cache',
+                    'registerInitialCache',
                     'Failed to read route body file',
                     `Error: ${error}`,
                 );
@@ -177,7 +175,7 @@ export async function registerInitialCache(CacheHandler: CacheHandlerType, optio
             if (debug) {
                 console.warn(
                     '[CacheHandler] [%s] %s %s',
-                    'instrumentation.cache',
+                    'registerInitialCache',
                     'Failed to read route body or metadata file, or parse metadata',
                     `Error: ${error}`,
                 );
@@ -201,7 +199,7 @@ export async function registerInitialCache(CacheHandler: CacheHandlerType, optio
             if (debug) {
                 console.warn(
                     '[CacheHandler] [%s] %s %s',
-                    'instrumentation.cache',
+                    'registerInitialCache',
                     'Failed to set route cache. Please check if the CacheHandler is configured correctly',
                     `Error: ${error}`,
                 );
@@ -225,7 +223,7 @@ export async function registerInitialCache(CacheHandler: CacheHandlerType, optio
             if (debug) {
                 console.warn(
                     '[CacheHandler] [%s] %s %s',
-                    'instrumentation.cache',
+                    'registerInitialCache',
                     'Failed to read page html file',
                     `Error: ${error}`,
                 );
@@ -253,7 +251,7 @@ export async function registerInitialCache(CacheHandler: CacheHandlerType, optio
             if (debug) {
                 console.warn(
                     '[CacheHandler] [%s] %s %s',
-                    'instrumentation.cache',
+                    'registerInitialCache',
                     'Failed to read page html, page data, or metadata file, or parse metadata',
                     `Error: ${error}`,
                 );
@@ -279,7 +277,7 @@ export async function registerInitialCache(CacheHandler: CacheHandlerType, optio
             if (debug) {
                 console.warn(
                     '[CacheHandler] [%s] %s %s',
-                    'instrumentation.cache',
+                    'registerInitialCache',
                     'Failed to set page cache. Please check if the CacheHandler is configured correctly',
                     `Error: ${error}`,
                 );
@@ -311,7 +309,7 @@ export async function registerInitialCache(CacheHandler: CacheHandlerType, optio
         if (debug) {
             console.warn(
                 '[CacheHandler] [%s] %s %s',
-                'instrumentation.cache',
+                'registerInitialCache',
                 'Failed to read cache/fetch-cache directory',
                 `Error: ${error}`,
             );
@@ -332,7 +330,7 @@ export async function registerInitialCache(CacheHandler: CacheHandlerType, optio
             if (debug) {
                 console.warn(
                     '[CacheHandler] [%s] %s %s',
-                    'instrumentation.cache',
+                    'registerInitialCache',
                     'Failed to read fetch cache file',
                     `Error: ${error}`,
                 );
@@ -349,7 +347,7 @@ export async function registerInitialCache(CacheHandler: CacheHandlerType, optio
             if (debug) {
                 console.warn(
                     '[CacheHandler] [%s] %s %s',
-                    'instrumentation.cache',
+                    'registerInitialCache',
                     'Failed to parse fetch cache file',
                     `Error: ${error}`,
                 );
@@ -371,7 +369,7 @@ export async function registerInitialCache(CacheHandler: CacheHandlerType, optio
             if (debug) {
                 console.warn(
                     '[CacheHandler] [%s] %s %s',
-                    'instrumentation.cache',
+                    'registerInitialCache',
                     'Failed to set fetch cache. Please check if the CacheHandler is configured correctly',
                     `Error: ${error}`,
                 );

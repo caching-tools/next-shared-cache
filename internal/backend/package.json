@@ -1,23 +1,21 @@
 {
-    "name": "backend",
+    "name": "@repo/backend",
     "version": "0.0.0",
     "private": true,
     "license": "MIT",
     "type": "module",
     "scripts": {
-        "clean": "rimraf ./.turbo ./node_modules",
         "dev": "tsx --watch ./src/backend.ts",
         "start": "tsx ./src/backend.ts"
     },
     "dependencies": {
         "fastify": "5.0.0",
-        "pino": "9.4.0"
+        "pino": "9.5.0"
     },
     "devDependencies": {
         "@repo/typescript-config": "*",
-        "@types/node": "22.7.5",
-        "pino-pretty": "11.2.2",
-        "rimraf": "6.0.1",
+        "@types/node": "22.7.6",
+        "pino-pretty": "11.3.0",
         "tsx": "4.19.1",
         "typescript": "5.6.3"
     }

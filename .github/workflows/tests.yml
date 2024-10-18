@@ -1,4 +1,6 @@
 name: Tests
+env:
+  CI: true
 on:
   push:
     branches: [canary]
@@ -35,12 +37,11 @@ jobs:
     strategy:
       max-parallel: 2
       matrix:
-        handler: [redis-stack, redis-strings]
+        handler: [redis-stack, redis-strings, ioredis]
     name: ${{ matrix.handler }}
     timeout-minutes: 10
     runs-on: ubuntu-latest
     env:
-      HANDLER_PATH: ./cache-handler-${{ matrix.handler }}.mjs
       REDIS_URL: redis://localhost:6379
     services:
       redis:
@@ -59,20 +60,31 @@ jobs:
           node-version-file: '.nvmrc'
           check-latest: true
           cache: 'npm'
+      - name: Replace Path with Sed
+        run: |
+          if [ "${{ matrix.handler }}" == "redis-strings" ]; then
+            sed -i 's/cache-handler-redis-stack/cache-handler-redis-strings/g' apps/cache-testing/next.config.mjs
+            sed -i 's/cache-handler-redis-stack/cache-handler-redis-strings/g' apps/cache-testing/src/instrumentation.ts
+          else
+            if [ "${{ matrix.handler }}" == "ioredis" ]; then
+              sed -i 's/cache-handler-redis-stack/cache-handler-ioredis/g' apps/cache-testing/next.config.mjs
+              sed -i 's/cache-handler-redis-stack/cache-handler-ioredis/g' apps/cache-testing/src/instrumentation.ts
+            fi
+          fi
       - name: Install dependencies
         run: npm ci
       - name: Install Playwright Browsers
-        run: npm run playwright:install -w apps/cache-testing
-      - name: Build
-        run: npm run build
+        run: npm run playwright:install -w @repo/cache-testing
+      - name: Build packages
+        run: npm run build:packages
       - name: Check code style
         run: npm run codestyle:check
       - name: Run unit tests
         run: npm test
       - name: Run e2e tests
         run: |
-          npm run start -w backend &
-          npm run build:app
+          npm run start:backend &
+          npm run build:test-app
           npm run e2e
       - uses: actions/upload-artifact@v4
         if: always()

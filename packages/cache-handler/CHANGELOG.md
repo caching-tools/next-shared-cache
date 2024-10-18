@@ -1,5 +1,17 @@
 # @neshca/cache-handler
 
+## 1.8.1
+
+### Patch Changes
+
+- 3a91160: Refactor monorepo setup and release workflow. No functional changes.
+
+## 1.8.0
+
+### Minor Changes
+
+- b91f759: Add the new `neshClassicCache` function to the `@neshca/cache-handler/functions` module allowing to cache the result of expensive operations in the `getServerSideProps` and a Next.js Pages API routes.
+
 ## 1.7.4
 
 ### Patch Changes

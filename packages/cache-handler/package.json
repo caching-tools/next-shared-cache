@@ -1,6 +1,6 @@
 {
     "name": "@neshca/cache-handler",
-    "version": "1.7.4",
+    "version": "1.8.1",
     "description": "Next.js self-hosting simplified.",
     "keywords": [
         "cache",
@@ -77,7 +77,6 @@
     },
     "scripts": {
         "build": "tsup --dts-resolve",
-        "clean": "rimraf ./dist ./.turbo ./node_modules",
         "dev": "tsup --watch",
         "test": "tsx --test src/**/*.test.ts",
         "test:watch": "tsx --watch --test src/**/*.test.ts"
@@ -87,19 +86,18 @@
         "lru-cache": "10.4.3"
     },
     "devDependencies": {
-        "@neshca/next-common": "*",
-        "@neshca/next-lru-cache": "*",
+        "@repo/next-common": "*",
+        "@repo/next-lru-cache": "*",
         "@repo/typescript-config": "*",
-        "@types/node": "22.7.5",
-        "rimraf": "6.0.1",
+        "@types/node": "22.7.6",
         "tsup": "8.3.0",
         "tsx": "4.19.1",
         "typescript": "5.6.3"
     },
     "peerDependencies": {
-        "ioredis": ">=5.4.1",
-        "next": ">=13.5.1",
-        "redis": ">=4.6"
+        "ioredis": ">= 5.4.1",
+        "next": ">= 13.5.1",
+        "redis": ">= 4.6"
     },
     "distTags": [
         "next13.5",

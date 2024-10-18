@@ -4,7 +4,7 @@
 [![Dependencies](https://img.shields.io/npm/dm/@neshca/cache-handler)](https://www.npmjs.com/package/@neshca/cache-handler)
 [![License](https://img.shields.io/npm/l/express.svg)](https://github.com/caching-tools/next-shared-cache/blob/canary/packages/cache-handler/LICENSE)
 
-Welcome to [`@neshca/cache-handler`](./packages/cache-handler/README.md) (pronounced /ˈnæʃkʌ/), a specialized ISR/Data cache API crafted for Next.js applications. This library simplifies configuring shared cache strategies in distributed environments, such as multiple, independent application instances. It offers a flexible and easy-to-integrate solution for custom cache strategies, especially for Redis.
+Welcome to [`@neshca/cache-handler`](./packages/cache-handler/README.md) (pronounced `/ˈnæʃkʌ/`), a specialized ISR/Data cache API crafted for Next.js applications. This library simplifies configuring shared cache strategies in distributed environments, such as multiple, independent application instances. It offers a flexible and easy-to-integrate solution for custom cache strategies, especially for Redis.
 
 ### Features
 
@@ -14,6 +14,7 @@ Welcome to [`@neshca/cache-handler`](./packages/cache-handler/README.md) (pronou
 - **TTL Management**: Automatic cache cleanup to keep storage space efficient.
 - **Support for Next.js Routers**: Full support and one setup for the Pages and the App Router.
 - **`neshCache` Function**: Utilize the [`neshCache` ↗](https://caching-tools.github.io/next-shared-cache/functions/nesh-cache) function to replace `unstable_cache` for more control over caching.
+- **`neshClassicCache` Function**: Use the CacheHandler in the Pages Router to cache the result of expensive operations in the `getServerSideProps` and API routes.
 - **Pre-populate the Cache with Initial Data**: Automatically pre-populate the cache with the initial data when the application starts using the [instrumentation hook ↗](https://caching-tools.github.io/next-shared-cache/usage/populating-cache-on-start).
 
 ## Getting Started

@@ -1,20 +1,19 @@
 {
-    "name": "cache-handler-docs",
-    "version": "0.1.0",
+    "name": "@repo/cache-handler-docs",
+    "version": "0.0.0",
     "private": true,
     "type": "module",
     "scripts": {
         "build:docs": "next build",
-        "clean": "rimraf ./.next ./.turbo ./node_modules ./out",
         "dev:docs": "next dev",
         "eslint:check": "next lint",
         "eslint:fix": "next lint --fix",
-        "start:docs": "next start"
+        "start:docs": "serve out"
     },
     "dependencies": {
         "next": "14.2.15",
-        "nextra": "3.0.9",
-        "nextra-theme-docs": "3.0.9",
+        "nextra": "3.0.15",
+        "nextra-theme-docs": "3.0.15",
         "react": "18.3.1",
         "react-dom": "18.3.1"
     },
@@ -23,10 +22,11 @@
         "@repo/eslint-config": "*",
         "@repo/typescript-config": "*",
         "@types/eslint": "8.56.12",
-        "@types/node": "22.7.5",
+        "@types/node": "22.7.6",
         "@types/react": "18.3.11",
         "@types/react-dom": "18.3.1",
         "eslint": "8.57.1",
+        "serve": "14.2.4",
         "typescript": "5.6.3"
     }
 }

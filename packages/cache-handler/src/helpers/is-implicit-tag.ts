@@ -1,4 +1,4 @@
-import { NEXT_CACHE_IMPLICIT_TAG_ID } from '@neshca/next-common';
+import { NEXT_CACHE_IMPLICIT_TAG_ID } from '@repo/next-common';
 
 /**
  * Checks if a given tag is an implicit tag.

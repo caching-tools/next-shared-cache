@@ -9,9 +9,9 @@
     "updateInternalDependencies": "patch",
     "ignore": [
         "@neshca/server",
-        "backend",
-        "cache-handler-docs",
-        "cache-testing",
+        "@repo/backend",
+        "@repo/cache-handler-docs",
+        "@repo/cache-testing",
         "@repo/eslint-config",
         "@repo/prettier-config"
     ]

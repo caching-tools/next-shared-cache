@@ -97,7 +97,7 @@ server.get('/time', async (_request, reply): Promise<void> => {
 server
     .listen({ port, host })
     .then((address) => {
-        logger.info('backend listening on %s', address);
+        logger.info('@repo/backend listening on %s', address);
     })
     .catch((err) => {
         logger.error(err);

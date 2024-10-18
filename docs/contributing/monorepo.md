@@ -15,7 +15,7 @@ npm ci
 After the dependencies are installed, compile internal dependencies with:
 
 ```bash
-npm run build
+npm run build:packages
 ```
 
 ### 3. Installing Local Dependencies
@@ -23,34 +23,14 @@ npm run build
 After building the project, you'll need to install the local dependencies to enable their usage from the command line:
 
 ```bash
-npm run i
+npm i
 ```
 
 **Note**: Don't be alarmed if you notice updates in the `package-lock.json` file after this step. These changes are expected and can be safely committed to your version control.
 
 ### 4. Running Tests locally
 
-Install `act` globally using the official [installation instructions](https://github.com/nektos/act?tab=readme-ov-file#installation-through-package-managers).
-
-Create a `.actrc` file in the root of the project with the following contents:
-
-```bash
--e .act.json
-```
-
-Then, create `.act.json` file near the `.actrc` file with the following contents:
-
-```json
-{
-  "act": true
-}
-```
-
-Finally, run the tests locally with:
-
-```bash
-act pull_request
-```
+Refer to the [`@neshca/cache-handler` contribution guidelines](./cache-handler.md)
 
 ## Contribution Guidelines
 
