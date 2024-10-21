@@ -27,7 +27,7 @@ Check out the [changelog](https://github.com/caching-tools/next-shared-cache/blo
 
 ## Overview
 
-Welcome to `@neshca/cache-handler` (pronounced /ˈnæʃkʌ/), a specialized ISR/Data cache API crafted for Next.js applications. This library simplifies configuring shared cache strategies in distributed environments, such as multiple, independent application instances. It offers a flexible and easy-to-integrate solution for custom cache strategies, especially for Redis.
+Welcome to `@neshca/cache-handler` (pronounced [`/ˈnæʃkʌ/`](http://ipa-reader.xyz/?text=%CB%88n%C3%A6%CA%83k%CA%8C)), a specialized ISR/Data cache API crafted for Next.js applications. This library simplifies configuring shared cache strategies in distributed environments, such as multiple, independent application instances. It offers a flexible and easy-to-integrate solution for custom cache strategies, especially for Redis.
 
 ### Features
 
