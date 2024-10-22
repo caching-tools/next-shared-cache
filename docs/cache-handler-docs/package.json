@@ -11,14 +11,14 @@
         "start:docs": "serve out"
     },
     "dependencies": {
-        "next": "14.2.15",
+        "next": "15.0.0",
         "nextra": "3.0.15",
         "nextra-theme-docs": "3.0.15",
         "react": "18.3.1",
         "react-dom": "18.3.1"
     },
     "devDependencies": {
-        "@next/eslint-plugin-next": "14.2.15",
+        "@next/eslint-plugin-next": "15.0.0",
         "@repo/eslint-config": "*",
         "@repo/typescript-config": "*",
         "@types/eslint": "8.56.12",
