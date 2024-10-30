@@ -2,26 +2,58 @@
 import type { OutgoingHttpHeaders } from 'http';
 import type { CacheHandler, CacheHandlerValue as NextCacheHandlerValue } from 'next/dist/server/lib/incremental-cache';
 import type FileSystemCache from 'next/dist/server/lib/incremental-cache/file-system-cache';
-import type { IncrementalCacheValue } from 'next/dist/server/response-cache/types';
+import type {
+    CachedImageValue,
+    CachedRedirectValue,
+    CachedRouteKind,
+    CachedRouteValue,
+    IncrementalCacheValue as IncrementalCacheValueNextApi,
+    IncrementalCachedAppPageValue,
+    CachedFetchValue as NextCachedFetchValue,
+} from 'next/dist/server/response-cache/types';
 
 export type { PrerenderManifest } from 'next/dist/build';
 export type { CacheHandler, CacheHandlerContext } from 'next/dist/server/lib/incremental-cache';
-export type {
-    CachedRedirectValue,
-    CachedRouteValue,
-    CachedImageValue,
-    CachedFetchValue,
-    IncrementalCacheValue,
-    IncrementalCacheEntry,
-} from 'next/dist/server/response-cache/types';
+
+type Override<T, U> = Omit<T, keyof U> & U;
+
+type ExtractIncrementalCacheKind<T, Kind> = T extends { kind: Kind } ? T : never;
+
+export type Revalidate = false | number;
+
+export type IncrementalCachedPageValue = ExtractIncrementalCacheKind<
+    IncrementalCacheValueNextApi,
+    CachedRouteKind.PAGES
+>;
+
+export type LegacyIncrementalCachedPageValue = Override<IncrementalCachedPageValue, { kind: 'PAGE' }> & {
+    postponed: string | undefined;
+};
+
+export type CachedFetchValue = Override<NextCachedFetchValue, { kind: 'FETCH' }>;
+
+export type IncrementalCacheValue =
+    | Override<CachedRedirectValue, { kind: 'REDIRECT' }>
+    | LegacyIncrementalCachedPageValue
+    | Override<IncrementalCachedPageValue, { kind: 'PAGES' }>
+    | Override<IncrementalCachedAppPageValue, { kind: 'APP_PAGE' }>
+    | Override<CachedImageValue, { kind: 'IMAGE' }>
+    | CachedFetchValue
+    | Override<CachedRouteValue, { kind: 'ROUTE' | 'APP_ROUTE' }>;
+
+export type IncrementalCacheEntry = {
+    curRevalidate?: Revalidate;
+    revalidateAfter: Revalidate;
+    isStale?: boolean | -1;
+    value: IncrementalCacheValue | null;
+    isFallback: boolean | undefined;
+};
 
 export type NextRouteMetadata = {
     status: number | undefined;
     headers: OutgoingHttpHeaders | undefined;
     postponed: string | undefined;
 };
-
-export type Revalidate = false | number;
 
 /**
  * A set of time periods and timestamps for controlling cache behavior.
@@ -55,23 +87,28 @@ export type LifespanParameters = {
     readonly revalidate: Revalidate | undefined;
 };
 
-export type CacheHandlerValue = NextCacheHandlerValue & {
-    /**
-     * Timestamp in milliseconds when the cache entry was last modified.
-     */
-    lastModified: number;
-    /**
-     * Tags associated with the cache entry. They are used for on-demand revalidation.
-     */
-    tags: Readonly<string[]>;
-    /**
-     * The lifespan parameters for the cache entry.
-     *
-     * Null for pages with `fallback: false` in `getStaticPaths`.
-     * Consider these pages as always fresh and never stale.
-     */
-    lifespan: LifespanParameters | null;
-};
+export type CacheHandlerValue = Override<
+    NextCacheHandlerValue & {
+        /**
+         * Timestamp in milliseconds when the cache entry was last modified.
+         */
+        lastModified: number;
+        /**
+         * Tags associated with the cache entry. They are used for on-demand revalidation.
+         */
+        tags: Readonly<string[]>;
+        /**
+         * The lifespan parameters for the cache entry.
+         *
+         * Null for pages with `fallback: false` in `getStaticPaths`.
+         * Consider these pages as always fresh and never stale.
+         */
+        lifespan: LifespanParameters | null;
+    },
+    {
+        value: IncrementalCacheValue | null;
+    }
+>;
 
 export type RouteMetadata = NextRouteMetadata;
 
@@ -101,13 +138,9 @@ export type UnwrappedCacheHandler = {
     revalidateTag(...args: CacheHandlerParametersRevalidateTag): Awaited<CacheHandlerReturnTypeRevalidateTag>;
 };
 
-type ExtractIncrementalCacheKind<T, Kind> = T extends { kind: Kind } ? T : never;
-
-export type IncrementalCachedPageValue = ExtractIncrementalCacheKind<IncrementalCacheValue, 'PAGE'>;
-
 export type TagsManifest = {
     version: 1;
     items: Record<string, { revalidatedAt: number }>;
 };
 
-export const NEXT_CACHE_IMPLICIT_TAG_ID = '_N_T_';
+export type NextCacheImplicitTagId = '_N_T_';

@@ -13,6 +13,7 @@
         "build:docs": "turbo run build:docs --filter=@repo/cache-handler-docs",
         "build:packages": "turbo run build --filter=!./apps/* --filter=!./docs/*",
         "build:test-app": "turbo run build --filter=@repo/cache-testing",
+        "build:test-app-15-app": "turbo run build --filter=@repo/cache-testing-15-app",
         "changeset": "changeset",
         "ci:publish": "changeset publish",
         "ci:version": "changeset version && npm run codestyle:fix",
@@ -28,6 +29,7 @@
         "prettier:fix": "prettier --write **/*.{md,mdx,yml,json}",
         "start:backend": "turbo run start --filter=@repo/backend",
         "start:test-app": "turbo run start --filter=@repo/cache-testing",
+        "start:test-app-15-app": "turbo run start --filter=@repo/cache-testing-15-app",
         "test": "turbo run test"
     },
     "dependencies": {

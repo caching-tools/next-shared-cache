@@ -1,0 +1,45 @@
+{
+    "name": "@repo/cache-testing-15-app",
+    "version": "0.0.0",
+    "private": true,
+    "license": "MIT",
+    "scripts": {
+        "build": "next build && ./create-instances.sh",
+        "cluster:start": "pm2 start cluster.config.js --env production",
+        "cluster:stop": "pm2 kill",
+        "e2e": "playwright test --config=./playwright.config.ts",
+        "e2e:ui": "playwright test --ui --config=./playwright.config.ts",
+        "eslint:check": "next lint",
+        "eslint:fix": "next lint --fix",
+        "playwright:install": "playwright install chromium",
+        "start": "dotenv -e .env.local -v SERVER_STARTED=1 node .next/standalone/apps/cache-testing-15-app/server.js"
+    },
+    "dependencies": {
+        "@neshca/cache-handler": "*",
+        "axios": "1.7.7",
+        "next": "15.0.0",
+        "react": "19.0.0-rc-65a56d0e-20241020",
+        "react-dom": "19.0.0-rc-65a56d0e-20241020",
+        "redis": "4.7.0"
+    },
+    "devDependencies": {
+        "@next/eslint-plugin-next": "15.0.0",
+        "@playwright/test": "1.48.1",
+        "@repo/eslint-config": "*",
+        "@repo/typescript-config": "*",
+        "@types/eslint": "8.56.12",
+        "@types/node": "22.7.7",
+        "@types/react": "npm:types-react@19.0.0-rc.1",
+        "@types/react-dom": "npm:types-react-dom@19.0.0-rc.1",
+        "dotenv-cli": "7.4.2",
+        "eslint": "8.57.1",
+        "fastify": "5.0.0",
+        "pm2": "5.4.2",
+        "tsx": "4.19.1",
+        "typescript": "5.6.3"
+    },
+    "overrides": {
+        "@types/react": "npm:types-react@19.0.0-rc.1",
+        "@types/react-dom": "npm:types-react-dom@19.0.0-rc.1"
+    }
+}

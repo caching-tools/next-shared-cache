@@ -273,6 +273,7 @@ export function neshClassicCache<Arguments extends unknown[], Result extends Pro
         const cacheData = await cacheHandler.get(key, {
             revalidate,
             tags: allTags,
+            // @ts-expect-error
             kindHint: 'fetch',
             fetchUrl: 'neshClassicCache',
         });
@@ -290,6 +291,7 @@ export function neshClassicCache<Arguments extends unknown[], Result extends Pro
         cacheHandler.set(
             key,
             {
+                // @ts-expect-error
                 kind: 'FETCH',
                 data: {
                     body: resultSerializer(data),

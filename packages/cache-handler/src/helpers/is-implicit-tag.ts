@@ -1,4 +1,6 @@
-import { NEXT_CACHE_IMPLICIT_TAG_ID } from '@repo/next-common';
+import type { NextCacheImplicitTagId } from '@repo/next-common';
+
+const NEXT_CACHE_IMPLICIT_TAG_ID: NextCacheImplicitTagId = '_N_T_';
 
 /**
  * Checks if a given tag is an implicit tag.

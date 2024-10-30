@@ -1,9 +1,11 @@
 #!/usr/bin/env node
 
-import { NEXT_CACHE_IMPLICIT_TAG_ID } from '@repo/next-common';
+import type { NextCacheImplicitTagId } from '@repo/next-common';
 import createCacheStore from '@repo/next-lru-cache/next-cache-handler-value';
 import Fastify from 'fastify';
 import { pino } from 'pino';
+
+const NEXT_CACHE_IMPLICIT_TAG_ID: NextCacheImplicitTagId = '_N_T_';
 
 const logger = pino({
     transport: {

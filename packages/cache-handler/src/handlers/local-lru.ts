@@ -1,8 +1,10 @@
 import type { LruCacheOptions } from '@repo/next-lru-cache/next-cache-handler-value';
 import createCacheStore from '@repo/next-lru-cache/next-cache-handler-value';
 
-import { NEXT_CACHE_IMPLICIT_TAG_ID } from '@repo/next-common';
+import type { NextCacheImplicitTagId } from '@repo/next-common';
 import type { Handler } from '../cache-handler';
+
+const NEXT_CACHE_IMPLICIT_TAG_ID: NextCacheImplicitTagId = '_N_T_';
 
 /**
  * @deprecated Use {@link LruCacheOptions} instead.

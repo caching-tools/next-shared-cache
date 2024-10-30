@@ -7,7 +7,9 @@ import type {
     CacheHandlerParametersSet,
     CacheHandlerValue,
     FileSystemCacheContext,
+    IncrementalCacheValue,
     IncrementalCachedPageValue,
+    LegacyIncrementalCachedPageValue,
     LifespanParameters,
     CacheHandler as NextCacheHandler,
     PrerenderManifest,
@@ -391,13 +393,15 @@ export class CacheHandler implements NextCacheHandler {
         try {
             const pageHtmlPath = path.join(CacheHandler.#serverDistDir, 'pages', `${cacheKey}.html`);
             const pageDataPath = path.join(CacheHandler.#serverDistDir, 'pages', `${cacheKey}.json`);
+            const pageKindPath = path.join(CacheHandler.#serverDistDir, 'pages', `${cacheKey}.kind`);
 
             pageHtmlHandle = await fsPromises.open(pageHtmlPath, 'r');
 
-            const [pageHtmlFile, { mtimeMs }, pageData] = await Promise.all([
+            const [pageHtmlFile, { mtimeMs }, pageData, pageKind] = await Promise.all([
                 pageHtmlHandle.readFile('utf-8'),
                 pageHtmlHandle.stat(),
                 fsPromises.readFile(pageDataPath, 'utf-8').then((data) => JSON.parse(data) as object),
+                fsPromises.readFile(pageKindPath, 'utf-8').then((data) => data.trim() as 'PAGES' | 'PAGE'),
             ]);
 
             if (CacheHandler.#debug) {
@@ -415,7 +419,7 @@ export class CacheHandler implements NextCacheHandler {
                 lifespan: null,
                 tags: [],
                 value: {
-                    kind: 'PAGE',
+                    kind: pageKind,
                     html: pageHtmlFile,
                     pageData,
                     postponed: undefined,
@@ -442,16 +446,21 @@ export class CacheHandler implements NextCacheHandler {
         return cacheHandlerValue;
     }
 
-    static async #writePagesRouterPage(cacheKey: string, pageData: IncrementalCachedPageValue): Promise<void> {
+    static async #writePagesRouterPage(
+        cacheKey: string,
+        pageData: IncrementalCachedPageValue | LegacyIncrementalCachedPageValue,
+    ): Promise<void> {
         try {
             const pageHtmlPath = path.join(CacheHandler.#serverDistDir, 'pages', `${cacheKey}.html`);
             const pageDataPath = path.join(CacheHandler.#serverDistDir, 'pages', `${cacheKey}.json`);
+            const pageKindPath = path.join(CacheHandler.#serverDistDir, 'pages', `${cacheKey}.kind`);
 
             await fsPromises.mkdir(path.dirname(pageHtmlPath), { recursive: true });
 
             await Promise.all([
                 fsPromises.writeFile(pageHtmlPath, pageData.html),
                 fsPromises.writeFile(pageDataPath, JSON.stringify(pageData.pageData)),
+                fsPromises.writeFile(pageKindPath, pageData.kind),
             ]);
 
             if (CacheHandler.#debug) {
@@ -751,8 +760,10 @@ export class CacheHandler implements NextCacheHandler {
         }
     }
 
+    // @ts-expect-error
     async get(
         cacheKey: CacheHandlerParametersGet[0],
+        // @ts-expect-error
         ctx: CacheHandlerParametersGet[1] = {},
     ): Promise<CacheHandlerValue | null> {
         await CacheHandler.#configureCacheHandler();
@@ -819,13 +830,15 @@ export class CacheHandler implements NextCacheHandler {
 
         let cacheHandlerValueTags = tags;
 
-        let value = incrementalCacheValue;
+        let value = incrementalCacheValue as IncrementalCacheValue;
 
         switch (value?.kind) {
-            case 'PAGE': {
+            case 'PAGE':
+            case 'APP_PAGE': {
                 cacheHandlerValueTags = getTagsFromHeaders(value.headers ?? {});
                 break;
             }
+            case 'APP_ROUTE':
             case 'ROUTE': {
                 // create a new object to avoid mutating the original value
                 value = {
@@ -852,7 +865,11 @@ export class CacheHandler implements NextCacheHandler {
 
         await CacheHandler.#mergedHandler.set(cacheKey, cacheHandlerValue);
 
-        if (hasFallbackFalse && cacheHandlerValue.value?.kind === 'PAGE') {
+        if (
+            hasFallbackFalse &&
+            (cacheHandlerValue.value?.kind === 'PAGE' || cacheHandlerValue.value?.kind === 'PAGES')
+        ) {
+            // @ts-expect-error
             await CacheHandler.#writePagesRouterPage(cacheKey, cacheHandlerValue.value);
         }
     }

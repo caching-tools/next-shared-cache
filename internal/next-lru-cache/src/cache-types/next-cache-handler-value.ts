@@ -11,6 +11,28 @@ function calculateObjectSize({ value }: CacheHandlerValue): number {
     }
 
     switch (value.kind) {
+        case 'FETCH': {
+            // Calculate size based on the length of the stringified data
+            return JSON.stringify(value.data || '').length;
+        }
+        case 'APP_PAGE': {
+            return value.html.length + (JSON.stringify(value.rscData)?.length || 0);
+        }
+        case 'PAGES': {
+            return value.html.length + (JSON.stringify(value.pageData)?.length || 0);
+        }
+
+        case 'PAGE': {
+            const pageDataLength = value.pageData ? JSON.stringify(value.pageData).length : 0;
+
+            return value.html.length + pageDataLength;
+        }
+
+        case 'ROUTE':
+        case 'APP_ROUTE': {
+            // Size based on the length of the body
+            return value.body.length;
+        }
         case 'REDIRECT': {
             // Calculate size based on the length of the stringified props
             return JSON.stringify(value.props).length;
@@ -19,19 +41,9 @@ function calculateObjectSize({ value }: CacheHandlerValue): number {
             // Throw a specific error for image kind
             throw new Error('Image kind should not be used for incremental-cache calculations.');
         }
-        case 'FETCH': {
-            // Calculate size based on the length of the stringified data
-            return JSON.stringify(value.data || '').length;
-        }
-        case 'ROUTE': {
-            // Size based on the length of the body
-            return value.body.length;
-        }
         default: {
-            // Rough estimate calculation for other types
-            // Combine HTML length and page data length
-            const pageDataLength = value.pageData ? JSON.stringify(value.pageData).length : 0;
-            return value.html.length + pageDataLength;
+            // @ts-expect-error
+            throw new Error(`Invalid kind: ${value.kind}`);
         }
     }
 }

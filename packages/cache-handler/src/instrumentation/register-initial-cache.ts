@@ -188,6 +188,7 @@ export async function registerInitialCache(CacheHandler: CacheHandlerType, optio
             await cacheHandler.set(
                 cachePath,
                 {
+                    // @ts-expect-error
                     kind: 'ROUTE',
                     body,
                     headers: meta.headers,
@@ -264,6 +265,7 @@ export async function registerInitialCache(CacheHandler: CacheHandlerType, optio
             await cacheHandler.set(
                 cachePath,
                 {
+                    // @ts-expect-error
                     kind: 'PAGE',
                     html,
                     pageData,
@@ -360,6 +362,7 @@ export async function registerInitialCache(CacheHandler: CacheHandlerType, optio
         const revalidate = fetchCache.revalidate === CACHE_ONE_YEAR ? false : fetchCache.revalidate;
 
         try {
+            // @ts-expect-error
             await cacheHandler.set(fetchCacheKey, fetchCache, {
                 revalidate,
                 neshca_lastModified: lastModified,

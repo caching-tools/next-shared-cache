@@ -1,10 +1,12 @@
 import assert from 'node:assert/strict';
-import { type IncrementalCacheEntry, NEXT_CACHE_IMPLICIT_TAG_ID, type Revalidate } from '@repo/next-common';
+import type { IncrementalCacheEntry, NextCacheImplicitTagId, Revalidate } from '@repo/next-common';
 import {
     type StaticGenerationStore,
     staticGenerationAsyncStorage,
 } from 'next/dist/client/components/static-generation-async-storage.external.js';
 import { TIME_ONE_YEAR } from '../constants';
+
+const NEXT_CACHE_IMPLICIT_TAG_ID: NextCacheImplicitTagId = '_N_T_';
 
 function getDerivedTags(pathname: string): string[] {
     const derivedTags: string[] = ['/layout'];
@@ -270,6 +272,7 @@ export function neshCache<Arguments extends unknown[], Result extends Promise<un
         let cacheData: IncrementalCacheEntry | null = null;
 
         try {
+            // @ts-expect-error
             cacheData = await store.incrementalCache.get(key, {
                 revalidate,
                 tags: allTags,

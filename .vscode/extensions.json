@@ -1,3 +1,11 @@
 {
-    "recommendations": ["biomejs.biome", "dbaeumer.vscode-eslint", "esbenp.prettier-vscode", "unifiedjs.vscode-mdx"]
+    "recommendations": [
+        "biomejs.biome",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "unifiedjs.vscode-mdx",
+        "Vercel.turbo-vsc",
+        "ms-playwright.playwright",
+        "streetsidesoftware.code-spell-checker"
+    ]
 }

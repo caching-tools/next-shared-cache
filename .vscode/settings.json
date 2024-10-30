@@ -46,5 +46,6 @@
     "[typescriptreact]": {
         "editor.defaultFormatter": "biomejs.biome"
     },
-    "grammarly.files.include": ["**/*.md", "**/*.mdx"]
+    "grammarly.files.include": ["**/*.md", "**/*.mdx"],
+    "turbo.useLocalTurbo": true
 }
