@@ -37,7 +37,7 @@ jobs:
     strategy:
       max-parallel: 2
       matrix:
-        handler: [redis-stack, redis-strings]
+        handler: [redis-stack, redis-strings, ioredis]
     name: ${{ matrix.handler }}
     timeout-minutes: 10
     runs-on: ubuntu-latest
@@ -65,6 +65,11 @@ jobs:
           if [ "${{ matrix.handler }}" == "redis-strings" ]; then
             sed -i 's/cache-handler-redis-stack/cache-handler-redis-strings/g' apps/cache-testing/next.config.mjs
             sed -i 's/cache-handler-redis-stack/cache-handler-redis-strings/g' apps/cache-testing/src/instrumentation.ts
+          else
+            if [ "${{ matrix.handler }}" == "ioredis" ]; then
+              sed -i 's/cache-handler-redis-stack/cache-handler-ioredis/g' apps/cache-testing/next.config.mjs
+              sed -i 's/cache-handler-redis-stack/cache-handler-ioredis/g' apps/cache-testing/src/instrumentation.ts
+            fi
           fi
       - name: Install dependencies
         run: npm ci
