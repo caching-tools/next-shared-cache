@@ -64,15 +64,13 @@ export type CreateRedisStringsHandlerOptions = CreateRedisStackHandlerOptions & 
      * - `'EXAT'`: Uses the `EXAT` option of the `SET` command to set the expiration time. This is more efficient than `EXPIREAT`.
      * - `'EXPIREAT'`: Uses the `EXPIREAT` command to set the expiration time. This requires an additional command call.
      *
-     * By default, the expiration strategy is set to `'EXPIREAT'` for compatibility previous `@neshca/cache-handler` versions.
-     *
-     * @default 'EXPIREAT'
+     * @default 'EXAT'
      *
      * @since 1.3.0
      *
      * @remarks
-     * - The `'EXPIREAT'` strategy requires Redis server 4.0.0 or newer.
      * - The `'EXAT'` strategy requires Redis server 6.2.0 or newer.
+     * - The `'EXPIREAT'` strategy requires Redis server 4.0.0 or newer.
      */
     keyExpirationStrategy?: 'EXAT' | 'EXPIREAT';
 };

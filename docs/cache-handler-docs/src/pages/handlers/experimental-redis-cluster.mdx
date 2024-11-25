@@ -37,7 +37,7 @@ The `experimental-redis-cluster` Handler uses the Redis Cluster as the cache sto
   - `cluster` - A Redis Cluster instance.
   - `keyPrefix` - Optional. Prefix for all keys, useful for namespacing. Defaults to an empty string.
   - `timeoutMs` - Optional. Timeout in milliseconds for Redis operations. Defaults to `5000`. For disabling timeouts, set it to `0`.
-  - `keyExpirationStrategy` - Optional. It allows you to choose the expiration strategy for cache keys. Defaults to `EXPRIREAT`.
+  - `keyExpirationStrategy` - Optional. It allows you to choose the expiration strategy for cache keys. Defaults to `EXAT`.
   - `sharedTagsKey` - Optional. Dedicated key for the internal revalidation process. It must not interfere with cache keys from your application. Defaults to `__sharedTags__`.
   - `revalidateTagQuerySize` - Optional. The number of tags in a single query retrieved from Redis when scanning or searching for tags. Defaults to `100`.
 

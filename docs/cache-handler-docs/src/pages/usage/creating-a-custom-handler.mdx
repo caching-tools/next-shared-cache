@@ -19,7 +19,7 @@ Create a file called `cache-handler.mjs` next to your `next.config.js` with the 
 ```js filename="cache-handler.mjs" copy
 import { CacheHandler } from '@neshca/cache-handler';
 import { isImplicitTag } from '@neshca/cache-handler/helpers';
-import { createClient, commandOptions } from 'redis';
+import { createClient } from 'redis';
 
 CacheHandler.onCreation(async () => {
   // Always create a Redis client inside the `onCreation` callback.
@@ -72,13 +72,11 @@ CacheHandler.onCreation(async () => {
       // If the client is not ready, the CacheHandler will use the next available Handler.
       assertClientIsReady();
 
-      // Create a new AbortSignal with a timeout for the Redis operation.
+      // Add a new AbortSignal with a timeout to the Redis operation.
       // By default, redis client operations will wait indefinitely.
-      const options = commandOptions({ signal: AbortSignal.timeout(timeoutMs) });
-
       // Get the value from Redis.
       // We use the key prefix to avoid key collisions with other data in Redis.
-      const result = await client.get(options, keyPrefix + key);
+      const result = await client.withAbortSignal(AbortSignal.timeout(timeoutMs)).get(keyPrefix + key);
 
       // If the key does not exist, return null.
       if (!result) {
@@ -103,18 +101,16 @@ CacheHandler.onCreation(async () => {
       }
 
       // Get the revalidation times for the tags.
-      const revalidationTimes = await client.hmGet(
-        commandOptions({ signal: AbortSignal.timeout(timeoutMs) }),
-        revalidatedTagsKey,
-        Array.from(combinedTags),
-      );
+      const revalidationTimes = await client
+        .withAbortSignal(AbortSignal.timeout(timeoutMs))
+        .hmGet(revalidatedTagsKey, Array.from(combinedTags));
 
       // Iterate over all revalidation times.
       for (const timeString of revalidationTimes) {
-        // If the revalidation time is greater than the last modified time of the cache value,
+        // If the revalidation time is greater than the last modified time of the cache value
         if (timeString && Number.parseInt(timeString, 10) > cacheValue.lastModified) {
           // Delete the key from Redis.
-          await client.unlink(commandOptions({ signal: AbortSignal.timeout(timeoutMs) }), keyPrefix + key);
+          await client.withAbortSignal(AbortSignal.timeout(timeoutMs)).unlink(keyPrefix + key);
 
           // Return null to indicate cache miss.
           return null;
@@ -129,26 +125,31 @@ CacheHandler.onCreation(async () => {
       assertClientIsReady();
 
       // Create a new AbortSignal with a timeout for the Redis operation.
-      const options = commandOptions({ signal: AbortSignal.timeout(timeoutMs) });
+      const signal = AbortSignal.timeout(timeoutMs);
 
       // Redis stores strings, so we need to stringify the JSON.
-      const setOperation = client.set(options, keyPrefix + key, JSON.stringify(cacheHandlerValue));
-
-      // If the cacheHandlerValue has a lifespan, set the automatic expiration.
-      // cacheHandlerValue.lifespan can be null if the value is the page from the Pages Router without getStaticPaths or with `fallback: false`
-      // so, we need to check if it exists before using it
-      const expireOperation = cacheHandlerValue.lifespan
-        ? client.expireAt(options, keyPrefix + key, cacheHandlerValue.lifespan.expireAt)
-        : undefined;
+      const setOperation = client.withAbortSignal(signal).set(
+        keyPrefix + key,
+        JSON.stringify(cacheHandlerValue),
+        // If the cacheHandlerValue has a lifespan, set the automatic expiration.
+        // cacheHandlerValue.lifespan can be null if the value is the page from the Pages Router without getStaticPaths or with `fallback: false`
+        // so, we need to check if it exists before using it
+        typeof cacheHandlerValue.lifespan?.expireAt === 'number'
+          ? {
+              EXAT: cacheHandlerValue.lifespan.expireAt,
+            }
+          : undefined,
+      );
 
       // If the cache handler value has tags, set the tags.
       // We store them separately to save time to retrieve them in the `revalidateTag` method.
-      const setTagsOperation = cacheHandlerValue.tags.length
-        ? client.hSet(options, keyPrefix + sharedTagsKey, key, JSON.stringify(cacheHandlerValue.tags))
-        : undefined;
+      const setTagsOperation =
+        cacheHandlerValue.tags.length > 0
+          ? client.withAbortSignal(signal).hSet(keyPrefix + sharedTagsKey, key, JSON.stringify(cacheHandlerValue.tags))
+          : undefined;
 
       // Wait for all operations to complete.
-      await Promise.all([setOperation, expireOperation, setTagsOperation]);
+      await Promise.all([setOperation, setTagsOperation]);
     },
     async revalidateTag(tag) {
       // Ensure that the client is ready before using it.
@@ -158,34 +159,24 @@ CacheHandler.onCreation(async () => {
       // Implicit tags are not stored in the cached values.
       if (isImplicitTag(tag)) {
         // Mark the tag as revalidated at the current time.
-        await client.hSet(
-          commandOptions({ signal: AbortSignal.timeout(timeoutMs) }),
-          revalidatedTagsKey,
-          tag,
-          Date.now(),
-        );
+        await client.withAbortSignal(AbortSignal.timeout(timeoutMs)).hSet(revalidatedTagsKey, tag, Date.now());
       }
 
       // Create a map to store the tags for each key.
       const tagsMap = new Map();
 
       // Cursor for the hScan operation.
-      let cursor = 0;
+      let cursor = '0';
 
       // Define a query size for the hScan operation.
-      const hScanOptions = { COUNT: 100 };
+      const hScanOptions = { COUNT: revalidateTagQuerySize };
 
       // Iterate over all keys in the shared tags.
       do {
-        const remoteTagsPortion = await client.hScan(
-          commandOptions({ signal: AbortSignal.timeout(timeoutMs) }),
-          keyPrefix + sharedTagsKey,
-          cursor,
-          hScanOptions,
-        );
+        const remoteTagsPortion = await client.hScan(keyPrefix + sharedTagsKey, cursor, hScanOptions);
 
         // Iterate over all keys in the portion.
-        for (const { field, value } of remoteTagsPortion.tuples) {
+        for (const { field, value } of remoteTagsPortion.entries) {
           // Parse the tags from the value.
           tagsMap.set(field, JSON.parse(value));
         }
@@ -194,7 +185,7 @@ CacheHandler.onCreation(async () => {
         cursor = remoteTagsPortion.cursor;
 
         // If the cursor is 0, we have reached the end.
-      } while (cursor !== 0);
+      } while (cursor !== '0');
 
       // Create an array of keys to delete.
       const keysToDelete = [];
@@ -219,21 +210,19 @@ CacheHandler.onCreation(async () => {
       }
 
       // Delete the keys from Redis.
-      const deleteKeysOperation = client.unlink(
-        commandOptions({ signal: AbortSignal.timeout(timeoutMs) }),
-        keysToDelete,
-      );
+      const deleteKeysOperation = client.withAbortSignal(AbortSignal.timeout(timeoutMs)).unlink(keysToDelete);
 
       // Update the tags in Redis by deleting the revalidated tags.
-      const updateTagsOperation = client.hDel(
-        // Use the isolated option to prevent the command from being executed on the main connection.
-        { isolated: true, ...commandOptions({ signal: AbortSignal.timeout(timeoutMs) }) },
-        keyPrefix + sharedTagsKey,
-        tagsToDelete,
-      );
+      const updateTagsOperation = client
+        .withAbortSignal(AbortSignal.timeout(timeoutMs))
+        .hDel(keyPrefix + sharedTagsKey, tagsToDelete);
 
       // Wait for all operations to complete.
       await Promise.all([deleteKeysOperation, updateTagsOperation]);
+    },
+    async delete(key) {
+      // Implement the delete method to provide a way to delete the cache from CacheHandler class internally.
+      await client.withAbortSignal(AbortSignal.timeout(timeoutMs)).unlink(key);
     },
   };
 
