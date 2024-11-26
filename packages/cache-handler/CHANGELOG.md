@@ -1,5 +1,11 @@
 # @neshca/cache-handler
 
+## 1.9.0
+
+### Minor Changes
+
+- 6bae69a: Updated the documentation and peer dependencies to explicitly state that only Next.js versions `13.5.x` and `14.x.x` are supported. Modified the default `estimateExpireAge` function to perform the calculation as `(staleAge) => staleAge * 1.5`.
+
 ## 1.8.1
 
 ### Patch Changes
