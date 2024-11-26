@@ -27,7 +27,7 @@
     },
     "devDependencies": {
         "@repo/typescript-config": "*",
-        "@types/node": "22.9.3",
+        "@types/node": "22.10.0",
         "tsup": "8.3.5",
         "tsx": "4.19.2",
         "typescript": "5.7.2"
