@@ -8,9 +8,9 @@
 
 ## Latest Release
 
-🎉 **Version 1.8.0** has been released! It now includes the [`neshClassicCache` function ↗](https://caching-tools.github.io/next-shared-cache/functions/nesh-classic-cache), that allows you to cache the results of expensive operations in the `getServerSideProps` and API routes.
+🎉 **Version 1.9.0** has been released! It changes the default `estimateExpireAge` function to perform the calculation as `(staleAge) => staleAge * 1.5` to better align with the default Next.js cache behavior.
 
-Do not forget the [`registerInitialCache` instrumentation hook ↗](https://caching-tools.github.io/next-shared-cache/usage/populating-cache-on-start), that allows the cache to be pre-populated with the initial data when the application starts.
+This is the final release leading up to version 2.0.0. The upcoming version 2 will bring significant changes and will no longer support Next.js versions 13 and 14. While version 1 will still receive ongoing maintenance, it won't get any new features.
 
 Check out the [changelog](https://github.com/caching-tools/next-shared-cache/blob/canary/packages/cache-handler/CHANGELOG.md) for more details.
 
@@ -50,7 +50,7 @@ Explore the versatility of `@neshca/cache-handler` in our [Examples Section](htt
 
 ## Requirements
 
-- **Next.js**: 13.5.x or 14.x.x.
+- **Next.js**: 13.5.1 or newer (below 15.0.0).
 - **Node.js**: 18.17.0 or newer.
 
 ## Documentation

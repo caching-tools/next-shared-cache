@@ -43,19 +43,11 @@ export default {
         ),
     },
     banner: {
-        key: 'version-1.8.0',
+        key: 'version-1.9.0',
         content: (
             <div>
-                🎉 Version 1.8.0 is out! Use shared cache for the Next.js Pages API routes and getServerSideProps with{' '}
-                <a
-                    href="/functions/nesh-classic-cache"
-                    style={{
-                        color: 'lightgreen',
-                        fontFamily: 'monospace',
-                    }}
-                >
-                    neshClassicCache
-                </a>
+                🎉 Version 1.9.0 is out! This is the final release supporting Next.js 13.5.1-14.x. The upcoming version
+                2.0.0 will require Next.js 15.
             </div>
         ),
     },
