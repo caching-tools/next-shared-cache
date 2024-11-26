@@ -1,10 +1,10 @@
-name: Release
+name: Release v1
 env:
   CI: true
 on:
   push:
     branches:
-      - canary
+      - v1
 
 permissions:
   contents: write
@@ -43,8 +43,8 @@ jobs:
         id: changesets
         uses: changesets/action@v1
         with:
-          publish: npm run ci:publish
           version: npm run ci:version
+          publish: npm run ci:publish -- --tag v1
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

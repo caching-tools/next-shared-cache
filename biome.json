@@ -46,7 +46,7 @@
     "vcs": {
         "clientKind": "git",
         "useIgnoreFile": true,
-        "defaultBranch": "canary",
+        "defaultBranch": "v1",
         "enabled": true
     },
     "javascript": {
