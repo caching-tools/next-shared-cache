@@ -17,7 +17,7 @@ Stale age is the time after which the cache entry is considered stale, can be se
 
 ### `estimateExpireAge`
 
-Estimates the expiration age based on the stale age.
+Estimates the expiration age based on the stale age. Defaults to `(staleAge) => staleAge * 1.5`.
 
 Expire age is the time after which the cache entry is considered expired and should be removed from the cache and must not be served.
 

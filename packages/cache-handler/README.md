@@ -50,7 +50,7 @@ Explore the versatility of `@neshca/cache-handler` in our [Examples Section](htt
 
 ## Requirements
 
-- **Next.js**: 13.5.1 or newer.
+- **Next.js**: 13.5.x or 14.x.x.
 - **Node.js**: 18.17.0 or newer.
 
 ## Documentation

@@ -11,7 +11,7 @@ type EstimateExpireAgeFunction = typeof getInitialExpireAge;
  * @returns The initial expire age.
  */
 export function getInitialExpireAge(staleAge: number): number {
-    return staleAge;
+    return staleAge * 1.5;
 }
 
 /**

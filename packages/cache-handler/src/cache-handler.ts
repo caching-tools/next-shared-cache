@@ -168,7 +168,7 @@ export type TTLParameters = {
      * After the stale age, the cache entry is considered stale, can be served from the cache, and should be revalidated.
      * Revalidation is handled by the `CacheHandler` class.
      *
-     * @default (staleAge) => staleAge
+     * @default (staleAge) => staleAge * 1.5
      *
      * @returns The expiration age in seconds.
      *
