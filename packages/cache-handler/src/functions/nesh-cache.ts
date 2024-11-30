@@ -170,22 +170,22 @@ type CommonNeshCacheOptions<Arguments extends unknown[], Result> = Omit<
  *
  * @param callback - The callback function to be cached.
  *
- * @param options - An object containing options for the cache.
+ * @param commonOptions - An object containing options for the cache.
  *
- * @param options.tags - An array of tags to associate with the cached result.
+ * @param commonOptions.tags - An array of tags to associate with the cached result.
  * Tags are used to revalidate the cache using the `revalidateTag` function.
  *
- * @param options.revalidate - The revalidation interval in seconds.
+ * @param commonOptions.revalidate - The revalidation interval in seconds.
  * Must be a positive integer or `false` to disable revalidation.
  * Defaults to `export const revalidate = time;` in the current route.
  *
- * @param options.argumentsSerializer - A function that serializes the arguments passed to the callback function.
+ * @param commonOptions.argumentsSerializer - A function that serializes the arguments passed to the callback function.
  * Use it to create a cache key. Defaults to `JSON.stringify(args)`.
  *
- * @param options.resultSerializer - A function that serializes the result of the callback function.
+ * @param commonOptions.resultSerializer - A function that serializes the result of the callback function.
  * Defaults to `Buffer.from(JSON.stringify(data)).toString('base64')`.
  *
- * @param options.resultDeserializer - A function that deserializes the string representation of the result of the callback function.
+ * @param commonOptions.resultDeserializer - A function that deserializes the string representation of the result of the callback function.
  * Defaults to `JSON.parse(Buffer.from(data, 'base64').toString('utf-8'))`.
  *
  * @returns The callback wrapped in a caching function.
@@ -269,6 +269,8 @@ export function neshCache<Arguments extends unknown[], Result extends Promise<un
 
         let cacheData: IncrementalCacheEntry | null = null;
 
+        let data: Result;
+
         try {
             cacheData = await store.incrementalCache.get(key, {
                 revalidate,
@@ -278,21 +280,13 @@ export function neshCache<Arguments extends unknown[], Result extends Promise<un
                 fetchIdx,
                 fetchUrl: 'neshCache',
             });
-        } catch (error) {
-            await handleUnlock();
 
-            throw error;
-        }
+            if (cacheData?.value?.kind === 'FETCH' && cacheData.isStale === false) {
+                await handleUnlock();
 
-        if (cacheData?.value?.kind === 'FETCH' && cacheData.isStale === false) {
-            await handleUnlock();
+                return resultDeserializer(cacheData.value.data.body);
+            }
 
-            return resultDeserializer(cacheData.value.data.body);
-        }
-
-        let data: Result;
-
-        try {
             data = await staticGenerationAsyncStorage.run(
                 {
                     ...store,
@@ -304,7 +298,6 @@ export function neshCache<Arguments extends unknown[], Result extends Promise<un
                 ...args,
             );
         } catch (error) {
-            // biome-ignore lint/complexity/noUselessCatch: we need to rethrow the error
             throw error;
         } finally {
             await handleUnlock();

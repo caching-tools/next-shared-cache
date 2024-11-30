@@ -134,25 +134,25 @@ type CommonNeshClassicCacheOptions<Arguments extends unknown[], Result> = Omit<
  *
  * @param callback - The callback function to be cached.
  *
- * @param options - An object containing options for the cache.
+ * @param commonOptions - An object containing options for the cache.
  *
- * @param options.responseContext - The response context object.
+ * @param commonOptions.responseContext - The response context object.
  * It is used to set the cache headers.
  *
- * @param options.tags - An array of tags to associate with the cached result.
+ * @param commonOptions.tags - An array of tags to associate with the cached result.
  * Tags are used to revalidate the cache using the `revalidateTag` function.
  *
- * @param options.revalidate - The revalidation interval in seconds.
+ * @param commonOptions.revalidate - The revalidation interval in seconds.
  * Must be a positive integer or `false` to disable revalidation.
  * Defaults to `export const revalidate = time;` in the current route.
  *
- * @param options.argumentsSerializer - A function that serializes the arguments passed to the callback function.
+ * @param commonOptions.argumentsSerializer - A function that serializes the arguments passed to the callback function.
  * Use it to create a cache key. Defaults to `JSON.stringify(args)`.
  *
- * @param options.resultSerializer - A function that serializes the result of the callback function.
+ * @param commonOptions.resultSerializer - A function that serializes the result of the callback function.
  * Defaults to `Buffer.from(JSON.stringify(data)).toString('base64')`.
  *
- * @param options.resultDeserializer - A function that deserializes the string representation of the result of the callback function.
+ * @param commonOptions.resultDeserializer - A function that deserializes the string representation of the result of the callback function.
  * Defaults to `JSON.parse(Buffer.from(data, 'base64').toString('utf-8'))`.
  *
  * @returns The callback wrapped in a caching function.

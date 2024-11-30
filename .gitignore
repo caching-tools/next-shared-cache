@@ -47,3 +47,6 @@ next-env.d.ts
 # act
 .actrc
 .act.json
+
+# jetbrains
+.idea
