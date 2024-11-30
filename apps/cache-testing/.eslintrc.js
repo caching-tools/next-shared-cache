@@ -6,5 +6,5 @@ module.exports = {
     parserOptions: {
         project: true,
     },
-    ignorePatterns: ['*.mjs'],
+    ignorePatterns: ['*.mjs', '*.js'],
 };
