@@ -1,4 +1,4 @@
-import { promises as fsPromises } from 'node:fs';
+import {Mode, PathLike, promises as fsPromises} from 'node:fs';
 import path from 'node:path';
 
 import type {
@@ -176,6 +176,20 @@ export type TTLParameters = {
      */
     estimateExpireAge(staleAge: number): number;
 };
+
+/**
+ * A Configuration options for file system management. Used for testing. By default, it's a regular fsPromise.
+ *
+ * @default fsPromise
+ *
+ * @since 1.9.0
+ */
+export type fsConfig = {
+    open: typeof fsPromises.open;
+    readFile: typeof fsPromises.readFile;
+    writeFile: typeof fsPromises.writeFile;
+    mkdir: typeof fsPromises.mkdir
+}
 
 /**
  * Configuration options for the {@link CacheHandler}.
@@ -374,6 +388,12 @@ export class CacheHandler implements NextCacheHandler {
 
     static #serverDistDir: string;
 
+    static #fsConf: fsConfig = fsPromises;
+
+    static setFsConf(fsConf: fsConfig) {
+        CacheHandler.#fsConf = fsConf;
+    }
+
     static async #readPagesRouterPage(cacheKey: string): Promise<CacheHandlerValue | null> {
         let cacheHandlerValue: CacheHandlerValue | null = null;
         let pageHtmlHandle: fsPromises.FileHandle | null = null;
@@ -392,12 +412,12 @@ export class CacheHandler implements NextCacheHandler {
             const pageHtmlPath = path.join(CacheHandler.#serverDistDir, 'pages', `${cacheKey}.html`);
             const pageDataPath = path.join(CacheHandler.#serverDistDir, 'pages', `${cacheKey}.json`);
 
-            pageHtmlHandle = await fsPromises.open(pageHtmlPath, 'r');
+            pageHtmlHandle = await CacheHandler.#fsConf.open(pageHtmlPath, 'r');
 
             const [pageHtmlFile, { mtimeMs }, pageData] = await Promise.all([
                 pageHtmlHandle.readFile('utf-8'),
                 pageHtmlHandle.stat(),
-                fsPromises.readFile(pageDataPath, 'utf-8').then((data) => JSON.parse(data) as object),
+                CacheHandler.#fsConf.readFile(pageDataPath, 'utf-8').then((data) => JSON.parse(data) as object),
             ]);
 
             if (CacheHandler.#debug) {
@@ -447,11 +467,11 @@ export class CacheHandler implements NextCacheHandler {
             const pageHtmlPath = path.join(CacheHandler.#serverDistDir, 'pages', `${cacheKey}.html`);
             const pageDataPath = path.join(CacheHandler.#serverDistDir, 'pages', `${cacheKey}.json`);
 
-            await fsPromises.mkdir(path.dirname(pageHtmlPath), { recursive: true });
+            await CacheHandler.#fsConf.mkdir(path.dirname(pageHtmlPath), { recursive: true });
 
             await Promise.all([
-                fsPromises.writeFile(pageHtmlPath, pageData.html),
-                fsPromises.writeFile(pageDataPath, JSON.stringify(pageData.pageData)),
+                CacheHandler.#fsConf.writeFile(pageHtmlPath, pageData.html),
+                CacheHandler.#fsConf.writeFile(pageDataPath, JSON.stringify(pageData.pageData)),
             ]);
 
             if (CacheHandler.#debug) {
@@ -541,7 +561,7 @@ export class CacheHandler implements NextCacheHandler {
         let buildId: string | undefined;
 
         try {
-            buildId = await fsPromises.readFile(path.join(serverDistDir, '..', 'BUILD_ID'), 'utf-8');
+            buildId = await CacheHandler.#fsConf.readFile(path.join(serverDistDir, '..', 'BUILD_ID'), 'utf-8');
         } catch (_error) {
             buildId = undefined;
         }
@@ -574,7 +594,7 @@ export class CacheHandler implements NextCacheHandler {
         }
 
         try {
-            const prerenderManifestData = await fsPromises.readFile(
+            const prerenderManifestData = await CacheHandler.#fsConf.readFile(
                 path.join(serverDistDir, '..', 'prerender-manifest.json'),
                 'utf-8',
             );
