@@ -18,8 +18,8 @@
         "@neshca/cache-handler": "*",
         "axios": "1.7.8",
         "next": "14.2.15",
-        "react": "18.3.1",
-        "react-dom": "18.3.1",
+        "react": "19.0.0",
+        "react-dom": "19.0.0",
         "redis": "4.7.0"
     },
     "devDependencies": {
@@ -29,8 +29,8 @@
         "@repo/typescript-config": "*",
         "@types/eslint": "8.56.12",
         "@types/node": "22.10.0",
-        "@types/react": "18.3.12",
-        "@types/react-dom": "18.3.1",
+        "@types/react": "19.0.0",
+        "@types/react-dom": "19.0.0",
         "dotenv-cli": "7.4.4",
         "eslint": "8.57.1",
         "fastify": "5.1.0",
