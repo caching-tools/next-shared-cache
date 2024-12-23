@@ -25,7 +25,7 @@
     },
     "dependencies": {
         "fastify": "5.1.0",
-        "pino": "9.5.0"
+        "pino": "9.6.0"
     },
     "devDependencies": {
         "@repo/next-common": "*",
