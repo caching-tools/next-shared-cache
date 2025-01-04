@@ -11,7 +11,7 @@
         "start:docs": "serve out"
     },
     "dependencies": {
-        "next": "14.2.15",
+        "next": "14.2.21",
         "nextra": "3.2.4",
         "nextra-theme-docs": "3.2.4",
         "react": "18.3.1",
