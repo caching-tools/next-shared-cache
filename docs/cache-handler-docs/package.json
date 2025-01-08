@@ -14,7 +14,7 @@
         "next": "14.2.15",
         "nextra": "3.2.4",
         "nextra-theme-docs": "3.2.4",
-        "react": "18.3.1",
+        "react": "19.0.0",
         "react-dom": "18.3.1"
     },
     "devDependencies": {
@@ -23,7 +23,7 @@
         "@repo/typescript-config": "*",
         "@types/eslint": "8.56.12",
         "@types/node": "22.10.0",
-        "@types/react": "18.3.12",
+        "@types/react": "19.0.4",
         "@types/react-dom": "18.3.1",
         "eslint": "8.57.1",
         "serve": "14.2.4",
