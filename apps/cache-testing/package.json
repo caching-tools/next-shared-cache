@@ -23,7 +23,7 @@
         "redis": "4.7.0"
     },
     "devDependencies": {
-        "@next/eslint-plugin-next": "14.2.15",
+        "@next/eslint-plugin-next": "15.1.4",
         "@playwright/test": "1.49.0",
         "@repo/eslint-config": "*",
         "@repo/typescript-config": "*",
