@@ -24,7 +24,7 @@
     },
     "devDependencies": {
         "@next/eslint-plugin-next": "14.2.15",
-        "@playwright/test": "1.49.0",
+        "@playwright/test": "1.50.1",
         "@repo/eslint-config": "*",
         "@repo/typescript-config": "*",
         "@types/eslint": "8.56.12",
