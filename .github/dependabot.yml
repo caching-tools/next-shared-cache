@@ -9,14 +9,6 @@ updates:
     versioning-strategy: increase
     open-pull-requests-limit: 20
     ignore:
-      - dependency-name: 'eslint'
-        versions: ['9.x.x']
-      - dependency-name: '@types/eslint'
-        versions: ['9.x.x']
-      - dependency-name: '@typescript-eslint/eslint-plugin'
-        versions: ['8.x.x']
-      - dependency-name: '@typescript-eslint/parser'
-        versions: ['8.x.x']
       - dependency-name: 'lru-cache'
         versions: ['11.x.x']
     groups:
@@ -27,10 +19,7 @@ updates:
       turbo:
         patterns:
           - 'turbo'
-          - 'eslint-config-turbo'
-      definitely-typed:
-        patterns:
-          - '@types/*'
+          - 'eslint-plugin-turbo'
       react:
         patterns:
           - 'react'
@@ -48,6 +37,10 @@ updates:
       eslint:
         patterns:
           - 'eslint'
-          - '@types/eslint'
-          - '@typescript-eslint/eslint-plugin'
-          - '@typescript-eslint/parser'
+          - '@eslint/js'
+          - 'eslint-config-prettier'
+          - 'eslint-plugin-react'
+          - 'eslint-plugin-react-hooks'
+          - 'eslint-plugin-turbo'
+          - 'globals'
+          - 'typescript-eslint'

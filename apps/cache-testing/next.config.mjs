@@ -18,6 +18,9 @@ const nextConfig = {
         outputFileTracingRoot: path.join(import.meta.dirname, '../../'),
         instrumentationHook: true,
     },
+    eslint: {
+        ignoreDuringBuilds: true,
+    },
 };
 
 export default nextConfig;

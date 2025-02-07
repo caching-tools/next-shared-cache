@@ -11,8 +11,8 @@
         "next": "14.2.15"
     },
     "devDependencies": {
-        "@repo/typescript-config": "*",
-        "@types/node": "22.10.0",
-        "typescript": "5.7.2"
+        "@repo/typescript-config": "workspace:*",
+        "@types/node": "22.13.1",
+        "typescript": "5.7.3"
     }
 }

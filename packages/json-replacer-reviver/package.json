@@ -26,10 +26,10 @@
         "test:watch": "tsx --watch --test **/*.test.ts"
     },
     "devDependencies": {
-        "@repo/typescript-config": "*",
-        "@types/node": "22.10.0",
-        "tsup": "8.3.5",
+        "@repo/typescript-config": "workspace:*",
+        "@types/node": "22.13.1",
+        "tsup": "8.3.6",
         "tsx": "4.19.2",
-        "typescript": "5.7.2"
+        "typescript": "5.7.3"
     }
 }

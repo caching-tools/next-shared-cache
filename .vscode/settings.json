@@ -1,5 +1,9 @@
 {
-    "eslint.workingDirectories": [{ "pattern": "apps/*/" }, { "pattern": "docs/*/" }],
+    "eslint.workingDirectories": [
+        {
+            "mode": "auto"
+        }
+    ],
     "typescript.surveys.enabled": false,
     "explorer.fileNesting.enabled": true,
     "explorer.fileNesting.patterns": {
@@ -13,7 +17,7 @@
             "scheme": "file"
         }
     ],
-    "typescript.tsdk": "node_modules/typescript/lib",
+    // "typescript.tsdk": "node_modules/typescript/lib",
     "editor.defaultFormatter": "biomejs.biome",
     "[jsonc]": {
         "editor.defaultFormatter": "esbenp.prettier-vscode"

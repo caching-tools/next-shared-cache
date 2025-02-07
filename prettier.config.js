@@ -1,10 +1,10 @@
-const config = require('@vercel/style-guide/prettier');
-
-module.exports = {
-    ...config,
-    tabWidth: 4,
-    printWidth: 120,
+/**
+ * @see https://prettier.io/docs/en/configuration.html
+ * @type {import("prettier").Config}
+ */
+export default {
     singleQuote: true,
+    plugins: ['prettier-plugin-packagejson'],
     overrides: [
         {
             files: '*.{yml,yaml,md,mdx}',

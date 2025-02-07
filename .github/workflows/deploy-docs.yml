@@ -25,18 +25,25 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version-file: '.nvmrc'
+          node-version-file: '.node-version'
           check-latest: true
-          cache: 'npm'
+          cache: 'pnpm'
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
+
       - name: Install dependencies
-        run: npm ci
-      - name: Build with Next.js
-        run: npm run build:docs
+        run: pnpm i --frozen-lockfile
+
+      - name: Build docs
+        run: pnpm build:docs
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:

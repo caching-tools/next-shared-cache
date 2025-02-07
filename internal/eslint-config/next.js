@@ -1,39 +1,59 @@
-const { resolve } = require('node:path');
+import js from '@eslint/js';
+import pluginNext from '@next/eslint-plugin-next';
+import eslintConfigPrettier from 'eslint-config-prettier';
+import pluginReact from 'eslint-plugin-react';
+import pluginReactHooks from 'eslint-plugin-react-hooks';
+import turboPlugin from 'eslint-plugin-turbo';
+import globals from 'globals';
+import tseslint from 'typescript-eslint';
 
-const project = resolve(process.cwd(), 'tsconfig.json');
-
-/** @type {import("eslint").Linter.Config} */
-module.exports = {
-    extends: [
-        'eslint:recommended',
-        'prettier',
-        require.resolve('@vercel/style-guide/eslint/next'),
-        'eslint-config-turbo',
-    ],
-    globals: {
-        React: true,
-        JSX: true,
+/**
+ * A shared ESLint configuration for the repository.
+ *
+ * @type {import("eslint").Linter.Config}
+ * */
+export const nextJsConfig = [
+    js.configs.recommended,
+    eslintConfigPrettier,
+    ...tseslint.configs.recommended,
+    {
+        plugins: {
+            turbo: turboPlugin,
+        },
+        rules: {
+            'turbo/no-undeclared-env-vars': 'warn',
+        },
     },
-    env: {
-        node: true,
-        browser: true,
+    {
+        ignores: ['dist/**'],
     },
-    plugins: ['only-warn'],
-    settings: {
-        'import/resolver': {
-            typescript: {
-                project,
+    {
+        ...pluginReact.configs.flat.recommended,
+        languageOptions: {
+            ...pluginReact.configs.flat.recommended.languageOptions,
+            globals: {
+                ...globals.serviceworker,
             },
         },
     },
-    ignorePatterns: [
-        // Ignore dotfiles
-        '.*.js',
-        'node_modules/',
-    ],
-    overrides: [{ files: ['*.js?(x)', '*.ts?(x)'] }],
-    rules: {
-        'import/no-default-export': 'off',
-        'no-console': 'off',
+    {
+        plugins: {
+            '@next/next': pluginNext,
+        },
+        rules: {
+            ...pluginNext.configs.recommended.rules,
+            ...pluginNext.configs['core-web-vitals'].rules,
+        },
     },
-};
+    {
+        plugins: {
+            'react-hooks': pluginReactHooks,
+        },
+        settings: { react: { version: 'detect' } },
+        rules: {
+            ...pluginReactHooks.configs.recommended.rules,
+            // React scope no longer necessary with new JSX transform.
+            'react/react-in-jsx-scope': 'off',
+        },
+    },
+];

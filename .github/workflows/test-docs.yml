@@ -3,30 +3,35 @@ env:
   CI: true
 on:
   pull_request:
+    types: [opened, synchronize]
     branches: [canary]
     paths:
       - '.github/workflows/test-docs.yml'
       - 'docs/cache-handler-docs/**'
       - 'internal/eslint-config/**'
-      - 'internal/prettier-config/**'
       - 'package.json'
       - 'biome.json'
-      - '.prettierrc.json'
+      - 'prettier.config.js'
 jobs:
   test:
     name: 'check-docs-build'
     timeout-minutes: 5
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          node-version-file: '.nvmrc'
+          node-version-file: '.node-version'
           check-latest: true
-          cache: 'npm'
+          cache: 'pnpm'
+
       - name: Install dependencies
-        run: npm ci
-      - name: Check code style
-        run: npm run codestyle:check
+        run: pnpm i --frozen-lockfile
+
       - name: Build docs
-        run: npm run build:docs
+        run: pnpm build:docs

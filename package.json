@@ -3,22 +3,16 @@
     "version": "0.0.0",
     "private": true,
     "license": "MIT",
-    "workspaces": [
-        "apps/*",
-        "packages/*",
-        "docs/cache-handler-docs",
-        "internal/*"
-    ],
+    "type": "module",
     "scripts": {
         "build:docs": "turbo run build:docs --filter=@repo/cache-handler-docs",
         "build:packages": "turbo run build --filter=!./apps/* --filter=!./docs/*",
         "build:test-app": "turbo run build --filter=@repo/cache-testing",
         "changeset": "changeset",
         "ci:publish": "changeset publish",
-        "ci:version": "changeset version && npm run codestyle:fix",
-        "clean": "rimraf -g **/{node_modules,dist,.next,test-results,playwright-report}",
-        "codestyle:check": "biome check . && npm run eslint:check && npm run prettier:check",
-        "codestyle:fix": "biome check --write . && npm run eslint:fix && npm run prettier:fix",
+        "ci:version": "changeset version && pnpm codestyle:fix",
+        "codestyle:check": "biome check . && pnpm prettier:check",
+        "codestyle:fix": "biome check --write . && pnpm prettier:fix",
         "dev:docs": "turbo run dev:docs --filter=@repo/cache-handler-docs",
         "dev:packages": "turbo run dev --filter=!@neshca/server",
         "e2e": "turbo run e2e",
@@ -30,22 +24,21 @@
         "start:test-app": "turbo run start --filter=@repo/cache-testing",
         "test": "turbo run test"
     },
-    "dependencies": {
-        "@changesets/cli": "2.27.10"
-    },
     "devDependencies": {
-        "@actions/core": "1.11.1",
         "@biomejs/biome": "1.9.4",
-        "@repo/prettier-config": "*",
-        "@repo/typescript-config": "*",
-        "glob": "11.0.0",
-        "prettier": "3.4.1",
-        "rimraf": "6.0.1",
-        "turbo": "2.3.2"
+        "@changesets/cli": "2.27.12",
+        "prettier": "3.4.2",
+        "prettier-plugin-packagejson": "2.5.8",
+        "turbo": "2.4.0"
     },
-    "packageManager": "npm@10.7.0",
+    "packageManager": "pnpm@10.2.1+sha512.398035c7bd696d0ba0b10a688ed558285329d27ea994804a52bad9167d8e3a72bcb993f9699585d3ca25779ac64949ef422757a6c31102c12ab932e5cbe5cc92",
     "engines": {
-        "node": ">=20.9.0",
-        "npm": ">=10.1.0"
+        "node": ">=22.11.0"
+    },
+    "pnpm": {
+        "onlyBuiltDependencies": [
+            "@biomejs/biome",
+            "esbuild"
+        ]
     }
 }

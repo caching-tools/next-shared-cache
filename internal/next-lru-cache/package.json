@@ -11,9 +11,9 @@
         "lru-cache": "10.4.3"
     },
     "devDependencies": {
-        "@repo/next-common": "*",
-        "@repo/typescript-config": "*",
-        "@types/node": "22.10.0",
-        "typescript": "5.7.2"
+        "@repo/next-common": "workspace:*",
+        "@repo/typescript-config": "workspace:*",
+        "@types/node": "22.13.1",
+        "typescript": "5.7.3"
     }
 }

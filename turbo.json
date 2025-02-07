@@ -1,8 +1,8 @@
 {
     "$schema": "https://turbo.build/schema.json",
+    "ui": "tui",
     "globalDependencies": ["**/.env.*local"],
     "globalEnv": ["CI", "NODE_ENV", "NEXT_PUBLIC_BASE_URL", "NEXT_RUNTIME"],
-    "ui": "tui",
     "tasks": {
         "build": {
             "dependsOn": ["^build"],

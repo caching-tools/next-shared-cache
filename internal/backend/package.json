@@ -9,14 +9,14 @@
         "start": "tsx ./src/backend.ts"
     },
     "dependencies": {
-        "fastify": "5.1.0",
-        "pino": "9.5.0"
+        "fastify": "5.2.1",
+        "pino": "9.6.0"
     },
     "devDependencies": {
-        "@repo/typescript-config": "*",
-        "@types/node": "22.10.0",
+        "@repo/typescript-config": "workspace:*",
+        "@types/node": "22.13.1",
         "pino-pretty": "13.0.0",
         "tsx": "4.19.2",
-        "typescript": "5.7.2"
+        "typescript": "5.7.3"
     }
 }

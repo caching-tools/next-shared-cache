@@ -15,4 +15,7 @@ export default withNextra({
     env: {
         NEXT_PUBLIC_BASE_URL: basePath,
     },
+    eslint: {
+        ignoreDuringBuilds: true,
+    },
 });
