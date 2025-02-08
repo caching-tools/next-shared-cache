@@ -18,8 +18,8 @@
     "@neshca/cache-handler": "workspace:*",
     "axios": "1.7.9",
     "next": "14.2.15",
-    "react": "18.3.1",
-    "react-dom": "18.3.1",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
     "redis": "4.7.0"
   },
   "devDependencies": {
@@ -27,8 +27,8 @@
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "@types/node": "22.13.1",
-    "@types/react": "18.3.12",
-    "@types/react-dom": "18.3.1",
+    "@types/react": "19.0.8",
+    "@types/react-dom": "19.0.3",
     "eslint": "9.20.0",
     "fastify": "5.2.1",
     "pm2": "5.4.3",
