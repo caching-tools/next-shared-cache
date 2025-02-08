@@ -21,7 +21,8 @@
           }
         },
         "noDefaultExport": "off",
-        "useNamingConvention": "off"
+        "useNamingConvention": "off",
+        "noImplicitBoolean": "off"
       },
       "correctness": {
         "noNodejsModules": "off",
