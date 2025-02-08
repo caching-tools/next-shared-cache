@@ -1,38 +1,38 @@
 {
-    "name": "@repo/cache-testing",
-    "version": "0.0.0",
-    "private": true,
-    "license": "MIT",
-    "scripts": {
-        "build": "next build && ./create-instances.sh",
-        "cluster:start": "pm2 start cluster.config.js --env production",
-        "cluster:stop": "pm2 kill",
-        "e2e": "playwright test --config=./playwright.config.ts",
-        "e2e:ui": "playwright test --ui --config=./playwright.config.ts",
-        "eslint:check": "next lint",
-        "eslint:fix": "next lint --fix",
-        "playwright:install": "playwright install chromium",
-        "start": "dotenv -e .env.local -v SERVER_STARTED=1 node .next/standalone/apps/cache-testing/server.js"
-    },
-    "dependencies": {
-        "@neshca/cache-handler": "workspace:*",
-        "axios": "1.7.9",
-        "next": "14.2.15",
-        "react": "18.3.1",
-        "react-dom": "18.3.1",
-        "redis": "4.7.0"
-    },
-    "devDependencies": {
-        "@playwright/test": "1.50.1",
-        "@repo/eslint-config": "workspace:*",
-        "@repo/typescript-config": "workspace:*",
-        "@types/node": "22.13.1",
-        "@types/react": "18.3.12",
-        "@types/react-dom": "18.3.1",
-        "eslint": "9.20.0",
-        "fastify": "5.2.1",
-        "pm2": "5.4.3",
-        "tsx": "4.19.2",
-        "typescript": "5.7.3"
-    }
+  "name": "@repo/cache-testing",
+  "version": "0.0.0",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "build": "next build && ./create-instances.sh",
+    "cluster:start": "pm2 start cluster.config.js --env production",
+    "cluster:stop": "pm2 kill",
+    "e2e": "playwright test --config=./playwright.config.ts",
+    "e2e:ui": "playwright test --ui --config=./playwright.config.ts",
+    "eslint:check": "next lint",
+    "eslint:fix": "next lint --fix",
+    "playwright:install": "playwright install chromium",
+    "start": "dotenv -e .env.local -v SERVER_STARTED=1 node .next/standalone/apps/cache-testing/server.js"
+  },
+  "dependencies": {
+    "@neshca/cache-handler": "workspace:*",
+    "axios": "1.7.9",
+    "next": "14.2.15",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "redis": "4.7.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.50.1",
+    "@repo/eslint-config": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "@types/node": "22.13.1",
+    "@types/react": "18.3.12",
+    "@types/react-dom": "18.3.1",
+    "eslint": "9.20.0",
+    "fastify": "5.2.1",
+    "pm2": "5.4.3",
+    "tsx": "4.19.2",
+    "typescript": "5.7.3"
+  }
 }

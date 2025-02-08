@@ -1,16 +1,22 @@
 {
-    "extends": "@repo/typescript-config/nextjs.json",
-    "compilerOptions": {
-        "paths": {
-            "cache-handler-docs/*": ["./src/*"]
-        },
-        "plugins": [
-            {
-                "name": "next"
-            }
-        ]
+  "extends": "@repo/typescript-config/nextjs.json",
+  "compilerOptions": {
+    "paths": {
+      "cache-handler-docs/*": ["./src/*"]
     },
-    "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "run-app-instances.ts"],
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ]
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    "run-app-instances.ts"
+  ],
 
-    "exclude": ["node_modules"]
+  "exclude": ["node_modules"]
 }

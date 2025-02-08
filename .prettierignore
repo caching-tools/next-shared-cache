@@ -12,6 +12,8 @@ node_modules
 
 # Testing
 coverage
+playwright-report
+test-results
 
 # Turbo
 .turbo
@@ -24,7 +26,7 @@ coverage
 out/
 build
 dist
-
+next-env.d.ts
 
 # Debug
 npm-debug.log*
@@ -34,6 +36,7 @@ yarn-error.log*
 # Misc
 .DS_Store
 *.pem
+
 
 # biome formatted files
 *.js

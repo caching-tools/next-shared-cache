@@ -9,15 +9,15 @@ import type { OutgoingHttpHeaders } from 'http';
  * @returns An array of cache tags.
  */
 export function getTagsFromHeaders(headers: OutgoingHttpHeaders): string[] {
-    const tagsHeader = headers['x-next-cache-tags'];
+  const tagsHeader = headers['x-next-cache-tags'];
 
-    if (Array.isArray(tagsHeader)) {
-        return tagsHeader;
-    }
+  if (Array.isArray(tagsHeader)) {
+    return tagsHeader;
+  }
 
-    if (typeof tagsHeader === 'string') {
-        return tagsHeader.split(',');
-    }
+  if (typeof tagsHeader === 'string') {
+    return tagsHeader.split(',');
+  }
 
-    return [];
+  return [];
 }

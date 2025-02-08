@@ -20,7 +20,8 @@ const redisHandler = createRedisHandler({
 The `redis-stack` Handler uses Redis with `RedisJSON` and `RedisSearch` modules as the cache store. It is a full-featured cache handler that supports JSON objects and full-text search, offering a trade-off between performance and flexibility. While it may sacrifice some speed compared to the [`redis-strings`](/handlers/redis-strings) Handler, it empowers you to manage cache on demand more efficiently and faster. It also allows for more versatile cache usage from your application, such as creating custom revalidating strategies and functions. The `redis-stack` Handler is suitable for applications that require advanced cache management and search capabilities.
 
 <Callout type="info">
-  Make sure that you have the `RedisJSON` and `RedisSearch` modules installed and enabled in your Redis server.
+  Make sure that you have the `RedisJSON` and `RedisSearch` modules installed
+  and enabled in your Redis server.
 </Callout>
 
 ## API

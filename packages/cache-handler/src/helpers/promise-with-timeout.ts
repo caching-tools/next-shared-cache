@@ -13,22 +13,34 @@ import { MAX_INT32 } from '../constants';
  * @throws If the operation does not complete within the specified timeout,
  * the returned Promise will be rejected with an Error that has a message indicating the timeout period.
  */
-export function promiseWithTimeout<T>(operation: Promise<T>, timeoutMs?: number): Promise<T> {
-    if (typeof timeoutMs !== 'number' || Number.isNaN(timeoutMs) || timeoutMs <= 0 || timeoutMs > MAX_INT32) {
-        return operation;
-    }
+export function promiseWithTimeout<T>(
+  operation: Promise<T>,
+  timeoutMs?: number,
+): Promise<T> {
+  if (
+    typeof timeoutMs !== 'number' ||
+    Number.isNaN(timeoutMs) ||
+    timeoutMs <= 0 ||
+    timeoutMs > MAX_INT32
+  ) {
+    return operation;
+  }
 
-    return new Promise((resolve, reject) => {
-        const timeoutId = setTimeout(reject, timeoutMs, new Error(`Operation timed out after ${timeoutMs} ms`));
+  return new Promise((resolve, reject) => {
+    const timeoutId = setTimeout(
+      reject,
+      timeoutMs,
+      new Error(`Operation timed out after ${timeoutMs} ms`),
+    );
 
-        operation
-            .then((result) => {
-                clearTimeout(timeoutId);
-                resolve(result);
-            })
-            .catch((error) => {
-                clearTimeout(timeoutId);
-                reject(error as Error);
-            });
-    });
+    operation
+      .then((result) => {
+        clearTimeout(timeoutId);
+        resolve(result);
+      })
+      .catch((error) => {
+        clearTimeout(timeoutId);
+        reject(error as Error);
+      });
+  });
 }

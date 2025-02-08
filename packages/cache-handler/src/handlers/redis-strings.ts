@@ -35,160 +35,194 @@ export type { CreateRedisStringsHandlerOptions };
  * - the `revalidateTag` methods are used for handling tag-based cache revalidation.
  */
 export default function createHandler({
-    client,
-    keyPrefix = '',
-    sharedTagsKey = '__sharedTags__',
-    timeoutMs = 5000,
-    keyExpirationStrategy = 'EXPIREAT',
-    revalidateTagQuerySize = 100,
+  client,
+  keyPrefix = '',
+  sharedTagsKey = '__sharedTags__',
+  timeoutMs = 5000,
+  keyExpirationStrategy = 'EXPIREAT',
+  revalidateTagQuerySize = 100,
 }: CreateRedisStringsHandlerOptions): Handler {
-    function assertClientIsReady(): void {
-        if (!client.isReady) {
-            throw new Error('Redis client is not ready yet or connection is lost. Keep trying...');
-        }
+  function assertClientIsReady(): void {
+    if (!client.isReady) {
+      throw new Error(
+        'Redis client is not ready yet or connection is lost. Keep trying...',
+      );
     }
+  }
 
-    const revalidatedTagsKey = keyPrefix + REVALIDATED_TAGS_KEY;
+  const revalidatedTagsKey = keyPrefix + REVALIDATED_TAGS_KEY;
 
-    return {
-        name: 'redis-strings',
-        async get(key, { implicitTags }) {
-            assertClientIsReady();
+  return {
+    name: 'redis-strings',
+    async get(key, { implicitTags }) {
+      assertClientIsReady();
 
-            const result = await client.get(getTimeoutRedisCommandOptions(timeoutMs), keyPrefix + key);
+      const result = await client.get(
+        getTimeoutRedisCommandOptions(timeoutMs),
+        keyPrefix + key,
+      );
 
-            if (!result) {
-                return null;
-            }
+      if (!result) {
+        return null;
+      }
 
-            const cacheValue = JSON.parse(result) as CacheHandlerValue | null;
+      const cacheValue = JSON.parse(result) as CacheHandlerValue | null;
 
-            if (!cacheValue) {
-                return null;
-            }
+      if (!cacheValue) {
+        return null;
+      }
 
-            const combinedTags = new Set([...cacheValue.tags, ...implicitTags]);
+      const combinedTags = new Set([...cacheValue.tags, ...implicitTags]);
 
-            if (combinedTags.size === 0) {
-                return cacheValue;
-            }
+      if (combinedTags.size === 0) {
+        return cacheValue;
+      }
 
-            const revalidationTimes = await client.hmGet(
-                getTimeoutRedisCommandOptions(timeoutMs),
-                revalidatedTagsKey,
-                Array.from(combinedTags),
-            );
+      const revalidationTimes = await client.hmGet(
+        getTimeoutRedisCommandOptions(timeoutMs),
+        revalidatedTagsKey,
+        Array.from(combinedTags),
+      );
 
-            for (const timeString of revalidationTimes) {
-                if (timeString && Number.parseInt(timeString, 10) > cacheValue.lastModified) {
-                    await client.unlink(getTimeoutRedisCommandOptions(timeoutMs), keyPrefix + key);
+      for (const timeString of revalidationTimes) {
+        if (
+          timeString &&
+          Number.parseInt(timeString, 10) > cacheValue.lastModified
+        ) {
+          await client.unlink(
+            getTimeoutRedisCommandOptions(timeoutMs),
+            keyPrefix + key,
+          );
 
-                    return null;
+          return null;
+        }
+      }
+
+      return cacheValue;
+    },
+    async set(key, cacheHandlerValue) {
+      assertClientIsReady();
+
+      const options = getTimeoutRedisCommandOptions(timeoutMs);
+
+      let setOperation: Promise<string | null>;
+
+      let expireOperation: Promise<boolean> | undefined;
+
+      switch (keyExpirationStrategy) {
+        case 'EXAT': {
+          setOperation = client.set(
+            options,
+            keyPrefix + key,
+            JSON.stringify(cacheHandlerValue),
+            typeof cacheHandlerValue.lifespan?.expireAt === 'number'
+              ? {
+                  EXAT: cacheHandlerValue.lifespan.expireAt,
                 }
-            }
+              : undefined,
+          );
+          break;
+        }
+        case 'EXPIREAT': {
+          setOperation = client.set(
+            options,
+            keyPrefix + key,
+            JSON.stringify(cacheHandlerValue),
+          );
 
-            return cacheValue;
-        },
-        async set(key, cacheHandlerValue) {
-            assertClientIsReady();
+          expireOperation = cacheHandlerValue.lifespan
+            ? client.expireAt(
+                options,
+                keyPrefix + key,
+                cacheHandlerValue.lifespan.expireAt,
+              )
+            : undefined;
+          break;
+        }
+        default: {
+          throw new Error(
+            `Invalid keyExpirationStrategy: ${keyExpirationStrategy}`,
+          );
+        }
+      }
 
-            const options = getTimeoutRedisCommandOptions(timeoutMs);
+      const setTagsOperation =
+        cacheHandlerValue.tags.length > 0
+          ? client.hSet(
+              options,
+              keyPrefix + sharedTagsKey,
+              key,
+              JSON.stringify(cacheHandlerValue.tags),
+            )
+          : undefined;
 
-            let setOperation: Promise<string | null>;
+      await Promise.all([setOperation, expireOperation, setTagsOperation]);
+    },
+    async revalidateTag(tag) {
+      assertClientIsReady();
 
-            let expireOperation: Promise<boolean> | undefined;
+      // If the tag is an implicit tag, we need to mark it as revalidated.
+      // The revalidation process is done by the CacheHandler class on the next get operation.
+      if (isImplicitTag(tag)) {
+        await client.hSet(
+          getTimeoutRedisCommandOptions(timeoutMs),
+          revalidatedTagsKey,
+          tag,
+          Date.now(),
+        );
+      }
 
-            switch (keyExpirationStrategy) {
-                case 'EXAT': {
-                    setOperation = client.set(
-                        options,
-                        keyPrefix + key,
-                        JSON.stringify(cacheHandlerValue),
-                        typeof cacheHandlerValue.lifespan?.expireAt === 'number'
-                            ? {
-                                  EXAT: cacheHandlerValue.lifespan.expireAt,
-                              }
-                            : undefined,
-                    );
-                    break;
-                }
-                case 'EXPIREAT': {
-                    setOperation = client.set(options, keyPrefix + key, JSON.stringify(cacheHandlerValue));
+      const tagsMap: Map<string, string[]> = new Map();
 
-                    expireOperation = cacheHandlerValue.lifespan
-                        ? client.expireAt(options, keyPrefix + key, cacheHandlerValue.lifespan.expireAt)
-                        : undefined;
-                    break;
-                }
-                default: {
-                    throw new Error(`Invalid keyExpirationStrategy: ${keyExpirationStrategy}`);
-                }
-            }
+      let cursor = 0;
 
-            const setTagsOperation =
-                cacheHandlerValue.tags.length > 0
-                    ? client.hSet(options, keyPrefix + sharedTagsKey, key, JSON.stringify(cacheHandlerValue.tags))
-                    : undefined;
+      const hScanOptions = { COUNT: revalidateTagQuerySize };
 
-            await Promise.all([setOperation, expireOperation, setTagsOperation]);
-        },
-        async revalidateTag(tag) {
-            assertClientIsReady();
+      do {
+        const remoteTagsPortion = await client.hScan(
+          getTimeoutRedisCommandOptions(timeoutMs),
+          keyPrefix + sharedTagsKey,
+          cursor,
+          hScanOptions,
+        );
 
-            // If the tag is an implicit tag, we need to mark it as revalidated.
-            // The revalidation process is done by the CacheHandler class on the next get operation.
-            if (isImplicitTag(tag)) {
-                await client.hSet(getTimeoutRedisCommandOptions(timeoutMs), revalidatedTagsKey, tag, Date.now());
-            }
+        for (const { field, value } of remoteTagsPortion.tuples) {
+          tagsMap.set(field, JSON.parse(value));
+        }
 
-            const tagsMap: Map<string, string[]> = new Map();
+        cursor = remoteTagsPortion.cursor;
+      } while (cursor !== 0);
 
-            let cursor = 0;
+      const keysToDelete: string[] = [];
 
-            const hScanOptions = { COUNT: revalidateTagQuerySize };
+      const tagsToDelete: string[] = [];
 
-            do {
-                const remoteTagsPortion = await client.hScan(
-                    getTimeoutRedisCommandOptions(timeoutMs),
-                    keyPrefix + sharedTagsKey,
-                    cursor,
-                    hScanOptions,
-                );
+      for (const [key, tags] of tagsMap) {
+        if (tags.includes(tag)) {
+          keysToDelete.push(keyPrefix + key);
+          tagsToDelete.push(key);
+        }
+      }
 
-                for (const { field, value } of remoteTagsPortion.tuples) {
-                    tagsMap.set(field, JSON.parse(value));
-                }
+      if (keysToDelete.length === 0) {
+        return;
+      }
 
-                cursor = remoteTagsPortion.cursor;
-            } while (cursor !== 0);
+      const deleteKeysOperation = client.unlink(
+        getTimeoutRedisCommandOptions(timeoutMs),
+        keysToDelete,
+      );
 
-            const keysToDelete: string[] = [];
+      const updateTagsOperation = client.hDel(
+        { isolated: true, ...getTimeoutRedisCommandOptions(timeoutMs) },
+        keyPrefix + sharedTagsKey,
+        tagsToDelete,
+      );
 
-            const tagsToDelete: string[] = [];
-
-            for (const [key, tags] of tagsMap) {
-                if (tags.includes(tag)) {
-                    keysToDelete.push(keyPrefix + key);
-                    tagsToDelete.push(key);
-                }
-            }
-
-            if (keysToDelete.length === 0) {
-                return;
-            }
-
-            const deleteKeysOperation = client.unlink(getTimeoutRedisCommandOptions(timeoutMs), keysToDelete);
-
-            const updateTagsOperation = client.hDel(
-                { isolated: true, ...getTimeoutRedisCommandOptions(timeoutMs) },
-                keyPrefix + sharedTagsKey,
-                tagsToDelete,
-            );
-
-            await Promise.all([deleteKeysOperation, updateTagsOperation]);
-        },
-        async delete(key) {
-            await client.unlink(getTimeoutRedisCommandOptions(timeoutMs), key);
-        },
-    };
+      await Promise.all([deleteKeysOperation, updateTagsOperation]);
+    },
+    async delete(key) {
+      await client.unlink(getTimeoutRedisCommandOptions(timeoutMs), key);
+    },
+  };
 }

@@ -77,7 +77,10 @@ If the cache handler is not active:
 2. Ensure that the `NEXT_PRIVATE_DEBUG_CACHE` environment variable is set. To verify, add the following to your `next.config.js` file:
 
    ```js filename="next.config.js" copy
-   console.log('NEXT_PRIVATE_DEBUG_CACHE', process.env.NEXT_PRIVATE_DEBUG_CACHE);
+   console.log(
+     'NEXT_PRIVATE_DEBUG_CACHE',
+     process.env.NEXT_PRIVATE_DEBUG_CACHE,
+   );
    ```
 
    When you build or run your application, `NEXT_PRIVATE_DEBUG_CACHE 1` should appear in your console.

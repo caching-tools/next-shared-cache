@@ -8,5 +8,5 @@ import { NEXT_CACHE_IMPLICIT_TAG_ID } from '@repo/next-common';
  * @returns A boolean indicating whether the tag is an implicit tag.
  */
 export function isImplicitTag(tag: string): boolean {
-    return tag.startsWith(NEXT_CACHE_IMPLICIT_TAG_ID);
+  return tag.startsWith(NEXT_CACHE_IMPLICIT_TAG_ID);
 }

@@ -1,18 +1,18 @@
 import type { CacheHandlerValue, Handler } from '../cache-handler';
 
 export type ServerCacheHandlerOptions = {
-    /**
-     * The base URL of the cache store server.
-     *
-     * @since 1.0.0
-     */
-    baseUrl: URL | string;
-    /**
-     * Timeout in milliseconds for remote cache store operations.
-     *
-     * @since 1.0.0
-     */
-    timeoutMs?: number;
+  /**
+   * The base URL of the cache store server.
+   *
+   * @since 1.0.0
+   */
+  baseUrl: URL | string;
+  /**
+   * Timeout in milliseconds for remote cache store operations.
+   *
+   * @since 1.0.0
+   */
+  timeoutMs?: number;
 };
 
 /**
@@ -40,89 +40,92 @@ export type ServerCacheHandlerOptions = {
  * - the `set` method allows setting a value in the server cache.
  * - the `revalidateTag` methods are used for handling tag-based cache revalidation.
  */
-export default function createHandler({ baseUrl, timeoutMs }: ServerCacheHandlerOptions): Handler {
-    return {
-        name: 'server',
-        async get(key, { implicitTags }) {
-            const url = new URL('/get', baseUrl);
+export default function createHandler({
+  baseUrl,
+  timeoutMs,
+}: ServerCacheHandlerOptions): Handler {
+  return {
+    name: 'server',
+    async get(key, { implicitTags }) {
+      const url = new URL('/get', baseUrl);
 
-            url.searchParams.set('key', key);
-            url.searchParams.set('implicitTags', JSON.stringify(implicitTags));
+      url.searchParams.set('key', key);
+      url.searchParams.set('implicitTags', JSON.stringify(implicitTags));
 
-            const response = await fetch(url, {
-                signal: timeoutMs ? AbortSignal.timeout(timeoutMs) : undefined,
-                // @ts-expect-error -- act as an internal fetch call
-                next: {
-                    internal: true,
-                },
-            });
-
-            if (response.status === 404) {
-                return null;
-            }
-
-            if (!response.ok) {
-                throw new Error(`get error: ${response.status}`);
-            }
-
-            const string = await response.text();
-
-            return JSON.parse(string) as CacheHandlerValue;
+      const response = await fetch(url, {
+        signal: timeoutMs ? AbortSignal.timeout(timeoutMs) : undefined,
+        // @ts-expect-error -- act as an internal fetch call
+        next: {
+          internal: true,
         },
-        async set(key, cacheHandlerValue) {
-            const url = new URL('/set', baseUrl);
+      });
 
-            const response = await fetch(url, {
-                method: 'POST',
-                body: JSON.stringify([key, JSON.stringify(cacheHandlerValue)]),
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                signal: timeoutMs ? AbortSignal.timeout(timeoutMs) : undefined,
-                // @ts-expect-error -- act as an internal fetch call
-                next: {
-                    internal: true,
-                },
-            });
+      if (response.status === 404) {
+        return null;
+      }
 
-            if (!response.ok) {
-                throw new Error(`set error: ${response.status}`);
-            }
+      if (!response.ok) {
+        throw new Error(`get error: ${response.status}`);
+      }
+
+      const string = await response.text();
+
+      return JSON.parse(string) as CacheHandlerValue;
+    },
+    async set(key, cacheHandlerValue) {
+      const url = new URL('/set', baseUrl);
+
+      const response = await fetch(url, {
+        method: 'POST',
+        body: JSON.stringify([key, JSON.stringify(cacheHandlerValue)]),
+        headers: {
+          'Content-Type': 'application/json',
         },
-        async revalidateTag(tag) {
-            const url = new URL('/revalidateTag', baseUrl);
-
-            const response = await fetch(url, {
-                method: 'POST',
-                body: JSON.stringify([tag]),
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                signal: timeoutMs ? AbortSignal.timeout(timeoutMs) : undefined,
-                // @ts-expect-error -- act as an internal fetch call
-                next: {
-                    internal: true,
-                },
-            });
-
-            if (!response.ok) {
-                throw new Error(`revalidateTag error: ${response.status}`);
-            }
+        signal: timeoutMs ? AbortSignal.timeout(timeoutMs) : undefined,
+        // @ts-expect-error -- act as an internal fetch call
+        next: {
+          internal: true,
         },
-        async delete(key) {
-            const url = new URL(`/${key}`, baseUrl);
+      });
 
-            const response = await fetch(url, {
-                method: 'DELETE',
-                // @ts-expect-error -- act as an internal fetch call
-                next: {
-                    internal: true,
-                },
-            });
+      if (!response.ok) {
+        throw new Error(`set error: ${response.status}`);
+      }
+    },
+    async revalidateTag(tag) {
+      const url = new URL('/revalidateTag', baseUrl);
 
-            if (!response.ok) {
-                throw new Error(`delete error: ${response.status}`);
-            }
+      const response = await fetch(url, {
+        method: 'POST',
+        body: JSON.stringify([tag]),
+        headers: {
+          'Content-Type': 'application/json',
         },
-    };
+        signal: timeoutMs ? AbortSignal.timeout(timeoutMs) : undefined,
+        // @ts-expect-error -- act as an internal fetch call
+        next: {
+          internal: true,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`revalidateTag error: ${response.status}`);
+      }
+    },
+    async delete(key) {
+      const url = new URL(`/${key}`, baseUrl);
+
+      const response = await fetch(url, {
+        method: 'DELETE',
+        // @ts-expect-error -- act as an internal fetch call
+        next: {
+          internal: true,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`delete error: ${response.status}`);
+      }
+    },
+  };
 }

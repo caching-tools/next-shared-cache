@@ -1,9 +1,9 @@
 {
-    "recommendations": [
-        "biomejs.biome",
-        "dbaeumer.vscode-eslint",
-        "esbenp.prettier-vscode",
-        "unifiedjs.vscode-mdx",
-        "editorconfig.editorconfig"
-    ]
+  "recommendations": [
+    "biomejs.biome",
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "unifiedjs.vscode-mdx",
+    "editorconfig.editorconfig"
+  ]
 }

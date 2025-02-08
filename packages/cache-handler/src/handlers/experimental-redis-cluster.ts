@@ -7,7 +7,8 @@ import { REVALIDATED_TAGS_KEY } from '../constants';
 import { getTimeoutRedisCommandOptions } from '../helpers/get-timeout-redis-command-options';
 import { isImplicitTag } from '../helpers/is-implicit-tag';
 
-type CreateRedisClusterHandlerOptions<T = ReturnType<typeof createCluster>> = CreateRedisStringsHandlerOptions & {
+type CreateRedisClusterHandlerOptions<T = ReturnType<typeof createCluster>> =
+  CreateRedisStringsHandlerOptions & {
     /**
      * Use `cluster` instead of `client`.
      */
@@ -18,24 +19,24 @@ type CreateRedisClusterHandlerOptions<T = ReturnType<typeof createCluster>> = Cr
      * @since 1.5.0
      */
     cluster: T;
-};
+  };
 
 function groupKeysBySlot(keys: string[]): Map<number, string[]> {
-    const slotKeysMap: Map<number, string[]> = new Map();
+  const slotKeysMap: Map<number, string[]> = new Map();
 
-    for (const key of keys) {
-        const slot = calculate(key);
+  for (const key of keys) {
+    const slot = calculate(key);
 
-        const slotKeys = slotKeysMap.get(slot);
+    const slotKeys = slotKeysMap.get(slot);
 
-        if (slotKeys) {
-            slotKeys.push(key);
-        } else {
-            slotKeysMap.set(slot, [key]);
-        }
+    if (slotKeys) {
+      slotKeys.push(key);
+    } else {
+      slotKeysMap.set(slot, [key]);
     }
+  }
 
-    return slotKeysMap;
+  return slotKeysMap;
 }
 
 /**
@@ -69,165 +70,197 @@ function groupKeysBySlot(keys: string[]): Map<number, string[]> {
  * - the `revalidateTag` methods are used for handling tag-based cache revalidation.
  */
 export default function createHandler({
-    cluster,
-    keyPrefix = '',
-    sharedTagsKey = '__sharedTags__',
-    timeoutMs = 5000,
-    keyExpirationStrategy = 'EXPIREAT',
-    revalidateTagQuerySize = 100,
+  cluster,
+  keyPrefix = '',
+  sharedTagsKey = '__sharedTags__',
+  timeoutMs = 5000,
+  keyExpirationStrategy = 'EXPIREAT',
+  revalidateTagQuerySize = 100,
 }: CreateRedisClusterHandlerOptions): Handler {
-    const revalidatedTagsKey = keyPrefix + REVALIDATED_TAGS_KEY;
+  const revalidatedTagsKey = keyPrefix + REVALIDATED_TAGS_KEY;
 
-    return {
-        name: 'experimental-redis-cluster',
-        async get(key, { implicitTags }) {
-            const result = await cluster.get(getTimeoutRedisCommandOptions(timeoutMs), keyPrefix + key);
+  return {
+    name: 'experimental-redis-cluster',
+    async get(key, { implicitTags }) {
+      const result = await cluster.get(
+        getTimeoutRedisCommandOptions(timeoutMs),
+        keyPrefix + key,
+      );
 
-            if (!result) {
-                return null;
-            }
+      if (!result) {
+        return null;
+      }
 
-            const cacheValue = JSON.parse(result) as CacheHandlerValue | null;
+      const cacheValue = JSON.parse(result) as CacheHandlerValue | null;
 
-            if (!cacheValue) {
-                return null;
-            }
+      if (!cacheValue) {
+        return null;
+      }
 
-            const combinedTags = new Set([...cacheValue.tags, ...implicitTags]);
+      const combinedTags = new Set([...cacheValue.tags, ...implicitTags]);
 
-            if (combinedTags.size === 0) {
-                return cacheValue;
-            }
+      if (combinedTags.size === 0) {
+        return cacheValue;
+      }
 
-            const revalidationTimes = await cluster.hmGet(
-                getTimeoutRedisCommandOptions(timeoutMs),
-                revalidatedTagsKey,
-                Array.from(combinedTags),
-            );
+      const revalidationTimes = await cluster.hmGet(
+        getTimeoutRedisCommandOptions(timeoutMs),
+        revalidatedTagsKey,
+        Array.from(combinedTags),
+      );
 
-            for (const timeString of revalidationTimes) {
-                if (timeString && Number.parseInt(timeString, 10) > cacheValue.lastModified) {
-                    await cluster.unlink(getTimeoutRedisCommandOptions(timeoutMs), keyPrefix + key);
+      for (const timeString of revalidationTimes) {
+        if (
+          timeString &&
+          Number.parseInt(timeString, 10) > cacheValue.lastModified
+        ) {
+          await cluster.unlink(
+            getTimeoutRedisCommandOptions(timeoutMs),
+            keyPrefix + key,
+          );
 
-                    return null;
+          return null;
+        }
+      }
+
+      return cacheValue;
+    },
+    async set(key, cacheHandlerValue) {
+      const options = getTimeoutRedisCommandOptions(timeoutMs);
+
+      let setOperation: Promise<string | null>;
+
+      let expireOperation: Promise<boolean> | undefined;
+
+      switch (keyExpirationStrategy) {
+        case 'EXAT': {
+          setOperation = cluster.set(
+            options,
+            keyPrefix + key,
+            JSON.stringify(cacheHandlerValue),
+            typeof cacheHandlerValue.lifespan?.expireAt === 'number'
+              ? {
+                  EXAT: cacheHandlerValue.lifespan.expireAt,
                 }
-            }
+              : undefined,
+          );
+          break;
+        }
+        case 'EXPIREAT': {
+          setOperation = cluster.set(
+            options,
+            keyPrefix + key,
+            JSON.stringify(cacheHandlerValue),
+          );
 
-            return cacheValue;
-        },
-        async set(key, cacheHandlerValue) {
-            const options = getTimeoutRedisCommandOptions(timeoutMs);
+          expireOperation = cacheHandlerValue.lifespan
+            ? cluster.expireAt(
+                options,
+                keyPrefix + key,
+                cacheHandlerValue.lifespan.expireAt,
+              )
+            : undefined;
+          break;
+        }
+        default: {
+          throw new Error(
+            `Invalid keyExpirationStrategy: ${keyExpirationStrategy}`,
+          );
+        }
+      }
 
-            let setOperation: Promise<string | null>;
+      const setTagsOperation =
+        cacheHandlerValue.tags.length > 0
+          ? cluster.hSet(
+              options,
+              keyPrefix + sharedTagsKey,
+              key,
+              JSON.stringify(cacheHandlerValue.tags),
+            )
+          : undefined;
 
-            let expireOperation: Promise<boolean> | undefined;
+      await Promise.all([setOperation, expireOperation, setTagsOperation]);
+    },
+    async revalidateTag(tag) {
+      // If the tag is an implicit tag, we need to mark it as revalidated.
+      // The revalidation process is done by the CacheHandler class on the next get operation.
+      if (isImplicitTag(tag)) {
+        await cluster.hSet(
+          getTimeoutRedisCommandOptions(timeoutMs),
+          revalidatedTagsKey,
+          tag,
+          Date.now(),
+        );
+      }
 
-            switch (keyExpirationStrategy) {
-                case 'EXAT': {
-                    setOperation = cluster.set(
-                        options,
-                        keyPrefix + key,
-                        JSON.stringify(cacheHandlerValue),
-                        typeof cacheHandlerValue.lifespan?.expireAt === 'number'
-                            ? {
-                                  EXAT: cacheHandlerValue.lifespan.expireAt,
-                              }
-                            : undefined,
-                    );
-                    break;
-                }
-                case 'EXPIREAT': {
-                    setOperation = cluster.set(options, keyPrefix + key, JSON.stringify(cacheHandlerValue));
+      const tagsMap: Map<string, string[]> = new Map();
 
-                    expireOperation = cacheHandlerValue.lifespan
-                        ? cluster.expireAt(options, keyPrefix + key, cacheHandlerValue.lifespan.expireAt)
-                        : undefined;
-                    break;
-                }
-                default: {
-                    throw new Error(`Invalid keyExpirationStrategy: ${keyExpirationStrategy}`);
-                }
-            }
+      let cursor = 0;
 
-            const setTagsOperation =
-                cacheHandlerValue.tags.length > 0
-                    ? cluster.hSet(options, keyPrefix + sharedTagsKey, key, JSON.stringify(cacheHandlerValue.tags))
-                    : undefined;
+      const hScanOptions = { COUNT: revalidateTagQuerySize };
 
-            await Promise.all([setOperation, expireOperation, setTagsOperation]);
-        },
-        async revalidateTag(tag) {
-            // If the tag is an implicit tag, we need to mark it as revalidated.
-            // The revalidation process is done by the CacheHandler class on the next get operation.
-            if (isImplicitTag(tag)) {
-                await cluster.hSet(getTimeoutRedisCommandOptions(timeoutMs), revalidatedTagsKey, tag, Date.now());
-            }
+      do {
+        const remoteTagsPortion = await cluster.hScan(
+          getTimeoutRedisCommandOptions(timeoutMs),
+          keyPrefix + sharedTagsKey,
+          cursor,
+          hScanOptions,
+        );
 
-            const tagsMap: Map<string, string[]> = new Map();
+        for (const { field, value } of remoteTagsPortion.tuples) {
+          tagsMap.set(field, JSON.parse(value));
+        }
 
-            let cursor = 0;
+        cursor = remoteTagsPortion.cursor;
+      } while (cursor !== 0);
 
-            const hScanOptions = { COUNT: revalidateTagQuerySize };
+      const keysToDelete: string[] = [];
 
-            do {
-                const remoteTagsPortion = await cluster.hScan(
-                    getTimeoutRedisCommandOptions(timeoutMs),
-                    keyPrefix + sharedTagsKey,
-                    cursor,
-                    hScanOptions,
-                );
+      const tagsToDelete: string[] = [];
 
-                for (const { field, value } of remoteTagsPortion.tuples) {
-                    tagsMap.set(field, JSON.parse(value));
-                }
+      for (const [key, tags] of tagsMap) {
+        if (tags.includes(tag)) {
+          keysToDelete.push(keyPrefix + key);
+          tagsToDelete.push(key);
+        }
+      }
 
-                cursor = remoteTagsPortion.cursor;
-            } while (cursor !== 0);
+      if (keysToDelete.length === 0) {
+        return;
+      }
 
-            const keysToDelete: string[] = [];
+      const slotKeysMap = groupKeysBySlot(keysToDelete);
 
-            const tagsToDelete: string[] = [];
+      const unlinkPromises: Promise<number>[] = [];
 
-            for (const [key, tags] of tagsMap) {
-                if (tags.includes(tag)) {
-                    keysToDelete.push(keyPrefix + key);
-                    tagsToDelete.push(key);
-                }
-            }
+      for (const [slot, keys] of slotKeysMap) {
+        const targetMasterNode = cluster.slots[slot]?.master;
+        const client = await targetMasterNode?.client;
 
-            if (keysToDelete.length === 0) {
-                return;
-            }
+        if (keys.length === 0 || !client) {
+          continue;
+        }
 
-            const slotKeysMap = groupKeysBySlot(keysToDelete);
+        const unlinkPromisesForSlot = client.unlink(
+          getTimeoutRedisCommandOptions(timeoutMs),
+          keys,
+        );
 
-            const unlinkPromises: Promise<number>[] = [];
+        if (unlinkPromisesForSlot) {
+          unlinkPromises.push(unlinkPromisesForSlot);
+        }
+      }
 
-            for (const [slot, keys] of slotKeysMap) {
-                const targetMasterNode = cluster.slots[slot]?.master;
-                const client = await targetMasterNode?.client;
+      const updateTagsOperation = cluster.hDel(
+        { isolated: true, ...getTimeoutRedisCommandOptions(timeoutMs) },
+        keyPrefix + sharedTagsKey,
+        tagsToDelete,
+      );
 
-                if (keys.length === 0 || !client) {
-                    continue;
-                }
-
-                const unlinkPromisesForSlot = client.unlink(getTimeoutRedisCommandOptions(timeoutMs), keys);
-
-                if (unlinkPromisesForSlot) {
-                    unlinkPromises.push(unlinkPromisesForSlot);
-                }
-            }
-
-            const updateTagsOperation = cluster.hDel(
-                { isolated: true, ...getTimeoutRedisCommandOptions(timeoutMs) },
-                keyPrefix + sharedTagsKey,
-                tagsToDelete,
-            );
-
-            await Promise.allSettled([...unlinkPromises, updateTagsOperation]);
-        },
-        async delete(key) {
-            await cluster.unlink(getTimeoutRedisCommandOptions(timeoutMs), key);
-        },
-    };
+      await Promise.allSettled([...unlinkPromises, updateTagsOperation]);
+    },
+    async delete(key) {
+      await cluster.unlink(getTimeoutRedisCommandOptions(timeoutMs), key);
+    },
+  };
 }

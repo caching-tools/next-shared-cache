@@ -5,11 +5,11 @@ import { RevalidateButton } from 'cache-testing/components/revalidate-button';
 import 'cache-testing/globals.css';
 
 export default function Layout({ children }: PropsWithChildren): JSX.Element {
-    return (
-        <main>
-            {children}
-            <RevalidateButton nextApi="pages" type="path" />
-            <RestartButton />
-        </main>
-    );
+  return (
+    <main>
+      {children}
+      <RevalidateButton nextApi="pages" type="path" />
+      <RestartButton />
+    </main>
+  );
 }

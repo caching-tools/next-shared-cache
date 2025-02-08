@@ -1,47 +1,53 @@
 {
-    "$schema": "https://turbo.build/schema.json",
-    "ui": "tui",
-    "globalDependencies": ["**/.env.*local"],
-    "globalEnv": ["CI", "NODE_ENV", "NEXT_PUBLIC_BASE_URL", "NEXT_RUNTIME"],
-    "tasks": {
-        "build": {
-            "dependsOn": ["^build"],
-            "env": ["REDIS_URL", "REMOTE_CACHE_SERVER_BASE_URL", "SERVER_STARTED", "PORT", "PPR_ENABLED"],
-            "outputs": [".next/**", "!.next/cache/**", "dist/**", "out/**"]
-        },
-        "build:docs": {
-            "dependsOn": ["^build:docs"],
-            "outputs": [".next/**", "!.next/cache/**", "out/**"]
-        },
-        "eslint:check": {
-            "cache": false,
-            "dependsOn": ["^eslint:check"]
-        },
-        "eslint:fix": {
-            "cache": false,
-            "dependsOn": ["^eslint:fix"]
-        },
-        "test": {
-            "cache": false
-        },
-        "e2e": {
-            "cache": false
-        },
-        "start": {
-            "cache": false,
-            "persistent": true
-        },
-        "start:docs": {
-            "cache": false,
-            "persistent": true
-        },
-        "dev": {
-            "cache": false,
-            "persistent": true
-        },
-        "dev:docs": {
-            "cache": false,
-            "persistent": true
-        }
+  "$schema": "https://turbo.build/schema.json",
+  "ui": "tui",
+  "globalDependencies": ["**/.env.*local"],
+  "globalEnv": ["CI", "NODE_ENV", "NEXT_PUBLIC_BASE_URL", "NEXT_RUNTIME"],
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "env": [
+        "REDIS_URL",
+        "REMOTE_CACHE_SERVER_BASE_URL",
+        "SERVER_STARTED",
+        "PORT",
+        "PPR_ENABLED"
+      ],
+      "outputs": [".next/**", "!.next/cache/**", "dist/**", "out/**"]
+    },
+    "build:docs": {
+      "dependsOn": ["^build:docs"],
+      "outputs": [".next/**", "!.next/cache/**", "out/**"]
+    },
+    "eslint:check": {
+      "cache": false,
+      "dependsOn": ["^eslint:check"]
+    },
+    "eslint:fix": {
+      "cache": false,
+      "dependsOn": ["^eslint:fix"]
+    },
+    "test": {
+      "cache": false
+    },
+    "e2e": {
+      "cache": false
+    },
+    "start": {
+      "cache": false,
+      "persistent": true
+    },
+    "start:docs": {
+      "cache": false,
+      "persistent": true
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "dev:docs": {
+      "cache": false,
+      "persistent": true
     }
+  }
 }
