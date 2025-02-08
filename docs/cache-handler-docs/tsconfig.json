@@ -15,7 +15,7 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    "run-app-instances.ts"
+    "next.config.ts"
   ],
 
   "exclude": ["node_modules"]
