@@ -74,7 +74,9 @@ CacheHandler.onCreation(async () => {
 
       // Create a new AbortSignal with a timeout for the Redis operation.
       // By default, redis client operations will wait indefinitely.
-      const options = commandOptions({ signal: AbortSignal.timeout(timeoutMs) });
+      const options = commandOptions({
+        signal: AbortSignal.timeout(timeoutMs),
+      });
 
       // Get the value from Redis.
       // We use the key prefix to avoid key collisions with other data in Redis.
@@ -112,9 +114,15 @@ CacheHandler.onCreation(async () => {
       // Iterate over all revalidation times.
       for (const timeString of revalidationTimes) {
         // If the revalidation time is greater than the last modified time of the cache value,
-        if (timeString && Number.parseInt(timeString, 10) > cacheValue.lastModified) {
+        if (
+          timeString &&
+          Number.parseInt(timeString, 10) > cacheValue.lastModified
+        ) {
           // Delete the key from Redis.
-          await client.unlink(commandOptions({ signal: AbortSignal.timeout(timeoutMs) }), keyPrefix + key);
+          await client.unlink(
+            commandOptions({ signal: AbortSignal.timeout(timeoutMs) }),
+            keyPrefix + key,
+          );
 
           // Return null to indicate cache miss.
           return null;
@@ -129,22 +137,37 @@ CacheHandler.onCreation(async () => {
       assertClientIsReady();
 
       // Create a new AbortSignal with a timeout for the Redis operation.
-      const options = commandOptions({ signal: AbortSignal.timeout(timeoutMs) });
+      const options = commandOptions({
+        signal: AbortSignal.timeout(timeoutMs),
+      });
 
       // Redis stores strings, so we need to stringify the JSON.
-      const setOperation = client.set(options, keyPrefix + key, JSON.stringify(cacheHandlerValue));
+      const setOperation = client.set(
+        options,
+        keyPrefix + key,
+        JSON.stringify(cacheHandlerValue),
+      );
 
       // If the cacheHandlerValue has a lifespan, set the automatic expiration.
       // cacheHandlerValue.lifespan can be null if the value is the page from the Pages Router without getStaticPaths or with `fallback: false`
       // so, we need to check if it exists before using it
       const expireOperation = cacheHandlerValue.lifespan
-        ? client.expireAt(options, keyPrefix + key, cacheHandlerValue.lifespan.expireAt)
+        ? client.expireAt(
+            options,
+            keyPrefix + key,
+            cacheHandlerValue.lifespan.expireAt,
+          )
         : undefined;
 
       // If the cache handler value has tags, set the tags.
       // We store them separately to save time to retrieve them in the `revalidateTag` method.
       const setTagsOperation = cacheHandlerValue.tags.length
-        ? client.hSet(options, keyPrefix + sharedTagsKey, key, JSON.stringify(cacheHandlerValue.tags))
+        ? client.hSet(
+            options,
+            keyPrefix + sharedTagsKey,
+            key,
+            JSON.stringify(cacheHandlerValue.tags),
+          )
         : undefined;
 
       // Wait for all operations to complete.
@@ -227,7 +250,10 @@ CacheHandler.onCreation(async () => {
       // Update the tags in Redis by deleting the revalidated tags.
       const updateTagsOperation = client.hDel(
         // Use the isolated option to prevent the command from being executed on the main connection.
-        { isolated: true, ...commandOptions({ signal: AbortSignal.timeout(timeoutMs) }) },
+        {
+          isolated: true,
+          ...commandOptions({ signal: AbortSignal.timeout(timeoutMs) }),
+        },
         keyPrefix + sharedTagsKey,
         tagsToDelete,
       );

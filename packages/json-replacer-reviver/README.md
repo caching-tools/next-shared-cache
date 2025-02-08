@@ -9,7 +9,19 @@ Utility library for handling `Buffer` object serialization and deserialization w
 ## Installation
 
 ```bash
-npm i @neshca/json-replacer-reviver
+npm add @neshca/json-replacer-reviver
+```
+
+```bash
+pnpm add @neshca/json-replacer-reviver
+```
+
+```bash
+yarn add @neshca/json-replacer-reviver
+```
+
+```bash
+bun add @neshca/json-replacer-reviver
 ```
 
 ## Usage
@@ -43,7 +55,7 @@ console.log(parsed); // <Buffer 68 65 6c 6c 6f>
 ### Running tests locally
 
 ```bash
-npm run test -w ./packages/json-replacer-reviver
+pnpm -F @repo/json-replacer-reviver test
 ```
 
 ## License

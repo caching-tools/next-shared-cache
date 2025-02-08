@@ -3,8 +3,9 @@ import { Callout } from 'nextra/components';
 ## `redis-stack` Handler example
 
 <Callout type="info">
-  In this example, we assume that in your deployment, you have `REDIS_URL` environment variable set to the URL of your
-  Redis instance. You can use any other way to set the URL.
+  In this example, we assume that in your deployment, you have `REDIS_URL`
+  environment variable set to the URL of your Redis instance. You can use any
+  other way to set the URL.
 </Callout>
 
 See the [`redis-stack` Handler](/handlers/redis-stack) documentation for more information and requirements for the Redis server.
@@ -57,7 +58,9 @@ CacheHandler.onCreation(async () => {
           console.info('Redis client disconnected.');
         })
         .catch(() => {
-          console.warn('Failed to quit the Redis client after failing to connect.');
+          console.warn(
+            'Failed to quit the Redis client after failing to connect.',
+          );
         });
     }
   }
@@ -76,7 +79,9 @@ CacheHandler.onCreation(async () => {
     // Fallback to LRU handler if Redis client is not available.
     // The application will still work, but the cache will be in memory only and not shared.
     handler = createLruHandler();
-    console.warn('Falling back to LRU handler because Redis client is not available.');
+    console.warn(
+      'Falling back to LRU handler because Redis client is not available.',
+    );
   }
 
   return {

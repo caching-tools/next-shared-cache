@@ -36,64 +36,69 @@ export type { LruCacheOptions };
  *
  * @since 1.0.0
  */
-export default function createHandler({ ...lruOptions }: LruCacheOptions = {}): Handler {
-    const lruCacheStore = createCacheStore(lruOptions);
+export default function createHandler({
+  ...lruOptions
+}: LruCacheOptions = {}): Handler {
+  const lruCacheStore = createCacheStore(lruOptions);
 
-    const revalidatedTags = new Map<string, number>();
+  const revalidatedTags = new Map<string, number>();
 
-    return {
-        name: 'local-lru',
-        get(key, { implicitTags }) {
-            const cacheValue = lruCacheStore.get(key);
+  return {
+    name: 'local-lru',
+    get(key, { implicitTags }) {
+      const cacheValue = lruCacheStore.get(key);
 
-            if (!cacheValue) {
-                return Promise.resolve(null);
-            }
+      if (!cacheValue) {
+        return Promise.resolve(null);
+      }
 
-            const sanitizedImplicitTags = implicitTags;
+      const sanitizedImplicitTags = implicitTags;
 
-            const combinedTags = new Set([...cacheValue.tags, ...sanitizedImplicitTags]);
+      const combinedTags = new Set([
+        ...cacheValue.tags,
+        ...sanitizedImplicitTags,
+      ]);
 
-            if (combinedTags.size === 0) {
-                return Promise.resolve(cacheValue);
-            }
+      if (combinedTags.size === 0) {
+        return Promise.resolve(cacheValue);
+      }
 
-            for (const tag of combinedTags) {
-                const revalidationTime = revalidatedTags.get(tag);
+      for (const tag of combinedTags) {
+        const revalidationTime = revalidatedTags.get(tag);
 
-                if (revalidationTime && revalidationTime > cacheValue.lastModified) {
-                    lruCacheStore.delete(key);
+        if (revalidationTime && revalidationTime > cacheValue.lastModified) {
+          lruCacheStore.delete(key);
 
-                    return Promise.resolve(null);
-                }
-            }
+          return Promise.resolve(null);
+        }
+      }
 
-            return Promise.resolve(cacheValue);
-        },
-        set(key, cacheHandlerValue) {
-            lruCacheStore.set(key, cacheHandlerValue);
+      return Promise.resolve(cacheValue);
+    },
+    set(key, cacheHandlerValue) {
+      lruCacheStore.set(key, cacheHandlerValue);
 
-            return Promise.resolve();
-        },
-        revalidateTag(tag) {
-            // Iterate over all entries in the cache
-            for (const [key, { tags }] of lruCacheStore.entries()) {
-                // If the value's tags include the specified tag, delete this entry
-                if (tags.includes(tag)) {
-                    lruCacheStore.delete(key);
-                }
-            }
+      return Promise.resolve();
+    },
+    revalidateTag(tag) {
+      // Iterate over all entries in the cache
+      for (const [key, { tags }] of lruCacheStore.entries()) {
+        // If the value's tags include the specified tag, delete this entry
+        if (tags.includes(tag)) {
+          lruCacheStore.delete(key);
+        }
+      }
 
-            if (tag.startsWith(NEXT_CACHE_IMPLICIT_TAG_ID)) {
-                revalidatedTags.set(tag, Date.now());
-            }
+      if (tag.startsWith(NEXT_CACHE_IMPLICIT_TAG_ID)) {
+        revalidatedTags.set(tag, Date.now());
+      }
 
-            return Promise.resolve();
-        },
-        delete(key) {
-            lruCacheStore.delete(key);
+      return Promise.resolve();
+    },
+    delete(key) {
+      lruCacheStore.delete(key);
 
-            return Promise.resolve();
-        },
-    };
+      return Promise.resolve();
+    },
+  };
 }

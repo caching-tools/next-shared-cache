@@ -11,7 +11,7 @@ type EstimateExpireAgeFunction = typeof getInitialExpireAge;
  * @returns The initial expire age.
  */
 export function getInitialExpireAge(staleAge: number): number {
-    return staleAge * 1.5;
+  return staleAge * 1.5;
 }
 
 /**
@@ -22,18 +22,20 @@ export function getInitialExpireAge(staleAge: number): number {
  * @returns The age estimation function. This function will return the expire age based on the stale age.
  * Its return value will be a positive integer and less than 2147483647.
  */
-export function createValidatedAgeEstimationFunction(callback = getInitialExpireAge): EstimateExpireAgeFunction {
-    return function estimateExpireAge(staleAge: number): number {
-        const rawExpireAge = callback(staleAge);
+export function createValidatedAgeEstimationFunction(
+  callback = getInitialExpireAge,
+): EstimateExpireAgeFunction {
+  return function estimateExpireAge(staleAge: number): number {
+    const rawExpireAge = callback(staleAge);
 
-        const expireAge = Math.min(Math.floor(rawExpireAge), MAX_INT32);
+    const expireAge = Math.min(Math.floor(rawExpireAge), MAX_INT32);
 
-        // Number.isInteger also checks for NaN, Infinity, -Infinity and non-numeric values.
-        assert(
-            Number.isInteger(expireAge) && expireAge > 0,
-            `The expire age must be a positive integer but got a ${expireAge}.`,
-        );
+    // Number.isInteger also checks for NaN, Infinity, -Infinity and non-numeric values.
+    assert(
+      Number.isInteger(expireAge) && expireAge > 0,
+      `The expire age must be a positive integer but got a ${expireAge}.`,
+    );
 
-        return expireAge;
-    };
+    return expireAge;
+  };
 }

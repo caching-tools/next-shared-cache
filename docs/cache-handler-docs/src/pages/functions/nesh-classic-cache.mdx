@@ -7,7 +7,8 @@ import { Callout } from 'nextra/components';
 This function is experimental, the API may change in the future. Use with caution.
 
 <Callout type="info">
-  Cache entries created with `neshClassicCache` can be revalidated only by the [`revalidateTag`
+  Cache entries created with `neshClassicCache` can be revalidated only by the
+  [`revalidateTag`
   ↗](https://nextjs.org/docs/app/api-reference/functions/revalidateTag) method.
 </Callout>
 
@@ -67,7 +68,10 @@ export default async function handler(request, response) {
   const url = new URL('https://api.example.com/data.json');
 
   // Add tags to be able to revalidate the cache
-  const data = await cachedAxios({ revalidate, tags: [url.pathname], responseContext: response }, url);
+  const data = await cachedAxios(
+    { revalidate, tags: [url.pathname], responseContext: response },
+    url,
+  );
 
   if (!data) {
     response.status(404).send('Not found');

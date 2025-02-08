@@ -1,32 +1,30 @@
 {
-    "name": "@repo/cache-handler-docs",
-    "version": "0.0.0",
-    "private": true,
-    "type": "module",
-    "scripts": {
-        "build:docs": "next build",
-        "dev:docs": "next dev",
-        "eslint:check": "next lint",
-        "eslint:fix": "next lint --fix",
-        "start:docs": "serve out"
-    },
-    "dependencies": {
-        "next": "14.2.15",
-        "nextra": "3.2.4",
-        "nextra-theme-docs": "3.2.4",
-        "react": "18.3.1",
-        "react-dom": "18.3.1"
-    },
-    "devDependencies": {
-        "@next/eslint-plugin-next": "14.2.15",
-        "@repo/eslint-config": "*",
-        "@repo/typescript-config": "*",
-        "@types/eslint": "8.56.12",
-        "@types/node": "22.10.0",
-        "@types/react": "18.3.12",
-        "@types/react-dom": "18.3.1",
-        "eslint": "8.57.1",
-        "serve": "14.2.4",
-        "typescript": "5.7.2"
-    }
+  "name": "@repo/cache-handler-docs",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build:docs": "next build",
+    "dev:docs": "next dev",
+    "eslint:check": "next lint",
+    "eslint:fix": "next lint --fix",
+    "start:docs": "serve out"
+  },
+  "dependencies": {
+    "next": "14.2.15",
+    "nextra": "3.2.4",
+    "nextra-theme-docs": "3.2.4",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "@types/node": "22.13.1",
+    "@types/react": "18.3.12",
+    "@types/react-dom": "18.3.1",
+    "eslint": "9.20.0",
+    "serve": "14.2.4",
+    "typescript": "5.7.3"
+  }
 }

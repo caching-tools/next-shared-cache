@@ -7,7 +7,7 @@ If you're interested in contributing or making modifications to this monorepo, f
 To ensure that all required packages are correctly installed with the versions specified in the `package-lock.json` file, execute:
 
 ```bash
-npm ci
+pnpm i
 ```
 
 ### 2. Build the Project
@@ -15,7 +15,7 @@ npm ci
 After the dependencies are installed, compile internal dependencies with:
 
 ```bash
-npm run build:packages
+pnpm build:packages
 ```
 
 ### 3. Installing Local Dependencies
@@ -23,7 +23,7 @@ npm run build:packages
 After building the project, you'll need to install the local dependencies to enable their usage from the command line:
 
 ```bash
-npm i
+pnpm i
 ```
 
 **Note**: Don't be alarmed if you notice updates in the `package-lock.json` file after this step. These changes are expected and can be safely committed to your version control.
@@ -37,5 +37,5 @@ Refer to the [`@neshca/cache-handler` contribution guidelines](./cache-handler.m
 To ensure consistent and high-quality code, adhere to our coding and style guidelines. Run the required checks and fix errors and warnings before committing your code:
 
 ```bash
-npm run codestyle:fix
+pnpm codestyle:fix
 ```

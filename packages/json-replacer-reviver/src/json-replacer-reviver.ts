@@ -4,28 +4,28 @@ import { Buffer } from 'node:buffer';
  * Represents the JSON structure of a `Buffer` object.
  */
 export type BufferJsonRepresentation = {
-    /**
-     * Indicates the representation type; always 'Buffer' for this structure.
-     */
-    type: 'Buffer';
-    /**
-     * An array of numbers representing the buffer's byte data.
-     */
-    data: number[];
+  /**
+   * Indicates the representation type; always 'Buffer' for this structure.
+   */
+  type: 'Buffer';
+  /**
+   * An array of numbers representing the buffer's byte data.
+   */
+  data: number[];
 };
 
 /**
  * Represents the base64-encoded JSON structure of a `Buffer` object.
  */
 export type BufferBase64Representation = {
-    /**
-     * Indicates the representation type; always 'BufferBase64' for this structure.
-     */
-    type: 'BufferBase64';
-    /**
-     * A string containing the base64-encoded data of the buffer.
-     */
-    data: string;
+  /**
+   * Indicates the representation type; always 'BufferBase64' for this structure.
+   */
+  type: 'BufferBase64';
+  /**
+   * A string containing the base64-encoded data of the buffer.
+   */
+  data: string;
 };
 
 /**
@@ -34,13 +34,15 @@ export type BufferBase64Representation = {
  * @param value - Value to be verified.
  * @returns `true` if the value matches the JSON representation of a `Buffer`, otherwise `false`.
  */
-export function isBufferJsonRepresentation(value: unknown): value is BufferJsonRepresentation {
-    return (
-        typeof value === 'object' &&
-        value !== null &&
-        (value as BufferJsonRepresentation).type === 'Buffer' &&
-        Array.isArray((value as BufferJsonRepresentation).data)
-    );
+export function isBufferJsonRepresentation(
+  value: unknown,
+): value is BufferJsonRepresentation {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    (value as BufferJsonRepresentation).type === 'Buffer' &&
+    Array.isArray((value as BufferJsonRepresentation).data)
+  );
 }
 
 /**
@@ -49,13 +51,15 @@ export function isBufferJsonRepresentation(value: unknown): value is BufferJsonR
  * @param value - Value to be verified.
  * @returns `true` if the value matches the base64-encoded JSON format of a `Buffer`, otherwise `false`.
  */
-export function isBufferBase64Representation(value: unknown): value is BufferBase64Representation {
-    return (
-        typeof value === 'object' &&
-        value !== null &&
-        (value as BufferBase64Representation).type === 'BufferBase64' &&
-        typeof (value as BufferBase64Representation).data === 'string'
-    );
+export function isBufferBase64Representation(
+  value: unknown,
+): value is BufferBase64Representation {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    (value as BufferBase64Representation).type === 'BufferBase64' &&
+    typeof (value as BufferBase64Representation).data === 'string'
+  );
 }
 
 /**
@@ -76,13 +80,16 @@ export function isBufferBase64Representation(value: unknown): value is BufferBas
  * console.log(parsed); // <Buffer 68 65 6c 6c 6f>
  * ```
  */
-export function reviveFromJsonRepresentation(_key: string, value: unknown): unknown {
-    if (isBufferJsonRepresentation(value)) {
-        // @ts-expect-error -- TS doesn't know that Buffer.from can accept a BufferJsonRepresentation
-        return Buffer.from(value);
-    }
+export function reviveFromJsonRepresentation(
+  _key: string,
+  value: unknown,
+): unknown {
+  if (isBufferJsonRepresentation(value)) {
+    // @ts-expect-error -- TS doesn't know that Buffer.from can accept a BufferJsonRepresentation
+    return Buffer.from(value);
+  }
 
-    return value;
+  return value;
 }
 
 /**
@@ -104,11 +111,14 @@ export function reviveFromJsonRepresentation(_key: string, value: unknown): unkn
  * ```
  */
 export function replaceJsonWithBase64(_key: string, value: unknown): unknown {
-    if (isBufferJsonRepresentation(value)) {
-        return { type: 'BufferBase64', data: Buffer.from(value.data).toString('base64') };
-    }
+  if (isBufferJsonRepresentation(value)) {
+    return {
+      type: 'BufferBase64',
+      data: Buffer.from(value.data).toString('base64'),
+    };
+  }
 
-    return value;
+  return value;
 }
 
 /**
@@ -129,10 +139,13 @@ export function replaceJsonWithBase64(_key: string, value: unknown): unknown {
  * console.log(parsed); // <Buffer 68 65 6c 6c 6f>
  * ```
  */
-export function reviveFromBase64Representation(_key: string, value: unknown): unknown {
-    if (isBufferBase64Representation(value)) {
-        return Buffer.from(value.data, 'base64');
-    }
+export function reviveFromBase64Representation(
+  _key: string,
+  value: unknown,
+): unknown {
+  if (isBufferBase64Representation(value)) {
+    return Buffer.from(value.data, 'base64');
+  }
 
-    return value;
+  return value;
 }

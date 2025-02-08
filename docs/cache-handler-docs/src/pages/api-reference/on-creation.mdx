@@ -5,7 +5,9 @@ The `onCreation` static method of the `CacheHandler` class is designed to facili
 The `onCreation` method expects a function of type `OnCreationHook`, which is defined as follows:
 
 ```typescript
-type OnCreationHook = (context: CacheCreationContext) => Promise<CacheHandlerConfig> | CacheHandlerConfig;
+type OnCreationHook = (
+  context: CacheCreationContext,
+) => Promise<CacheHandlerConfig> | CacheHandlerConfig;
 ```
 
 ### Arguments
@@ -49,7 +51,10 @@ CacheHandler.onCreation(async (context) => {
 
   return {
     handlers: [mainHandler, fallbackHandler],
-    ttl: { defaultStaleAge: 3600, estimateExpireAge: (staleAge) => staleAge * 2 },
+    ttl: {
+      defaultStaleAge: 3600,
+      estimateExpireAge: (staleAge) => staleAge * 2,
+    },
   };
 });
 ```

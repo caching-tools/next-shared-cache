@@ -1,4 +1,4 @@
 export default {
-    'nesh-cache': 'neshCache',
-    'nesh-classic-cache': 'neshClassicCache',
+  'nesh-cache': 'neshCache',
+  'nesh-classic-cache': 'neshClassicCache',
 };

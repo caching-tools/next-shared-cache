@@ -6,10 +6,10 @@ import Fastify from 'fastify';
 import { pino } from 'pino';
 
 const logger = pino({
-    transport: {
-        target: 'pino-pretty',
-    },
-    level: process.env.CI ? 'silent' : 'info',
+  transport: {
+    target: 'pino-pretty',
+  },
+  level: process.env.CI ? 'silent' : 'info',
 });
 
 const server = Fastify();
@@ -22,94 +22,97 @@ const port = Number.parseInt(process.env.PORT ?? '8080', 10);
 const revalidatedTags = new Map<string, number>();
 
 server.get('/get', async (request, reply): Promise<void> => {
-    const { key, implicitTags: implicitTagsString } = request.query as { key: string; implicitTags: string };
+  const { key, implicitTags: implicitTagsString } = request.query as {
+    key: string;
+    implicitTags: string;
+  };
 
-    const cacheValue = lruCacheStore.get(key);
+  const cacheValue = lruCacheStore.get(key);
 
-    if (!cacheValue) {
-        await reply.code(404).send(null);
+  if (!cacheValue) {
+    await reply.code(404).send(null);
 
-        return;
+    return;
+  }
+
+  if (cacheValue.lifespan && cacheValue.lifespan.expireAt < Date.now() / 1000) {
+    lruCacheStore.delete(key);
+
+    await reply.code(404).send(null);
+  }
+
+  const implicitTags = JSON.parse(implicitTagsString);
+
+  const combinedTags = new Set([...cacheValue.tags, ...implicitTags]);
+
+  if (combinedTags.size === 0) {
+    await reply.code(404).send(null);
+  }
+
+  for (const tag of combinedTags) {
+    const revalidationTime = revalidatedTags.get(tag);
+
+    if (revalidationTime && revalidationTime > cacheValue.lastModified) {
+      lruCacheStore.delete(key);
+
+      await reply.code(404).send(null);
     }
+  }
 
-    if (cacheValue.lifespan && cacheValue.lifespan.expireAt < Date.now() / 1000) {
-        lruCacheStore.delete(key);
-
-        await reply.code(404).send(null);
-    }
-
-    const implicitTags = JSON.parse(implicitTagsString);
-
-    const combinedTags = new Set([...cacheValue.tags, ...implicitTags]);
-
-    if (combinedTags.size === 0) {
-        await reply.code(404).send(null);
-    }
-
-    for (const tag of combinedTags) {
-        const revalidationTime = revalidatedTags.get(tag);
-
-        if (revalidationTime && revalidationTime > cacheValue.lastModified) {
-            lruCacheStore.delete(key);
-
-            await reply.code(404).send(null);
-        }
-    }
-
-    await reply.code(200).send(cacheValue);
+  await reply.code(200).send(cacheValue);
 });
 
 server.post('/set', async (request, reply): Promise<void> => {
-    const [key, data] = request.body as [string, string, number];
+  const [key, data] = request.body as [string, string, number];
 
-    lruCacheStore.set(key, JSON.parse(data));
+  lruCacheStore.set(key, JSON.parse(data));
 
-    await reply.code(200).send();
+  await reply.code(200).send();
 });
 
 server.post('/revalidateTag', async (request, reply): Promise<void> => {
-    const [tag] = request.body as [string];
+  const [tag] = request.body as [string];
 
-    for (const [key, { tags }] of lruCacheStore.entries()) {
-        // If the value's tags include the specified tag, delete this entry
-        if (tags.includes(tag)) {
-            lruCacheStore.delete(key);
-        }
+  for (const [key, { tags }] of lruCacheStore.entries()) {
+    // If the value's tags include the specified tag, delete this entry
+    if (tags.includes(tag)) {
+      lruCacheStore.delete(key);
     }
+  }
 
-    if (tag.startsWith(NEXT_CACHE_IMPLICIT_TAG_ID)) {
-        revalidatedTags.set(tag, Date.now());
-    }
+  if (tag.startsWith(NEXT_CACHE_IMPLICIT_TAG_ID)) {
+    revalidatedTags.set(tag, Date.now());
+  }
 
-    await reply.code(200).send();
+  await reply.code(200).send();
 });
 
 server.get('/clear-cache', async (_request, reply): Promise<void> => {
-    lruCacheStore.clear();
+  lruCacheStore.clear();
 
-    await reply.code(200).send(true);
+  await reply.code(200).send(true);
 });
 
 server.delete('/:key', async (request, reply): Promise<void> => {
-    const { key } = request.params as { key?: string };
+  const { key } = request.params as { key?: string };
 
-    if (!key) {
-        await reply.code(200).send(false);
+  if (!key) {
+    await reply.code(200).send(false);
 
-        return;
-    }
+    return;
+  }
 
-    lruCacheStore.delete(key);
+  lruCacheStore.delete(key);
 
-    await reply.code(200).send(true);
+  await reply.code(200).send(true);
 });
 
 server
-    .listen({ port, host })
-    .then((address) => {
-        logger.info('next-cache-server listening on %s', address);
-    })
-    .catch((err) => {
-        logger.error(err);
-        process.exit(1);
-    });
+  .listen({ port, host })
+  .then((address) => {
+    logger.info('next-cache-server listening on %s', address);
+  })
+  .catch((err) => {
+    logger.error(err);
+    process.exit(1);
+  });

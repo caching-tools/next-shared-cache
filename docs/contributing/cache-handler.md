@@ -27,14 +27,14 @@ To integrate Redis as a cache store:
    To test changes in `@neshca/cache-handler`, utilize the `@repo/cache-testing` app. Due to this app's implementation of SSG and ISR, initiate the local backend first:
 
    ```bash
-   npm run dev:packages
+   pnpm dev:packages
    ```
 
    Subsequently, in a distinct terminal, compile and launch the `@repo/cache-testing` app:
 
    ```bash
-   npm run build:test-app
-   npm run start:test-app
+   pnpm build:test-app
+   pnpm start:test-app
    ```
 
    **Note**: Always rebuild `@repo/cache-testing` after every rebuild of `@neshca/cache-handler`.
@@ -44,8 +44,8 @@ To integrate Redis as a cache store:
 Initiate local tests with:
 
 ```bash
-npm run playwright:install -w @repo/cache-testing
-npm run e2e:ui -w @repo/cache-testing
+pnpm -F @repo/cache-testing playwright:install
+pnpm -F @repo/cache-testing e2e:ui
 ```
 
 **Important**: Clear the Redis DB before executing tests:

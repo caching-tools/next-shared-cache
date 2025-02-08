@@ -1,102 +1,102 @@
 {
-    "name": "@neshca/cache-handler",
-    "version": "1.9.0",
-    "description": "Next.js self-hosting simplified.",
-    "keywords": [
-        "cache",
-        "isr",
-        "ssg",
-        "cache-handler",
-        "next",
-        "redis"
-    ],
-    "homepage": "https://github.com/caching-tools/next-shared-cache/tree/canary/packages/cache-handler",
-    "bugs": "https://github.com/caching-tools/next-shared-cache/issues",
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/caching-tools/next-shared-cache.git"
+  "name": "@neshca/cache-handler",
+  "version": "1.9.0",
+  "description": "Next.js self-hosting simplified.",
+  "keywords": [
+    "cache",
+    "isr",
+    "ssg",
+    "cache-handler",
+    "next",
+    "redis"
+  ],
+  "homepage": "https://github.com/caching-tools/next-shared-cache/tree/canary/packages/cache-handler",
+  "bugs": "https://github.com/caching-tools/next-shared-cache/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/caching-tools/next-shared-cache.git"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Arseny Kruglikov",
+    "email": "caching.tools@proton.me"
+  },
+  "type": "module",
+  "exports": {
+    ".": {
+      "require": "./dist/cache-handler.cjs",
+      "import": "./dist/cache-handler.js"
     },
-    "license": "MIT",
-    "author": {
-        "name": "Arseny Kruglikov",
-        "email": "caching.tools@proton.me"
+    "./helpers": {
+      "require": "./dist/helpers/helpers.cjs",
+      "import": "./dist/helpers/helpers.js"
     },
-    "type": "module",
-    "exports": {
-        ".": {
-            "require": "./dist/cache-handler.cjs",
-            "import": "./dist/cache-handler.js"
-        },
-        "./helpers": {
-            "require": "./dist/helpers/helpers.cjs",
-            "import": "./dist/helpers/helpers.js"
-        },
-        "./functions": {
-            "require": "./dist/functions/functions.cjs",
-            "import": "./dist/functions/functions.js"
-        },
-        "./instrumentation": {
-            "require": "./dist/instrumentation/instrumentation.cjs",
-            "import": "./dist/instrumentation/instrumentation.js"
-        },
-        "./*": {
-            "require": "./dist/handlers/*.cjs",
-            "import": "./dist/handlers/*.js"
-        }
+    "./functions": {
+      "require": "./dist/functions/functions.cjs",
+      "import": "./dist/functions/functions.js"
     },
-    "typesVersions": {
-        "*": {
-            "*": [
-                "dist/cache-handler.d.ts"
-            ],
-            "helpers": [
-                "dist/helpers/helpers.d.ts"
-            ],
-            "functions": [
-                "dist/functions/functions.d.ts"
-            ],
-            "redis-stack": [
-                "dist/handlers/redis-stack.d.ts"
-            ],
-            "redis-strings": [
-                "dist/handlers/redis-strings.d.ts"
-            ],
-            "server": [
-                "dist/handlers/server.d.ts"
-            ],
-            "local-lru": [
-                "dist/handlers/local-lru.d.ts"
-            ],
-            "instrumentation": [
-                "dist/instrumentation/instrumentation.d.ts"
-            ]
-        }
+    "./instrumentation": {
+      "require": "./dist/instrumentation/instrumentation.cjs",
+      "import": "./dist/instrumentation/instrumentation.js"
     },
-    "scripts": {
-        "build": "tsup --dts-resolve",
-        "dev": "tsup --watch",
-        "test": "tsx --test src/**/*.test.ts",
-        "test:watch": "tsx --watch --test src/**/*.test.ts"
-    },
-    "dependencies": {
-        "cluster-key-slot": "1.1.2",
-        "lru-cache": "10.4.3"
-    },
-    "devDependencies": {
-        "@repo/next-common": "*",
-        "@repo/next-lru-cache": "*",
-        "@repo/typescript-config": "*",
-        "@types/node": "22.10.0",
-        "tsup": "8.3.5",
-        "tsx": "4.19.2",
-        "typescript": "5.7.2"
-    },
-    "peerDependencies": {
-        "next": ">= 13.5.1 < 15",
-        "redis": ">= 4.6"
-    },
-    "distTags": [
-        "next13.5",
-        "next14"
-    ]
+    "./*": {
+      "require": "./dist/handlers/*.cjs",
+      "import": "./dist/handlers/*.js"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "*": [
+        "dist/cache-handler.d.ts"
+      ],
+      "helpers": [
+        "dist/helpers/helpers.d.ts"
+      ],
+      "functions": [
+        "dist/functions/functions.d.ts"
+      ],
+      "redis-stack": [
+        "dist/handlers/redis-stack.d.ts"
+      ],
+      "redis-strings": [
+        "dist/handlers/redis-strings.d.ts"
+      ],
+      "server": [
+        "dist/handlers/server.d.ts"
+      ],
+      "local-lru": [
+        "dist/handlers/local-lru.d.ts"
+      ],
+      "instrumentation": [
+        "dist/instrumentation/instrumentation.d.ts"
+      ]
+    }
+  },
+  "scripts": {
+    "build": "tsup --dts-resolve",
+    "dev": "tsup --watch",
+    "test": "tsx --test src/**/*.test.ts",
+    "test:watch": "tsx --watch --test src/**/*.test.ts"
+  },
+  "dependencies": {
+    "cluster-key-slot": "1.1.2",
+    "lru-cache": "10.4.3"
+  },
+  "devDependencies": {
+    "@repo/next-common": "workspace:*",
+    "@repo/next-lru-cache": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "@types/node": "22.13.1",
+    "tsup": "8.3.6",
+    "tsx": "4.19.2",
+    "typescript": "5.7.3"
+  },
+  "peerDependencies": {
+    "next": ">= 13.5.1 < 15",
+    "redis": ">= 4.6"
+  },
+  "distTags": [
+    "next13.5",
+    "next14"
+  ]
 }

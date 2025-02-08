@@ -1,18 +1,17 @@
 {
-    "$schema": "../node_modules/@changesets/config/schema.json",
-    "changelog": "@changesets/cli/changelog",
-    "commit": false,
-    "fixed": [],
-    "linked": [],
-    "access": "public",
-    "baseBranch": "canary",
-    "updateInternalDependencies": "patch",
-    "ignore": [
-        "@neshca/server",
-        "@repo/backend",
-        "@repo/cache-handler-docs",
-        "@repo/cache-testing",
-        "@repo/eslint-config",
-        "@repo/prettier-config"
-    ]
+  "$schema": "https://unpkg.com/@changesets/config@3.0.5/schema.json",
+  "changelog": "@changesets/cli/changelog",
+  "commit": false,
+  "fixed": [],
+  "linked": [],
+  "access": "public",
+  "baseBranch": "canary",
+  "updateInternalDependencies": "patch",
+  "ignore": [
+    "@neshca/server",
+    "@repo/backend",
+    "@repo/cache-handler-docs",
+    "@repo/cache-testing",
+    "@repo/eslint-config"
+  ]
 }
