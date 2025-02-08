@@ -1,5 +1,5 @@
 {
-    "$schema": "../node_modules/@changesets/config/schema.json",
+    "$schema": "https://unpkg.com/@changesets/config@3.0.5/schema.json",
     "changelog": "@changesets/cli/changelog",
     "commit": false,
     "fixed": [],
@@ -12,7 +12,6 @@
         "@repo/backend",
         "@repo/cache-handler-docs",
         "@repo/cache-testing",
-        "@repo/eslint-config",
-        "@repo/prettier-config"
+        "@repo/eslint-config"
     ]
 }
