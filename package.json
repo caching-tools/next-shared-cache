@@ -27,7 +27,7 @@
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
     "@changesets/cli": "2.27.12",
-    "prettier": "3.4.2",
+    "prettier": "3.5.1",
     "prettier-plugin-packagejson": "2.5.8",
     "turbo": "2.4.0"
   },
