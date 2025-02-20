@@ -11,7 +11,8 @@
         "REMOTE_CACHE_SERVER_BASE_URL",
         "SERVER_STARTED",
         "PORT",
-        "PPR_ENABLED"
+        "PPR_ENABLED",
+        "NEXT_PRIVATE_DEBUG_CACHE"
       ],
       "outputs": [".next/**", "!.next/cache/**", "dist/**", "out/**"]
     },

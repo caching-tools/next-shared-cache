@@ -3,8 +3,9 @@
   "version": "0.0.0",
   "private": true,
   "license": "MIT",
+  "type": "module",
   "scripts": {
-    "build": "next build && ./create-instances.sh",
+    "build": "next build && tsx create-instances.ts",
     "cluster:start": "pm2 start cluster.config.js --env production",
     "cluster:stop": "pm2 kill",
     "e2e": "playwright test --config=./playwright.config.ts",
@@ -26,13 +27,13 @@
     "@playwright/test": "1.50.1",
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
-    "@types/node": "22.13.1",
+    "@types/node": "22.13.4",
     "@types/react": "18.3.12",
     "@types/react-dom": "18.3.1",
-    "eslint": "9.20.0",
+    "eslint": "9.20.1",
     "fastify": "5.2.1",
     "pm2": "5.4.3",
-    "tsx": "4.19.2",
+    "tsx": "4.19.3",
     "typescript": "5.7.3"
   }
 }

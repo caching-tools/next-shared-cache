@@ -10,12 +10,19 @@ import tseslint from 'typescript-eslint';
 /**
  * A shared ESLint configuration for the repository.
  *
- * @type {import("eslint").Linter.Config}
+ * @type {import("typescript-eslint").ConfigArray}
  * */
-export const nextJsConfig = [
+export const nextJsConfig = tseslint.config(
   js.configs.recommended,
   eslintConfigPrettier,
   ...tseslint.configs.recommended,
+  {
+    languageOptions: {
+      globals: {
+        ...globals.node,
+      },
+    },
+  },
   {
     plugins: {
       turbo: turboPlugin,
@@ -56,4 +63,4 @@ export const nextJsConfig = [
       'react/react-in-jsx-scope': 'off',
     },
   },
-];
+);

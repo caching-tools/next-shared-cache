@@ -1,9 +1,9 @@
 // @ts-check
 
-const { CacheHandler } = require('@neshca/cache-handler');
-const createLruHandler = require('@neshca/cache-handler/local-lru').default;
-const createRedisHandler = require('@neshca/cache-handler/redis-stack').default;
-const { createClient } = require('redis');
+import { CacheHandler } from '@neshca/cache-handler';
+import createLruHandler from '@neshca/cache-handler/local-lru';
+import createRedisHandler from '@neshca/cache-handler/redis-stack';
+import { createClient } from 'redis';
 
 CacheHandler.onCreation(async () => {
   if (!process.env.REDIS_URL) {
@@ -86,4 +86,4 @@ CacheHandler.onCreation(async () => {
   };
 });
 
-module.exports = CacheHandler;
+export default CacheHandler;

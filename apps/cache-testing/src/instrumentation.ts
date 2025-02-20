@@ -3,7 +3,7 @@ export async function register() {
     const { registerInitialCache } = await import(
       '@neshca/cache-handler/instrumentation'
     );
-    const CacheHandler = (await import('../cache-handler-redis-stack.mjs'))
+    const CacheHandler = (await import('../cache-handler-redis-stack.js'))
       .default;
     await registerInitialCache(CacheHandler);
   }
