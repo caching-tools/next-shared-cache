@@ -53,7 +53,6 @@ export default async function RootLayout({
           docsRepositoryBase="https://github.com/caching-tools/next-shared-cache/tree/canary/docs/cache-handler-docs"
           footer={footer}
         >
-          {/* @ts-expect-error - will be fixed when all react types will be updated to v19*/}
           {children}
         </Layout>
       </body>

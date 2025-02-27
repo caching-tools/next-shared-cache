@@ -1,9 +1,10 @@
 import { promises as fsPromises } from 'node:fs';
 import path from 'node:path';
-import type {
-  CachedFetchValue,
-  Revalidate,
-  RouteMetadata,
+import {
+  type CachedFetchValue,
+  CachedRouteKind,
+  type Revalidate,
+  type RouteMetadata,
 } from '@repo/next-common';
 import { PRERENDER_MANIFEST, SERVER_DIRECTORY } from 'next/constants';
 import type { PrerenderManifest } from 'next/dist/build';
@@ -204,7 +205,7 @@ export async function registerInitialCache(
       await cacheHandler.set(
         cachePath,
         {
-          kind: 'ROUTE',
+          kind: CachedRouteKind.APP_ROUTE,
           body,
           headers: meta.headers,
           status: meta.status,
@@ -291,10 +292,9 @@ export async function registerInitialCache(
       await cacheHandler.set(
         cachePath,
         {
-          kind: 'PAGE',
+          kind: CachedRouteKind.PAGES,
           html,
           pageData,
-          postponed: meta?.postponed,
           headers: meta?.headers,
           status: meta?.status,
         },

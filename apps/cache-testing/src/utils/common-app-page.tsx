@@ -10,7 +10,7 @@ export function CommonAppPage({
   revalidateAfter,
   time,
   path,
-}: PageProps): JSX.Element {
+}: PageProps): React.ReactNode {
   return (
     <div>
       <div data-pw="data" id={path}>

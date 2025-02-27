@@ -42,6 +42,9 @@ export const nextJsConfig = tseslint.config(
         ...globals.serviceworker,
       },
     },
+    rules: {
+      'react/prop-types': 'off',
+    },
   },
   {
     plugins: {
@@ -61,6 +64,22 @@ export const nextJsConfig = tseslint.config(
       ...pluginReactHooks.configs.recommended.rules,
       // React scope no longer necessary with new JSX transform.
       'react/react-in-jsx-scope': 'off',
+    },
+  },
+  {
+    rules: {
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          args: 'all',
+          argsIgnorePattern: '^_',
+          caughtErrors: 'all',
+          caughtErrorsIgnorePattern: '^_',
+          destructuredArrayIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          ignoreRestSiblings: true,
+        },
+      ],
     },
   },
 );

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-export function RestartButton(): JSX.Element {
+export function RestartButton(): React.ReactNode {
   const [restartState, setRestartState] = useState('');
 
   function restart(): void {

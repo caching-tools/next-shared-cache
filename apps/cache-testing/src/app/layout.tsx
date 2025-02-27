@@ -12,7 +12,7 @@ export const metadata = {
 
 export default function RootLayout({
   children,
-}: PropsWithChildren): JSX.Element {
+}: PropsWithChildren): React.ReactNode {
   return (
     <html lang="en">
       <body>

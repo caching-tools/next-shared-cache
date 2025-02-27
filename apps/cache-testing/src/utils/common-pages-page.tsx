@@ -9,7 +9,7 @@ export function CommonPagesPage({
   revalidateAfter,
   time,
   path,
-}: PageProps): JSX.Element {
+}: PageProps): React.ReactNode {
   const { isFallback } = useRouter();
 
   return (

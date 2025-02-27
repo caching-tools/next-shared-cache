@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import { CommonAppPage } from 'cache-testing/utils/common-app-page';
 import { createGetData } from 'cache-testing/utils/create-get-data';
 
-type PageParams = { params: { slug: string } };
+type PageParams = { params: Promise<{ slug: string }> };
 
 export const dynamicParams = false;
 
@@ -11,7 +11,11 @@ export const revalidate = 5;
 
 const getData = createGetData('app/with-params/dynamic-false');
 
-export function generateStaticParams(): Promise<PageParams['params'][]> {
+export function generateStaticParams(): Promise<
+  {
+    slug: string;
+  }[]
+> {
   return Promise.resolve([
     { slug: '200' },
     { slug: '404' },
@@ -21,8 +25,9 @@ export function generateStaticParams(): Promise<PageParams['params'][]> {
 
 export default async function Index({
   params,
-}: PageParams): Promise<JSX.Element> {
-  const data = await getData(params.slug);
+}: PageParams): Promise<React.ReactNode> {
+  const resolvedParams = await params;
+  const data = await getData(resolvedParams.slug);
 
   if (!data) {
     notFound();

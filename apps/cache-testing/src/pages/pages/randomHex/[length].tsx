@@ -50,7 +50,7 @@ export function getStaticPaths(): Promise<GetStaticPathsResult> {
 export default function Page({
   randomHex,
   unixTimeMs,
-}: RandomHexPageProps): JSX.Element {
+}: RandomHexPageProps): React.ReactNode {
   return (
     <div>
       <div data-pw="random-hex">{randomHex}</div>

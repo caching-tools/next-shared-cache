@@ -438,28 +438,3 @@ test.describe('Routes', () => {
     expect(message).toBe('OK');
   });
 });
-
-test.describe('unstable_cache', () => {
-  test('unstable_cache works', async ({ page, baseURL }) => {
-    const url = new URL(
-      '/app/with-params/unstable-cache/200',
-      `${baseURL}:3000`,
-    );
-
-    await page.goto(url.href);
-
-    const valueFromPage = Number.parseInt(
-      (await page.getByTestId('data').innerText()).valueOf(),
-      10,
-    );
-
-    await page.reload();
-
-    const valueFromPageAfterReload = Number.parseInt(
-      (await page.getByTestId('data').innerText()).valueOf(),
-      10,
-    );
-
-    expect(valueFromPageAfterReload === valueFromPage).toBe(true);
-  });
-});

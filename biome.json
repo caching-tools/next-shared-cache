@@ -52,7 +52,7 @@
     "formatter": {
       "quoteStyle": "single"
     },
-    "globals": ["JSX"]
+    "globals": ["React"]
   },
   "json": {
     "formatter": {

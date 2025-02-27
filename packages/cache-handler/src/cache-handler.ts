@@ -13,6 +13,7 @@ import type {
   PrerenderManifest,
   Revalidate,
 } from '@repo/next-common';
+import { CachedRouteKind } from '@repo/next-common';
 
 import { createValidatedAgeEstimationFunction } from './helpers/create-validated-age-estimation-function';
 import { getTagsFromHeaders } from './helpers/get-tags-from-headers';
@@ -438,10 +439,9 @@ export class CacheHandler implements NextCacheHandler {
         lifespan: null,
         tags: [],
         value: {
-          kind: 'PAGE',
+          kind: CachedRouteKind.PAGES,
           html: pageHtmlFile,
           pageData,
-          postponed: undefined,
           headers: undefined,
           status: undefined,
         },
@@ -829,7 +829,7 @@ export class CacheHandler implements NextCacheHandler {
 
   async get(
     cacheKey: CacheHandlerParametersGet[0],
-    ctx: CacheHandlerParametersGet[1] = {},
+    ctx: CacheHandlerParametersGet[1],
   ): Promise<CacheHandlerValue | null> {
     await CacheHandler.#configureCacheHandler();
 
@@ -849,7 +849,7 @@ export class CacheHandler implements NextCacheHandler {
         implicitTags: softTags,
       });
 
-    if (cachedData?.value?.kind === 'ROUTE') {
+    if (cachedData?.value?.kind === CachedRouteKind.APP_ROUTE) {
       cachedData.value.body = Buffer.from(
         cachedData.value.body as unknown as string,
         'base64',
@@ -904,11 +904,11 @@ export class CacheHandler implements NextCacheHandler {
     let value = incrementalCacheValue;
 
     switch (value?.kind) {
-      case 'PAGE': {
+      case CachedRouteKind.PAGES: {
         cacheHandlerValueTags = getTagsFromHeaders(value.headers ?? {});
         break;
       }
-      case 'ROUTE': {
+      case CachedRouteKind.APP_ROUTE: {
         // create a new object to avoid mutating the original value
         value = {
           // replace the body with a base64 encoded string to save space
@@ -934,7 +934,10 @@ export class CacheHandler implements NextCacheHandler {
 
     await CacheHandler.#mergedHandler.set(cacheKey, cacheHandlerValue);
 
-    if (hasFallbackFalse && cacheHandlerValue.value?.kind === 'PAGE') {
+    if (
+      hasFallbackFalse &&
+      cacheHandlerValue.value?.kind === CachedRouteKind.PAGES
+    ) {
       await CacheHandler.#writePagesRouterPage(
         cacheKey,
         cacheHandlerValue.value,

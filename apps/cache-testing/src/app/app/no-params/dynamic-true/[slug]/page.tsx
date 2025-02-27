@@ -7,14 +7,15 @@ export const dynamicParams = true;
 
 export const revalidate = 5;
 
-type PageParams = { params: { slug: string } };
+type PageParams = { params: Promise<{ slug: string }> };
 
 const getData = createGetData('app/no-params/dynamic-true');
 
 export default async function Index({
   params,
-}: PageParams): Promise<JSX.Element> {
-  const data = await getData(params.slug);
+}: PageParams): Promise<React.ReactNode> {
+  const resolvedParams = await params;
+  const data = await getData(resolvedParams.slug);
 
   if (!data) {
     notFound();

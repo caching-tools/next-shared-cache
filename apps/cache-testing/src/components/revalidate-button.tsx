@@ -16,7 +16,7 @@ type RevalidateButtonPagesProps = {
 export function RevalidateButton({
   nextApi,
   type,
-}: RevalidateButtonAppProps | RevalidateButtonPagesProps): JSX.Element {
+}: RevalidateButtonAppProps | RevalidateButtonPagesProps): React.ReactNode {
   const pathname = usePathname();
 
   const [revalidation, setRevalidation] = useState('');

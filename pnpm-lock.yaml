@@ -63,6 +63,9 @@ importers:
       '@types/react-dom':
         specifier: 19.0.4
         version: 19.0.4(@types/react@19.0.10)
+      dotenv-cli:
+        specifier: 8.0.0
+        version: 8.0.0
       eslint:
         specifier: 9.21.0
         version: 9.21.0
@@ -234,55 +237,6 @@ importers:
       redis:
         specifier: '>= 4.6'
         version: 4.7.0
-    devDependencies:
-      '@repo/next-common':
-        specifier: workspace:*
-        version: link:../../internal/next-common
-      '@repo/next-lru-cache':
-        specifier: workspace:*
-        version: link:../../internal/next-lru-cache
-      '@repo/typescript-config':
-        specifier: workspace:*
-        version: link:../../internal/typescript-config
-      '@types/node':
-        specifier: 22.13.5
-        version: 22.13.5
-      tsup:
-        specifier: 8.4.0
-        version: 8.4.0(postcss@8.4.31)(tsx@4.19.3)(typescript@5.7.3)(yaml@2.7.0)
-      tsx:
-        specifier: 4.19.3
-        version: 4.19.3
-      typescript:
-        specifier: 5.7.3
-        version: 5.7.3
-
-  packages/json-replacer-reviver:
-    devDependencies:
-      '@repo/typescript-config':
-        specifier: workspace:*
-        version: link:../../internal/typescript-config
-      '@types/node':
-        specifier: 22.13.5
-        version: 22.13.5
-      tsup:
-        specifier: 8.4.0
-        version: 8.4.0(postcss@8.4.31)(tsx@4.19.3)(typescript@5.7.3)(yaml@2.7.0)
-      tsx:
-        specifier: 4.19.3
-        version: 4.19.3
-      typescript:
-        specifier: 5.7.3
-        version: 5.7.3
-
-  packages/server:
-    dependencies:
-      fastify:
-        specifier: 5.2.1
-        version: 5.2.1
-      pino:
-        specifier: 9.6.0
-        version: 9.6.0
     devDependencies:
       '@repo/next-common':
         specifier: workspace:*
@@ -2174,8 +2128,20 @@ packages:
   dompurify@3.2.4:
     resolution: {integrity: sha512-ysFSFEDVduQpyhzAob/kkuJjf5zWkZD8/A9ywSp1byueyuCfHamrCBa14/Oc2iiB0e51B+NpxSl5gmzn+Ms/mg==}
 
+  dotenv-cli@8.0.0:
+    resolution: {integrity: sha512-aLqYbK7xKOiTMIRf1lDPbI+Y+Ip/wo5k3eyp6ePysVaSqbyxjyK3dK35BTxG+rmd7djf5q2UPs4noPNH+cj0Qw==}
+    hasBin: true
+
+  dotenv-expand@10.0.0:
+    resolution: {integrity: sha512-GopVGCpVS1UKH75VKHGuQFqS1Gusej0z4FyQkPdwjil2gNIv+LNsqBlboOzpJFZKVT95GkCyWJbBSdFEFUWI2A==}
+    engines: {node: '>=12'}
+
   dotenv@16.0.3:
     resolution: {integrity: sha512-7GO6HghkA5fYG9TYnNxi14/7K9f5occMlp3zXAuSxn7CKCxt9xbNWG7yF8hTCSUchlfWSe3uLmlPfigevRItzQ==}
+    engines: {node: '>=12'}
+
+  dotenv@16.4.7:
+    resolution: {integrity: sha512-47qPchRCykZC03FhkYAhrvwU4xDBFIj1QPqaarj6mdM/hgUzfPHcpkHJOn3mJAufFeeAxAzeGsr5X0M4k6fLZQ==}
     engines: {node: '>=12'}
 
   dunder-proto@1.0.1:
@@ -6641,7 +6607,18 @@ snapshots:
     optionalDependencies:
       '@types/trusted-types': 2.0.7
 
+  dotenv-cli@8.0.0:
+    dependencies:
+      cross-spawn: 7.0.6
+      dotenv: 16.4.7
+      dotenv-expand: 10.0.0
+      minimist: 1.2.8
+
+  dotenv-expand@10.0.0: {}
+
   dotenv@16.0.3: {}
+
+  dotenv@16.4.7: {}
 
   dunder-proto@1.0.1:
     dependencies:

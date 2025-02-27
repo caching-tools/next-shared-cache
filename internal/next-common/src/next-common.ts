@@ -5,7 +5,10 @@ import type {
   CacheHandlerValue as NextCacheHandlerValue,
 } from 'next/dist/server/lib/incremental-cache';
 import type FileSystemCache from 'next/dist/server/lib/incremental-cache/file-system-cache';
-import type { IncrementalCacheValue } from 'next/dist/server/response-cache/types';
+import type {
+  CachedRouteKind,
+  IncrementalCacheValue,
+} from 'next/dist/server/response-cache/types';
 
 export type { PrerenderManifest } from 'next/dist/build';
 export type {
@@ -20,6 +23,8 @@ export type {
   IncrementalCacheValue,
   IncrementalCacheEntry,
 } from 'next/dist/server/response-cache/types';
+
+export { CachedRouteKind } from 'next/dist/server/response-cache/types.js';
 
 export type NextRouteMetadata = {
   status: number | undefined;
@@ -126,7 +131,7 @@ type ExtractIncrementalCacheKind<T, Kind> = T extends { kind: Kind }
 
 export type IncrementalCachedPageValue = ExtractIncrementalCacheKind<
   IncrementalCacheValue,
-  'PAGE'
+  CachedRouteKind.PAGES
 >;
 
 export type TagsManifest = {

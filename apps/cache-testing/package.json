@@ -30,6 +30,7 @@
     "@types/node": "22.13.5",
     "@types/react": "19.0.10",
     "@types/react-dom": "19.0.4",
+    "dotenv-cli": "8.0.0",
     "eslint": "9.21.0",
     "fastify": "5.2.1",
     "pm2": "5.4.3",
