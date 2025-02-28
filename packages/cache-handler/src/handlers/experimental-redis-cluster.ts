@@ -1,11 +1,11 @@
 import calculate from 'cluster-key-slot';
 import type { createCluster } from 'redis';
-import type { CacheHandlerValue, Handler } from '../cache-handler';
-import type { CreateRedisStringsHandlerOptions } from '../common-types';
+import type { CacheHandlerValue, Handler } from '../cache-handler.js';
+import type { CreateRedisStringsHandlerOptions } from '../common-types.js';
 
-import { REVALIDATED_TAGS_KEY } from '../constants';
-import { getTimeoutRedisCommandOptions } from '../helpers/get-timeout-redis-command-options';
-import { isImplicitTag } from '../helpers/is-implicit-tag';
+import { REVALIDATED_TAGS_KEY } from '../constants.js';
+import { getTimeoutRedisCommandOptions } from '../helpers/get-timeout-redis-command-options.js';
+import { isImplicitTag } from '../helpers/is-implicit-tag.js';
 
 type CreateRedisClusterHandlerOptions<T = ReturnType<typeof createCluster>> =
   CreateRedisStringsHandlerOptions & {

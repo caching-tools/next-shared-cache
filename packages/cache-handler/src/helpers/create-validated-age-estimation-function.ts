@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { MAX_INT32 } from '../constants';
+import { MAX_INT32 } from '../constants.js';
 
 type EstimateExpireAgeFunction = typeof getInitialExpireAge;
 

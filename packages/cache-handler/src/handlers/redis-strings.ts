@@ -1,9 +1,11 @@
-import type { CacheHandlerValue, Handler } from '../cache-handler';
-import type { CreateRedisStringsHandlerOptions } from '../common-types';
+import superjson from 'superjson';
 
-import { REVALIDATED_TAGS_KEY } from '../constants';
-import { getTimeoutRedisCommandOptions } from '../helpers/get-timeout-redis-command-options';
-import { isImplicitTag } from '../helpers/is-implicit-tag';
+import type { CacheHandlerValue, Handler } from '../cache-handler.js';
+import type { CreateRedisStringsHandlerOptions } from '../common-types.js';
+
+import { REVALIDATED_TAGS_KEY } from '../constants.js';
+import { getTimeoutRedisCommandOptions } from '../helpers/get-timeout-redis-command-options.js';
+import { isImplicitTag } from '../helpers/is-implicit-tag.js';
 
 export type { CreateRedisStringsHandlerOptions };
 
@@ -66,7 +68,7 @@ export default function createHandler({
         return null;
       }
 
-      const cacheValue = JSON.parse(result) as CacheHandlerValue | null;
+      const cacheValue = superjson.parse<CacheHandlerValue | null>(result);
 
       if (!cacheValue) {
         return null;
@@ -114,7 +116,7 @@ export default function createHandler({
           setOperation = client.set(
             options,
             keyPrefix + key,
-            JSON.stringify(cacheHandlerValue),
+            superjson.stringify(cacheHandlerValue),
             typeof cacheHandlerValue.lifespan?.expireAt === 'number'
               ? {
                   EXAT: cacheHandlerValue.lifespan.expireAt,
@@ -127,7 +129,7 @@ export default function createHandler({
           setOperation = client.set(
             options,
             keyPrefix + key,
-            JSON.stringify(cacheHandlerValue),
+            superjson.stringify(cacheHandlerValue),
           );
 
           expireOperation = cacheHandlerValue.lifespan
@@ -152,7 +154,7 @@ export default function createHandler({
               options,
               keyPrefix + sharedTagsKey,
               key,
-              JSON.stringify(cacheHandlerValue.tags),
+              superjson.stringify(cacheHandlerValue.tags),
             )
           : undefined;
 
@@ -187,7 +189,7 @@ export default function createHandler({
         );
 
         for (const { field, value } of remoteTagsPortion.tuples) {
-          tagsMap.set(field, JSON.parse(value));
+          tagsMap.set(field, superjson.parse(value));
         }
 
         cursor = remoteTagsPortion.cursor;

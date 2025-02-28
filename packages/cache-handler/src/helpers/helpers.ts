@@ -1,3 +1,3 @@
-export { promiseWithTimeout } from './promise-with-timeout';
-export { isImplicitTag } from './is-implicit-tag';
-export { getTimeoutRedisCommandOptions } from './get-timeout-redis-command-options';
+export { promiseWithTimeout } from './promise-with-timeout.js';
+export { isImplicitTag } from './is-implicit-tag.js';
+export { getTimeoutRedisCommandOptions } from './get-timeout-redis-command-options.js';

@@ -1,8 +1,8 @@
-import type { LruCacheOptions } from '@repo/next-lru-cache/next-cache-handler-value';
-import createCacheStore from '@repo/next-lru-cache/next-cache-handler-value';
+import type { LruCacheOptions } from '../lru-cache-next-adapter/cache-types/next-cache-handler-value.js';
+import createCacheStore from '../lru-cache-next-adapter/cache-types/next-cache-handler-value.js';
 
-import { NEXT_CACHE_IMPLICIT_TAG_ID } from '@repo/next-common';
-import type { Handler } from '../cache-handler';
+import type { Handler } from '../cache-handler.js';
+import { NEXT_CACHE_IMPLICIT_TAG_ID } from '../next-common-types.js';
 
 /**
  * @deprecated Use {@link LruCacheOptions} instead.

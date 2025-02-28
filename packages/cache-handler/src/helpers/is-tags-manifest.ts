@@ -1,4 +1,4 @@
-import type { TagsManifest } from '@repo/next-common';
+import type { TagsManifest } from '../next-common-types.js';
 
 function hasItems(object: object): object is { items: unknown } {
   return Object.hasOwn(object, 'items');

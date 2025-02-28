@@ -2,19 +2,16 @@
 import type { OutgoingHttpHeaders } from 'http';
 import type {
   CacheHandler,
+  CacheHandlerContext,
   CacheHandlerValue as NextCacheHandlerValue,
 } from 'next/dist/server/lib/incremental-cache';
-import type FileSystemCache from 'next/dist/server/lib/incremental-cache/file-system-cache';
 import type {
   CachedRouteKind,
   IncrementalCacheValue,
-} from 'next/dist/server/response-cache/types';
+} from 'next/dist/server/response-cache/types.js';
 
 export type { PrerenderManifest } from 'next/dist/build';
-export type {
-  CacheHandler,
-  CacheHandlerContext,
-} from 'next/dist/server/lib/incremental-cache';
+export type { CacheHandler } from 'next/dist/server/lib/incremental-cache';
 export type {
   CachedRedirectValue,
   CachedRouteValue,
@@ -22,7 +19,7 @@ export type {
   CachedFetchValue,
   IncrementalCacheValue,
   IncrementalCacheEntry,
-} from 'next/dist/server/response-cache/types';
+} from 'next/dist/server/response-cache/types.js';
 
 export { CachedRouteKind } from 'next/dist/server/response-cache/types.js';
 
@@ -90,9 +87,12 @@ export type NonNullableRouteMetadata = {
   [K in keyof RouteMetadata]: NonNullable<RouteMetadata[K]>;
 };
 
-export type FileSystemCacheContext = ConstructorParameters<
-  typeof FileSystemCache
->[0];
+export type FileSystemCacheContext = Omit<
+  CacheHandlerContext,
+  'serverDistDir'
+> & {
+  serverDistDir: string;
+};
 
 export type CacheHandlerParametersGet = Parameters<CacheHandler['get']>;
 

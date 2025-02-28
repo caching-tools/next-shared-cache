@@ -1,14 +1,14 @@
 import { ErrorReply, SchemaFieldTypes } from 'redis';
 
 import { randomBytes } from 'node:crypto';
-import type { CacheHandlerValue, Handler } from '../cache-handler';
+import type { CacheHandlerValue, Handler } from '../cache-handler.js';
 import type {
   CreateRedisStackHandlerOptions,
   RedisJSON,
-} from '../common-types';
-import { REVALIDATED_TAGS_KEY, TIME_ONE_YEAR } from '../constants';
-import { getTimeoutRedisCommandOptions } from '../helpers/get-timeout-redis-command-options';
-import { isImplicitTag } from '../helpers/is-implicit-tag';
+} from '../common-types.js';
+import { REVALIDATED_TAGS_KEY, TIME_ONE_YEAR } from '../constants.js';
+import { getTimeoutRedisCommandOptions } from '../helpers/get-timeout-redis-command-options.js';
+import { isImplicitTag } from '../helpers/is-implicit-tag.js';
 
 export type { CreateRedisStackHandlerOptions };
 

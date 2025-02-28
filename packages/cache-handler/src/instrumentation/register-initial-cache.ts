@@ -1,17 +1,17 @@
 import { promises as fsPromises } from 'node:fs';
 import path from 'node:path';
+import { PRERENDER_MANIFEST, SERVER_DIRECTORY } from 'next/constants.js';
+import type { PrerenderManifest } from 'next/dist/build';
+import { CACHE_ONE_YEAR } from 'next/dist/lib/constants.js';
+import { getTagsFromHeaders } from '../helpers/get-tags-from-headers.js';
 import {
   type CachedFetchValue,
   CachedRouteKind,
   type Revalidate,
   type RouteMetadata,
-} from '@repo/next-common';
-import { PRERENDER_MANIFEST, SERVER_DIRECTORY } from 'next/constants';
-import type { PrerenderManifest } from 'next/dist/build';
-import { CACHE_ONE_YEAR } from 'next/dist/lib/constants';
-import { getTagsFromHeaders } from '../helpers/get-tags-from-headers';
+} from '../next-common-types.js';
 
-type CacheHandlerType = typeof import('../cache-handler').CacheHandler;
+type CacheHandlerType = typeof import('../cache-handler.js').CacheHandler;
 
 type Router = 'pages' | 'app';
 
@@ -289,17 +289,19 @@ export async function registerInitialCache(
     }
 
     try {
-      await cacheHandler.set(
-        cachePath,
-        {
-          kind: CachedRouteKind.PAGES,
-          html,
-          pageData,
-          headers: meta?.headers,
-          status: meta?.status,
-        },
-        { revalidate, neshca_lastModified: lastModified },
-      );
+      if (!isAppRouter) {
+        await cacheHandler.set(
+          cachePath,
+          {
+            kind: CachedRouteKind.PAGES,
+            html,
+            pageData,
+            headers: meta?.headers,
+            status: meta?.status,
+          },
+          { revalidate, neshca_lastModified: lastModified },
+        );
+      }
     } catch (error) {
       if (debug) {
         console.warn(

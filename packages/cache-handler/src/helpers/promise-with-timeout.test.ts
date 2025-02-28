@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import Timers from 'node:timers/promises';
 
-import { promiseWithTimeout } from './promise-with-timeout';
+import { promiseWithTimeout } from './promise-with-timeout.js';
 
 async function simulateOperation(duration: number): Promise<string> {
   await Timers.scheduler.wait(duration);

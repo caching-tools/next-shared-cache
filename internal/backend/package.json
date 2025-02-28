@@ -5,6 +5,7 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
+    "check-types": "tsc --noEmit",
     "dev": "tsx --watch ./src/backend.ts",
     "start": "tsx ./src/backend.ts"
   },

@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "build": "next build && tsx create-instances.ts",
+    "check-types": "tsc --noEmit",
     "cluster:start": "pm2 start cluster.config.js --env production",
     "cluster:stop": "pm2 kill",
     "e2e": "playwright test --config=./playwright.config.ts",

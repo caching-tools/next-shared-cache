@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "display": "Node 18",
+  "_version": "18.2.0",
+  "compilerOptions": {
+    "target": "es2022",
+    "lib": ["es2023"],
+
+    "module": "NodeNext",
+    "moduleDetection": "force",
+    "esModuleInterop": true,
+
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "skipLibCheck": true,
+
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "composite": true
+  }
+}

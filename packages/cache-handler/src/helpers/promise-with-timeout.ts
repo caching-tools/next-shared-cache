@@ -1,4 +1,4 @@
-import { MAX_INT32 } from '../constants';
+import { MAX_INT32 } from '../constants.js';
 
 /**
  * Wraps a Promise with a timeout, rejecting the Promise if it does not resolve within the specified time.

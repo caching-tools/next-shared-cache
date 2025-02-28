@@ -12,11 +12,11 @@ import type {
   CacheHandler as NextCacheHandler,
   PrerenderManifest,
   Revalidate,
-} from '@repo/next-common';
-import { CachedRouteKind } from '@repo/next-common';
+} from './next-common-types.js';
+import { CachedRouteKind } from './next-common-types.js';
 
-import { createValidatedAgeEstimationFunction } from './helpers/create-validated-age-estimation-function';
-import { getTagsFromHeaders } from './helpers/get-tags-from-headers';
+import { createValidatedAgeEstimationFunction } from './helpers/create-validated-age-estimation-function.js';
+import { getTagsFromHeaders } from './helpers/get-tags-from-headers.js';
 
 export type { CacheHandlerValue };
 
@@ -849,13 +849,6 @@ export class CacheHandler implements NextCacheHandler {
         implicitTags: softTags,
       });
 
-    if (cachedData?.value?.kind === CachedRouteKind.APP_ROUTE) {
-      cachedData.value.body = Buffer.from(
-        cachedData.value.body as unknown as string,
-        'base64',
-      );
-    }
-
     if (!cachedData && CacheHandler.#fallbackFalseRoutes.has(cacheKey)) {
       cachedData = await CacheHandler.#readPagesRouterPage(cacheKey);
 
@@ -901,35 +894,20 @@ export class CacheHandler implements NextCacheHandler {
 
     let cacheHandlerValueTags = tags;
 
-    let value = incrementalCacheValue;
-
-    switch (value?.kind) {
-      case CachedRouteKind.PAGES: {
-        cacheHandlerValueTags = getTagsFromHeaders(value.headers ?? {});
-        break;
-      }
-      case CachedRouteKind.APP_ROUTE: {
-        // create a new object to avoid mutating the original value
-        value = {
-          // replace the body with a base64 encoded string to save space
-          body: value.body.toString('base64') as unknown as Buffer,
-          headers: value.headers,
-          kind: value.kind,
-          status: value.status,
-        };
-
-        break;
-      }
-      default: {
-        break;
-      }
+    if (
+      incrementalCacheValue?.kind === CachedRouteKind.PAGES ||
+      incrementalCacheValue?.kind === CachedRouteKind.APP_PAGE
+    ) {
+      cacheHandlerValueTags = getTagsFromHeaders(
+        incrementalCacheValue.headers ?? {},
+      );
     }
 
     const cacheHandlerValue: CacheHandlerValue = {
       lastModified,
       lifespan,
       tags: Object.freeze(cacheHandlerValueTags),
-      value,
+      value: incrementalCacheValue,
     };
 
     await CacheHandler.#mergedHandler.set(cacheKey, cacheHandlerValue);

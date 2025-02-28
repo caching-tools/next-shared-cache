@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "build:docs": "next build && pagefind --site .next/server/app --output-path out/_pagefind",
+    "check-types": "tsc --noEmit",
     "dev:docs": "next dev --turbo",
     "eslint:check": "next lint",
     "eslint:fix": "next lint --fix",

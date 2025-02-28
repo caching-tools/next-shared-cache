@@ -1,8 +1,11 @@
-import { type CacheHandlerValue, CachedRouteKind } from '@repo/next-common';
 import type { LRUCache } from 'lru-cache';
+import {
+  type CacheHandlerValue,
+  CachedRouteKind,
+} from '../../next-common-types.js';
 
-import type { LruCacheOptions } from '../create-configured-cache';
-import { createConfiguredCache } from '../create-configured-cache';
+import type { LruCacheOptions } from '../create-configured-cache.js';
+import { createConfiguredCache } from '../create-configured-cache.js';
 
 function calculateObjectSize({ value }: CacheHandlerValue): number {
   // Return default size if value is falsy
