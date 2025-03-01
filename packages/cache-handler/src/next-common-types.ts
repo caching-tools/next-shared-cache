@@ -4,14 +4,14 @@ import type {
   CacheHandler,
   CacheHandlerContext,
   CacheHandlerValue as NextCacheHandlerValue,
-} from 'next/dist/server/lib/incremental-cache';
+} from 'next/dist/server/lib/incremental-cache/index.js';
 import type {
   CachedRouteKind,
   IncrementalCacheValue,
 } from 'next/dist/server/response-cache/types.js';
 
-export type { PrerenderManifest } from 'next/dist/build';
-export type { CacheHandler } from 'next/dist/server/lib/incremental-cache';
+export type { PrerenderManifest } from 'next/dist/build/index.js';
+export type { CacheHandler } from 'next/dist/server/lib/incremental-cache/index.js';
 export type {
   CachedRedirectValue,
   CachedRouteValue,

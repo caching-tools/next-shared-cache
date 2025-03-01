@@ -14,7 +14,7 @@
   "bugs": "https://github.com/caching-tools/next-shared-cache/issues",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/caching-tools/next-shared-cache.git"
+    "url": "git+https://github.com/caching-tools/next-shared-cache.git "
   },
   "license": "MIT",
   "author": {
@@ -23,57 +23,13 @@
   },
   "type": "module",
   "exports": {
-    ".": {
-      "require": "./dist/cache-handler.cjs",
-      "import": "./dist/cache-handler.js"
-    },
-    "./helpers": {
-      "require": "./dist/helpers/helpers.cjs",
-      "import": "./dist/helpers/helpers.js"
-    },
-    "./functions": {
-      "require": "./dist/functions/functions.cjs",
-      "import": "./dist/functions/functions.js"
-    },
-    "./instrumentation": {
-      "require": "./dist/instrumentation/instrumentation.cjs",
-      "import": "./dist/instrumentation/instrumentation.js"
-    },
-    "./*": {
-      "require": "./dist/handlers/*.cjs",
-      "import": "./dist/handlers/*.js"
-    }
-  },
-  "typesVersions": {
-    "*": {
-      "*": [
-        "dist/cache-handler.d.ts"
-      ],
-      "helpers": [
-        "dist/helpers/helpers.d.ts"
-      ],
-      "functions": [
-        "dist/functions/functions.d.ts"
-      ],
-      "redis-stack": [
-        "dist/handlers/redis-stack.d.ts"
-      ],
-      "redis-strings": [
-        "dist/handlers/redis-strings.d.ts"
-      ],
-      "server": [
-        "dist/handlers/server.d.ts"
-      ],
-      "local-lru": [
-        "dist/handlers/local-lru.d.ts"
-      ],
-      "instrumentation": [
-        "dist/instrumentation/instrumentation.d.ts"
-      ]
-    }
+    ".": "./dist/cache-handler.js",
+    "./handlers/*": "./dist/handlers/*.js",
+    "./helpers": "./dist/helpers/helpers.js",
+    "./instrumentation/*": "./dist/instrumentation/*.js"
   },
   "scripts": {
-    "build": "tsc --build",
+    "build": "tsc",
     "check-types": "tsc --noEmit",
     "dev": "tsc --watch",
     "test": "tsx --test src/**/*.test.ts",
@@ -81,14 +37,14 @@
   },
   "dependencies": {
     "cluster-key-slot": "^1.1.2",
-    "lru-cache": "^10.4.3",
+    "lru-cache": "^11.0.2",
     "superjson": "^2.2.2"
   },
   "devDependencies": {
     "@repo/typescript-config": "workspace:*",
-    "@types/node": "22.13.5",
+    "@types/node": "22.13.9",
     "tsx": "4.19.3",
-    "typescript": "5.7.3"
+    "typescript": "5.8.2"
   },
   "peerDependencies": {
     "next": ">= 15 < 16",

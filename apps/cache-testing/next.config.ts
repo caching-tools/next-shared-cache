@@ -1,11 +1,9 @@
-// @ts-check
-
 import path from 'node:path';
+import type { NextConfig } from 'next/types';
 
 const cacheHandler = path.resolve('./cache-handler-redis-stack.js');
 
-/** @type {import('next').NextConfig} */
-const nextConfig = {
+const nextConfig: NextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
   output: 'standalone',

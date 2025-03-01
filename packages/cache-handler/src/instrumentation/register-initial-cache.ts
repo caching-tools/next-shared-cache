@@ -1,7 +1,7 @@
 import { promises as fsPromises } from 'node:fs';
 import path from 'node:path';
 import { PRERENDER_MANIFEST, SERVER_DIRECTORY } from 'next/constants.js';
-import type { PrerenderManifest } from 'next/dist/build';
+import type { PrerenderManifest } from 'next/dist/build/index.js';
 import { CACHE_ONE_YEAR } from 'next/dist/lib/constants.js';
 import { getTagsFromHeaders } from '../helpers/get-tags-from-headers.js';
 import {

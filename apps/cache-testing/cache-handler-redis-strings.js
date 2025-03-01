@@ -1,7 +1,7 @@
 // @ts-check
 
 import { CacheHandler } from '@neshca/cache-handler';
-import createRedisHandler from '@neshca/cache-handler/redis-strings';
+import createRedisHandler from '@neshca/cache-handler/handlers/redis-strings';
 import { createClient } from 'redis';
 
 CacheHandler.onCreation(async () => {

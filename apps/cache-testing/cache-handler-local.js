@@ -1,7 +1,7 @@
 // @ts-check
 
 import { CacheHandler } from '@neshca/cache-handler';
-import createLruHandler from '@neshca/cache-handler/local-lru';
+import createLruHandler from '@neshca/cache-handler/handlers/local-lru';
 
 CacheHandler.onCreation(() => {
   const localHandler = createLruHandler();
