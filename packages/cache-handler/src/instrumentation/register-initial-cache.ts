@@ -1,15 +1,15 @@
 import { promises as fsPromises } from 'node:fs';
 import path from 'node:path';
-import { PRERENDER_MANIFEST, SERVER_DIRECTORY } from 'next/constants.js';
-import type { PrerenderManifest } from 'next/dist/build/index.js';
-import { CACHE_ONE_YEAR } from 'next/dist/lib/constants.js';
-import { getTagsFromHeaders } from '../helpers/get-tags-from-headers.js';
+import { getTagsFromHeaders } from '../utils/get-tags-from-headers.js';
 import {
   type CachedFetchValue,
   CachedRouteKind,
   type Revalidate,
   type RouteMetadata,
 } from '../next-common-types.js';
+import { PRERENDER_MANIFEST, SERVER_DIRECTORY } from 'next/constants.js';
+import type { PrerenderManifest } from 'next/dist/build/index.js';
+import { CACHE_ONE_YEAR } from 'next/dist/lib/constants.js';
 
 type CacheHandlerType = typeof import('../cache-handler.js').CacheHandler;
 

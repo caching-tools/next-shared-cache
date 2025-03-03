@@ -7,10 +7,6 @@
   "typescript.surveys.enabled": false,
   "typescript.tsdk": "node_modules/typescript/lib",
   "explorer.fileNesting.enabled": true,
-  "explorer.fileNesting.patterns": {
-    "*.ts": "$(capture).test.ts, $(capture).test.tsx",
-    "*.tsx": "$(capture).test.ts, $(capture).test.tsx"
-  },
   "cSpell.words": ["nextjs", "prerendered", "codestyle"],
   "editor.defaultFormatter": "biomejs.biome",
   "[jsonc]": {

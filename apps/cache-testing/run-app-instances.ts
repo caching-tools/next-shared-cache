@@ -2,7 +2,7 @@
 
 import { scheduler } from 'node:timers/promises';
 import Fastify from 'fastify';
-// biome-ignore lint/style/noNamespaceImport: pm2 works only with Namespace import
+// biome-ignore lint/style/noNamespaceImport: pm2 works only with namespace import
 import * as pm2Default from 'pm2';
 
 const { default: pm2 } = pm2Default as unknown as {

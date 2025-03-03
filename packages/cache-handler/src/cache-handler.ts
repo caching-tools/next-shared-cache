@@ -15,8 +15,8 @@ import type {
 } from './next-common-types.js';
 import { CachedRouteKind } from './next-common-types.js';
 
-import { createValidatedAgeEstimationFunction } from './helpers/create-validated-age-estimation-function.js';
-import { getTagsFromHeaders } from './helpers/get-tags-from-headers.js';
+import { composeAgeEstimationFn } from './utils/compose-age-estimation-fn.js';
+import { getTagsFromHeaders } from './utils/get-tags-from-headers.js';
 
 export type { CacheHandlerValue };
 
@@ -623,8 +623,7 @@ export class CacheHandler implements NextCacheHandler {
       CacheHandler.#defaultStaleAge = Math.floor(defaultStaleAge);
     }
 
-    CacheHandler.#estimateExpireAge =
-      createValidatedAgeEstimationFunction(estimateExpireAge);
+    CacheHandler.#estimateExpireAge = composeAgeEstimationFn(estimateExpireAge);
 
     CacheHandler.#serverDistDir = serverDistDir;
 

@@ -1,11 +1,11 @@
-import calculate from 'cluster-key-slot';
-import type { createCluster } from 'redis';
 import type { CacheHandlerValue, Handler } from '../cache-handler.js';
 import type { CreateRedisStringsHandlerOptions } from '../common-types.js';
+import calculate from 'cluster-key-slot';
+import type { createCluster } from 'redis';
 
 import { REVALIDATED_TAGS_KEY } from '../constants.js';
-import { getTimeoutRedisCommandOptions } from '../helpers/get-timeout-redis-command-options.js';
-import { isImplicitTag } from '../helpers/is-implicit-tag.js';
+import { createRedisTimeoutConfig } from '../helpers/create-redis-timeout-config.js';
+import { isTagImplicit } from '../helpers/is-tag-implicit.js';
 
 type CreateRedisClusterHandlerOptions<T = ReturnType<typeof createCluster>> =
   CreateRedisStringsHandlerOptions & {
@@ -83,7 +83,7 @@ export default function createHandler({
     name: 'experimental-redis-cluster',
     async get(key, { implicitTags }) {
       const result = await cluster.get(
-        getTimeoutRedisCommandOptions(timeoutMs),
+        createRedisTimeoutConfig(timeoutMs),
         keyPrefix + key,
       );
 
@@ -104,7 +104,7 @@ export default function createHandler({
       }
 
       const revalidationTimes = await cluster.hmGet(
-        getTimeoutRedisCommandOptions(timeoutMs),
+        createRedisTimeoutConfig(timeoutMs),
         revalidatedTagsKey,
         Array.from(combinedTags),
       );
@@ -115,7 +115,7 @@ export default function createHandler({
           Number.parseInt(timeString, 10) > cacheValue.lastModified
         ) {
           await cluster.unlink(
-            getTimeoutRedisCommandOptions(timeoutMs),
+            createRedisTimeoutConfig(timeoutMs),
             keyPrefix + key,
           );
 
@@ -126,7 +126,7 @@ export default function createHandler({
       return cacheValue;
     },
     async set(key, cacheHandlerValue) {
-      const options = getTimeoutRedisCommandOptions(timeoutMs);
+      const options = createRedisTimeoutConfig(timeoutMs);
 
       let setOperation: Promise<string | null>;
 
@@ -184,9 +184,9 @@ export default function createHandler({
     async revalidateTag(tag) {
       // If the tag is an implicit tag, we need to mark it as revalidated.
       // The revalidation process is done by the CacheHandler class on the next get operation.
-      if (isImplicitTag(tag)) {
+      if (isTagImplicit(tag)) {
         await cluster.hSet(
-          getTimeoutRedisCommandOptions(timeoutMs),
+          createRedisTimeoutConfig(timeoutMs),
           revalidatedTagsKey,
           tag,
           Date.now(),
@@ -201,7 +201,7 @@ export default function createHandler({
 
       do {
         const remoteTagsPortion = await cluster.hScan(
-          getTimeoutRedisCommandOptions(timeoutMs),
+          createRedisTimeoutConfig(timeoutMs),
           keyPrefix + sharedTagsKey,
           cursor,
           hScanOptions,
@@ -242,7 +242,7 @@ export default function createHandler({
         }
 
         const unlinkPromisesForSlot = client.unlink(
-          getTimeoutRedisCommandOptions(timeoutMs),
+          createRedisTimeoutConfig(timeoutMs),
           keys,
         );
 
@@ -252,7 +252,7 @@ export default function createHandler({
       }
 
       const updateTagsOperation = cluster.hDel(
-        { isolated: true, ...getTimeoutRedisCommandOptions(timeoutMs) },
+        { isolated: true, ...createRedisTimeoutConfig(timeoutMs) },
         keyPrefix + sharedTagsKey,
         tagsToDelete,
       );
@@ -260,7 +260,7 @@ export default function createHandler({
       await Promise.allSettled([...unlinkPromises, updateTagsOperation]);
     },
     async delete(key) {
-      await cluster.unlink(getTimeoutRedisCommandOptions(timeoutMs), key);
+      await cluster.unlink(createRedisTimeoutConfig(timeoutMs), key);
     },
   };
 }

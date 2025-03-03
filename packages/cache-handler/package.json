@@ -24,16 +24,16 @@
   "type": "module",
   "exports": {
     ".": "./dist/cache-handler.js",
+    "./helpers/*": "./dist/helpers/*.js",
     "./handlers/*": "./dist/handlers/*.js",
-    "./helpers": "./dist/helpers/helpers.js",
     "./instrumentation/*": "./dist/instrumentation/*.js"
   },
   "scripts": {
     "build": "tsc",
     "check-types": "tsc --noEmit",
     "dev": "tsc --watch",
-    "test": "tsx --test src/**/*.test.ts",
-    "test:watch": "tsx --watch --test src/**/*.test.ts"
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "cluster-key-slot": "^1.1.2",
@@ -44,7 +44,8 @@
     "@repo/typescript-config": "workspace:*",
     "@types/node": "22.13.9",
     "tsx": "4.19.3",
-    "typescript": "5.8.2"
+    "typescript": "5.8.2",
+    "vitest": "3.0.7"
   },
   "peerDependencies": {
     "next": ">= 15 < 16",

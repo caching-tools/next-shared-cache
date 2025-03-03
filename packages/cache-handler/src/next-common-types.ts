@@ -1,5 +1,4 @@
-// biome-ignore lint/style/useNodejsImportProtocol: RollupError: "OutgoingHttpHeaders" is not exported by "node:http"
-import type { OutgoingHttpHeaders } from 'http';
+import type { OutgoingHttpHeaders } from 'node:http';
 import type {
   CacheHandler,
   CacheHandlerContext,

@@ -7,8 +7,8 @@ import type {
   RedisJSON,
 } from '../common-types.js';
 import { REVALIDATED_TAGS_KEY, TIME_ONE_YEAR } from '../constants.js';
-import { getTimeoutRedisCommandOptions } from '../helpers/get-timeout-redis-command-options.js';
-import { isImplicitTag } from '../helpers/is-implicit-tag.js';
+import { createRedisTimeoutConfig } from '../helpers/create-redis-timeout-config.js';
+import { isTagImplicit } from '../helpers/is-tag-implicit.js';
 
 export type { CreateRedisStackHandlerOptions };
 
@@ -88,7 +88,7 @@ export default function createHandler({
       assertClientIsReady();
 
       const cacheValue = (await client.json.get(
-        getTimeoutRedisCommandOptions(timeoutMs),
+        createRedisTimeoutConfig(timeoutMs),
         keyPrefix + key,
       )) as CacheHandlerValue | null;
 
@@ -108,7 +108,7 @@ export default function createHandler({
       }
 
       const revalidationTimes = await client.hmGet(
-        getTimeoutRedisCommandOptions(timeoutMs),
+        createRedisTimeoutConfig(timeoutMs),
         revalidatedTagsKey,
         Array.from(combinedTags),
       );
@@ -119,7 +119,7 @@ export default function createHandler({
           Number.parseInt(timeString, 10) > cacheValue.lastModified
         ) {
           await client.unlink(
-            getTimeoutRedisCommandOptions(timeoutMs),
+            createRedisTimeoutConfig(timeoutMs),
             keyPrefix + key,
           );
 
@@ -134,7 +134,7 @@ export default function createHandler({
 
       cacheHandlerValue.tags = cacheHandlerValue.tags.map(sanitizeTag);
 
-      const options = getTimeoutRedisCommandOptions(timeoutMs);
+      const options = createRedisTimeoutConfig(timeoutMs);
 
       const setCacheValue = client.json.set(
         options,
@@ -162,9 +162,9 @@ export default function createHandler({
 
       // If the tag is an implicit tag, we need to mark it as revalidated.
       // The revalidation process is done by the CacheHandler class on the next get operation.
-      if (isImplicitTag(tag)) {
+      if (isTagImplicit(tag)) {
         await client.hSet(
-          getTimeoutRedisCommandOptions(timeoutMs),
+          createRedisTimeoutConfig(timeoutMs),
           revalidatedTagsKey,
           sanitizedTag,
           Date.now(),
@@ -177,7 +177,7 @@ export default function createHandler({
 
       while (true) {
         const { documents: documentIds } = await client.ft.searchNoContent(
-          getTimeoutRedisCommandOptions(timeoutMs),
+          createRedisTimeoutConfig(timeoutMs),
           indexName,
           `@tag:(${sanitizedTag})`,
           {
@@ -201,12 +201,12 @@ export default function createHandler({
         return;
       }
 
-      const options = getTimeoutRedisCommandOptions(timeoutMs);
+      const options = createRedisTimeoutConfig(timeoutMs);
 
       await client.unlink(options, keysToDelete);
     },
     async delete(key) {
-      await client.unlink(getTimeoutRedisCommandOptions(timeoutMs), key);
+      await client.unlink(createRedisTimeoutConfig(timeoutMs), key);
     },
   };
 }

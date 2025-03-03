@@ -1,15 +1,108 @@
-import type { LruCacheOptions } from '../lru-cache-next-adapter/cache-types/next-cache-handler-value.js';
-import createCacheStore from '../lru-cache-next-adapter/cache-types/next-cache-handler-value.js';
-
 import type { Handler } from '../cache-handler.js';
 import { NEXT_CACHE_IMPLICIT_TAG_ID } from '../next-common-types.js';
+import {
+  type CacheHandlerValue,
+  CachedRouteKind,
+} from '../next-common-types.js';
+import { LRUCache } from 'lru-cache';
+
+function calculateObjectSize({ value }: CacheHandlerValue): number {
+  // Return default size if value is falsy
+  if (!value) {
+    return 25;
+  }
+
+  switch (value.kind) {
+    case CachedRouteKind.REDIRECT: {
+      // Calculate size based on the length of the stringified props
+      return JSON.stringify(value.props).length;
+    }
+    case CachedRouteKind.IMAGE: {
+      // Throw a specific error for image kind
+      throw new Error(
+        'Image kind should not be used for incremental-cache calculations.',
+      );
+    }
+    case CachedRouteKind.FETCH: {
+      // Calculate size based on the length of the stringified data
+      return JSON.stringify(value.data || '').length;
+    }
+    case CachedRouteKind.APP_ROUTE: {
+      // Size based on the length of the body
+      return value.body.length;
+    }
+    case CachedRouteKind.PAGES: {
+      return value.html.length + JSON.stringify(value.pageData).length;
+    }
+    case CachedRouteKind.APP_PAGE: {
+      return value.html.length + (value.rscData?.length || 0);
+    }
+    default: {
+      return 0;
+    }
+  }
+}
+
+export function createCacheStore(
+  options?: LruCacheOptions,
+): LRUCache<string, CacheHandlerValue> {
+  return createConfiguredCache(calculateObjectSize, options);
+}
 
 /**
- * @deprecated Use {@link LruCacheOptions} instead.
+ * Configuration options for the LRU cache.
+ *
+ * @since 1.0.0
  */
-export type LruCacheHandlerOptions = LruCacheOptions;
+export type LruCacheOptions = {
+  /**
+   * Optional. Maximum number of items the cache can hold.
+   *
+   * @default 1000
+   *
+   * @since 1.0.0
+   */
+  maxItemsNumber?: number;
+  /**
+   * Optional. Maximum size in bytes for each item in the cache.
+   *
+   * @default 104857600 // 100 Mb
+   *
+   * @since 1.0.0
+   */
+  maxItemSizeBytes?: number;
+};
 
-export type { LruCacheOptions };
+const MAX_ITEMS_NUMBER = 1000;
+const MAX_ITEM_SIZE_BYTES = 100 * 1024 * 1024;
+
+const DEFAULT_OPTIONS: LruCacheOptions = {
+  maxItemsNumber: MAX_ITEMS_NUMBER,
+  maxItemSizeBytes: MAX_ITEM_SIZE_BYTES,
+};
+
+/**
+ * Creates a configured LRUCache.
+ *
+ * @param calculateSizeCallback - A callback function to calculate the size of cache items.
+ *
+ * @param options - Optional configuration options for the cache.
+ *
+ * @returns A new instance of LRUCache.
+ */
+export function createConfiguredCache<CacheValueType extends object | string>(
+  calculateSizeCallback: (value: CacheValueType) => number,
+  {
+    maxItemsNumber = MAX_ITEMS_NUMBER,
+    maxItemSizeBytes = MAX_ITEM_SIZE_BYTES,
+  } = DEFAULT_OPTIONS,
+): LRUCache<string, CacheValueType> {
+  return new LRUCache<string, CacheValueType>({
+    max: maxItemsNumber,
+    maxSize: maxItemSizeBytes,
+    sizeCalculation: calculateSizeCallback,
+  });
+}
 
 /**
  * Creates an LRU (Least Recently Used) cache Handler.
