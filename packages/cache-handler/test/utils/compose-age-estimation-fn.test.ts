@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { MAX_INT32 } from '../../src/constants.js';
-import { composeAgeEstimationFn, getInitialExpireAge } from '../../src/utils/compose-age-estimation-fn.js';
+import {
+  composeAgeEstimationFn,
+  getInitialExpireAge,
+} from '../../src/utils/compose-age-estimation-fn.js';
 
 describe('composeAgeEstimationFn', () => {
   describe('valid inputs', () => {
@@ -12,34 +15,26 @@ describe('composeAgeEstimationFn', () => {
     });
 
     it('handles float by flooring', () => {
-      const estimateAge = composeAgeEstimationFn(
-        (age) => age + 0.9,
-      );
+      const estimateAge = composeAgeEstimationFn((age) => age + 0.9);
       const testAge = 100;
       // The estimated age should be floored to the nearest integer
       expect(estimateAge(testAge)).toBe(100);
     });
 
     it('handles numbers bigger than MAX_INT32 by returning MAX_INT32', () => {
-      const estimateAge = composeAgeEstimationFn(
-        (age) => age + MAX_INT32,
-      );
+      const estimateAge = composeAgeEstimationFn((age) => age + MAX_INT32);
       // The estimated age should return MAX_INT32 for numbers bigger than MAX_INT32
       expect(estimateAge(100)).toBe(MAX_INT32);
     });
 
     it('handles MAX_INT32 correctly', () => {
-      const estimateAge = composeAgeEstimationFn(
-        (_age) => MAX_INT32,
-      );
+      const estimateAge = composeAgeEstimationFn((_age) => MAX_INT32);
       // The estimated age should handle MAX_INT32 correctly
       expect(estimateAge(0)).toBe(MAX_INT32);
     });
 
     it('handles value just below MAX_INT32', () => {
-      const estimateAge = composeAgeEstimationFn(
-        (_age) => MAX_INT32 - 1,
-      );
+      const estimateAge = composeAgeEstimationFn((_age) => MAX_INT32 - 1);
       expect(estimateAge(0)).toBe(MAX_INT32 - 1);
     });
 
@@ -49,18 +44,18 @@ describe('composeAgeEstimationFn', () => {
       );
       expect(estimateAge(100)).toBe(MAX_INT32);
     });
-    
+
     it('uses default callback when none provided', () => {
       const estimateAge = composeAgeEstimationFn();
       // Default multiplies by 1.5 and floors
       expect(estimateAge(100)).toBe(150);
       expect(estimateAge(101)).toBe(151);
     });
-    
+
     it('default callback handles numbers close to MAX_INT32', () => {
       // Test the getInitialExpireAge function directly
       expect(getInitialExpireAge(MAX_INT32 / 1.5 - 1)).toBeLessThan(MAX_INT32);
-      
+
       // Test through composeAgeEstimationFn
       const estimateAge = composeAgeEstimationFn();
       const largeStaleAge = Math.floor(MAX_INT32 / 1.5) - 1;
@@ -78,9 +73,7 @@ describe('composeAgeEstimationFn', () => {
     });
 
     it('throws error for non-integer', () => {
-      const estimateAge = composeAgeEstimationFn(
-        (age) => age + Number.NaN,
-      );
+      const estimateAge = composeAgeEstimationFn((age) => age + Number.NaN);
       expect(() => estimateAge(10)).toThrow(
         'The expire age must be a positive integer but got a NaN.',
       );
@@ -108,7 +101,7 @@ describe('composeAgeEstimationFn', () => {
       });
       expect(() => estimateAge(10)).toThrow('Test error');
     });
-    
+
     it('handles negative infinity', () => {
       const estimateAge = composeAgeEstimationFn(
         (_age) => Number.NEGATIVE_INFINITY,

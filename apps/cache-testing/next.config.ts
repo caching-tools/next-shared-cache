@@ -15,6 +15,10 @@ const nextConfig: NextConfig = {
     // PPR should only be configured via the PPR_ENABLED env variable due to conditional logic in tests.
     ppr: process.env.PPR_ENABLED === 'true',
     largePageDataBytes: 1024 * 1024, // 1MB
+    useCache: true,
+    cacheHandlers: {
+      default: './redis.js',
+    },
   },
 };
 

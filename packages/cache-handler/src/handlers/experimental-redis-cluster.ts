@@ -1,7 +1,7 @@
-import type { CacheHandlerValue, Handler } from '../cache-handler.js';
-import type { CreateRedisStringsHandlerOptions } from '../common-types.js';
 import calculate from 'cluster-key-slot';
 import type { createCluster } from 'redis';
+import type { CacheHandlerValue, Handler } from '../cache-handler.js';
+import type { CreateRedisStringsHandlerOptions } from '../common-types.js';
 
 import { REVALIDATED_TAGS_KEY } from '../constants.js';
 import { createRedisTimeoutConfig } from '../helpers/create-redis-timeout-config.js';

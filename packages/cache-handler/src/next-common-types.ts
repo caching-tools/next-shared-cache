@@ -20,7 +20,10 @@ export type {
   IncrementalCacheEntry,
 } from 'next/dist/server/response-cache/types.js';
 
-export { CachedRouteKind } from 'next/dist/server/response-cache/types.js';
+export {
+  CachedRouteKind,
+  IncrementalCacheKind,
+} from 'next/dist/server/response-cache/types.js';
 
 export type NextRouteMetadata = {
   status: number | undefined;

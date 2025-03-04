@@ -1,10 +1,10 @@
+import { LRUCache } from 'lru-cache';
 import type { Handler } from '../cache-handler.js';
 import { NEXT_CACHE_IMPLICIT_TAG_ID } from '../next-common-types.js';
 import {
   type CacheHandlerValue,
   CachedRouteKind,
 } from '../next-common-types.js';
-import { LRUCache } from 'lru-cache';
 
 function calculateObjectSize({ value }: CacheHandlerValue): number {
   // Return default size if value is falsy

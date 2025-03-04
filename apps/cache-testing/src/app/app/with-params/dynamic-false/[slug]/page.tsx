@@ -7,9 +7,9 @@ type PageParams = { params: Promise<{ slug: string }> };
 
 export const dynamicParams = false;
 
-export const revalidate = 5;
+const revalidate = 5;
 
-const getData = createGetData('app/with-params/dynamic-false');
+const getData = createGetData('app/with-params/dynamic-false', revalidate);
 
 export function generateStaticParams(): Promise<
   {

@@ -5,11 +5,11 @@ import { createGetData } from 'cache-testing/utils/create-get-data';
 
 export const dynamicParams = true;
 
-export const revalidate = 5;
+const revalidate = 5;
 
 type PageParams = { params: Promise<{ slug: string }> };
 
-const getData = createGetData('app/no-params/dynamic-true');
+const getData = createGetData('app/no-params/dynamic-true', revalidate);
 
 export default async function Index({
   params,

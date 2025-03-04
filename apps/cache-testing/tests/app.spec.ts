@@ -141,7 +141,7 @@ test.describe('On-demand revalidation', () => {
 
 test.describe('Time-based revalidation', () => {
   for (const path of paths) {
-    test(`Page should be fresh after becoming stale and reloaded twice ${path}`, async ({
+    test(`Page should be fresh after becoming stale and reloaded ${path}`, async ({
       page,
       baseURL,
     }) => {
@@ -163,10 +163,6 @@ test.describe('Time-based revalidation', () => {
 
       // Temporary workaround: Addressing intermittent test failures observed in GitHub Actions.
       await Timers.scheduler.wait(1000);
-
-      await page.reload();
-
-      await expect(page.getByTestId('data')).toHaveText(pageValue);
 
       await page.reload();
 

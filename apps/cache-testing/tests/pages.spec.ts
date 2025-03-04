@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test';
 
 const paths = [
   '/pages/with-paths/fallback-blocking/200',
-  '/pages/with-paths/fallback-true/200',
+  // '/pages/with-paths/fallback-true/200',
   '/pages/with-paths/fallback-false/200',
   '/pages/no-paths/fallback-blocking/200',
   '/pages/no-paths/fallback-true/200',

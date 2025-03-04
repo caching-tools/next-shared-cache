@@ -3,7 +3,6 @@ import path from 'node:path';
 
 import type {
   CacheHandlerParametersGet,
-  CacheHandlerParametersRevalidateTag,
   CacheHandlerParametersSet,
   CacheHandlerValue,
   FileSystemCacheContext,
@@ -13,10 +12,9 @@ import type {
   PrerenderManifest,
   Revalidate,
 } from './next-common-types.js';
-import { CachedRouteKind } from './next-common-types.js';
+import { CachedRouteKind, IncrementalCacheKind } from './next-common-types.js';
 
 import { composeAgeEstimationFn } from './utils/compose-age-estimation-fn.js';
-import { getTagsFromHeaders } from './utils/get-tags-from-headers.js';
 
 export type { CacheHandlerValue };
 
@@ -830,9 +828,11 @@ export class CacheHandler implements NextCacheHandler {
     cacheKey: CacheHandlerParametersGet[0],
     ctx: CacheHandlerParametersGet[1],
   ): Promise<CacheHandlerValue | null> {
-    await CacheHandler.#configureCacheHandler();
+    if (ctx?.kind !== IncrementalCacheKind.PAGES) {
+      return null;
+    }
 
-    const { softTags = [] } = ctx;
+    await CacheHandler.#configureCacheHandler();
 
     if (CacheHandler.#debug) {
       console.info(
@@ -845,7 +845,7 @@ export class CacheHandler implements NextCacheHandler {
 
     let cachedData: CacheHandlerValue | null | undefined =
       await CacheHandler.#mergedHandler.get(cacheKey, {
-        implicitTags: softTags,
+        implicitTags: [],
       });
 
     if (!cachedData && CacheHandler.#fallbackFalseRoutes.has(cacheKey)) {
@@ -865,6 +865,10 @@ export class CacheHandler implements NextCacheHandler {
     incrementalCacheValue: CacheHandlerParametersSet[1],
     ctx: CacheHandlerParametersSet[2] & { neshca_lastModified?: number },
   ): Promise<void> {
+    if (incrementalCacheValue?.kind !== CachedRouteKind.PAGES) {
+      return;
+    }
+
     await CacheHandler.#configureCacheHandler();
 
     if (CacheHandler.#debug) {
@@ -876,7 +880,7 @@ export class CacheHandler implements NextCacheHandler {
       );
     }
 
-    const { revalidate, tags = [], neshca_lastModified } = ctx;
+    const { revalidate, neshca_lastModified } = ctx;
 
     const lastModified = Math.round(neshca_lastModified ?? Date.now());
 
@@ -891,30 +895,16 @@ export class CacheHandler implements NextCacheHandler {
       return;
     }
 
-    let cacheHandlerValueTags = tags;
-
-    if (
-      incrementalCacheValue?.kind === CachedRouteKind.PAGES ||
-      incrementalCacheValue?.kind === CachedRouteKind.APP_PAGE
-    ) {
-      cacheHandlerValueTags = getTagsFromHeaders(
-        incrementalCacheValue.headers ?? {},
-      );
-    }
-
-    const cacheHandlerValue: CacheHandlerValue = {
+    const cacheHandlerValue = {
       lastModified,
       lifespan,
-      tags: Object.freeze(cacheHandlerValueTags),
+      tags: [],
       value: incrementalCacheValue,
-    };
+    } as const;
 
     await CacheHandler.#mergedHandler.set(cacheKey, cacheHandlerValue);
 
-    if (
-      hasFallbackFalse &&
-      cacheHandlerValue.value?.kind === CachedRouteKind.PAGES
-    ) {
+    if (hasFallbackFalse) {
       await CacheHandler.#writePagesRouterPage(
         cacheKey,
         cacheHandlerValue.value,
@@ -922,25 +912,8 @@ export class CacheHandler implements NextCacheHandler {
     }
   }
 
-  async revalidateTag(
-    tag: CacheHandlerParametersRevalidateTag[0],
-  ): Promise<void> {
-    await CacheHandler.#configureCacheHandler();
-
-    const tags = typeof tag === 'string' ? [tag] : tag;
-
-    if (CacheHandler.#debug) {
-      console.info(
-        '[CacheHandler] [method: %s] [tags: [%s]] %s',
-        'revalidateTag',
-        tags.join(', '),
-        'Started revalidating tag in parallel.',
-      );
-    }
-
-    for (const tag of tags) {
-      await CacheHandler.#mergedHandler.revalidateTag(tag);
-    }
+  async revalidateTag(): Promise<void> {
+    // not implemented yet
   }
 
   resetRequestCache(): void {

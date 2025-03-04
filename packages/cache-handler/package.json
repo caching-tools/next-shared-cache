@@ -26,7 +26,8 @@
     ".": "./dist/cache-handler.js",
     "./helpers/*": "./dist/helpers/*.js",
     "./handlers/*": "./dist/handlers/*.js",
-    "./instrumentation/*": "./dist/instrumentation/*.js"
+    "./instrumentation/*": "./dist/instrumentation/*.js",
+    "./use-cache/*": "./dist/use-cache/*.js"
   },
   "scripts": {
     "build": "tsc",
