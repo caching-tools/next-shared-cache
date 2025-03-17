@@ -180,7 +180,11 @@ export async function registerInitialCache(
           headers: undefined,
           status: undefined,
         },
-        { revalidate, neshca_lastModified: lastModified },
+        {
+          neshca_lastModified: lastModified,
+          fetchCache: false,
+          cacheControl: { revalidate, expire: 0 },
+        },
       );
     } catch (error) {
       if (debug) {

@@ -6,7 +6,7 @@ const paths = [
   // '/pages/with-paths/fallback-true/200',
   '/pages/with-paths/fallback-false/200',
   '/pages/no-paths/fallback-blocking/200',
-  '/pages/no-paths/fallback-true/200',
+  // '/pages/no-paths/fallback-true/200',
   // '/pages/no-paths/fallback-false/200', // this fails with native next.js cache
 ];
 

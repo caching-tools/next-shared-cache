@@ -865,7 +865,10 @@ export class CacheHandler implements NextCacheHandler {
     incrementalCacheValue: CacheHandlerParametersSet[1],
     ctx: CacheHandlerParametersSet[2] & { neshca_lastModified?: number },
   ): Promise<void> {
-    if (incrementalCacheValue?.kind !== CachedRouteKind.PAGES) {
+    if (
+      incrementalCacheValue?.kind !== CachedRouteKind.PAGES ||
+      ctx.fetchCache === true
+    ) {
       return;
     }
 
@@ -880,7 +883,9 @@ export class CacheHandler implements NextCacheHandler {
       );
     }
 
-    const { revalidate, neshca_lastModified } = ctx;
+    const { neshca_lastModified, cacheControl } = ctx;
+
+    const revalidate = cacheControl?.revalidate;
 
     const lastModified = Math.round(neshca_lastModified ?? Date.now());
 
