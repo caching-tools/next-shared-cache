@@ -17,23 +17,23 @@
   },
   "dependencies": {
     "@neshca/cache-handler": "workspace:*",
-    "axios": "1.8.1",
-    "next": "15.2.0",
+    "axios": "1.8.3",
+    "next": "15.2.2",
     "react": "19.0.0",
     "react-dom": "19.0.0",
     "redis": "4.7.0"
   },
   "devDependencies": {
-    "@playwright/test": "1.50.1",
+    "@playwright/test": "1.51.1",
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
-    "@types/node": "22.13.9",
+    "@types/node": "22.13.10",
     "@types/react": "19.0.10",
     "@types/react-dom": "19.0.4",
     "dotenv-cli": "8.0.0",
-    "eslint": "9.21.0",
+    "eslint": "9.22.0",
     "fastify": "5.2.1",
-    "pm2": "5.4.3",
+    "pm2": "6.0.5",
     "tsx": "4.19.3",
     "typescript": "5.8.2"
   }
