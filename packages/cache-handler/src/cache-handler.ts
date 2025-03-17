@@ -386,6 +386,7 @@ export class CacheHandler implements NextCacheHandler {
 
   static async #readPagesRouterPage(
     cacheKey: string,
+    isFallback: boolean,
   ): Promise<CacheHandlerValue | null> {
     let cacheHandlerValue: CacheHandlerValue | null = null;
     let pageHtmlHandle: fsPromises.FileHandle | null = null;
@@ -417,9 +418,11 @@ export class CacheHandler implements NextCacheHandler {
       const [pageHtmlFile, { mtimeMs }, pageData] = await Promise.all([
         pageHtmlHandle.readFile('utf-8'),
         pageHtmlHandle.stat(),
-        fsPromises
-          .readFile(pageDataPath, 'utf-8')
-          .then((data) => JSON.parse(data) as object),
+        isFallback
+          ? {}
+          : fsPromises
+              .readFile(pageDataPath, 'utf-8')
+              .then((data) => JSON.parse(data) as object),
       ]);
 
       if (CacheHandler.#debug) {
@@ -849,12 +852,19 @@ export class CacheHandler implements NextCacheHandler {
       });
 
     if (!cachedData && CacheHandler.#fallbackFalseRoutes.has(cacheKey)) {
-      cachedData = await CacheHandler.#readPagesRouterPage(cacheKey);
+      cachedData = await CacheHandler.#readPagesRouterPage(cacheKey, false);
 
       // if we have a value from the file system, we should set it to the cache store
       if (cachedData) {
         await CacheHandler.#mergedHandler.set(cacheKey, cachedData);
       }
+    }
+
+    if (ctx.isFallback) {
+      cachedData = await CacheHandler.#readPagesRouterPage(
+        cacheKey,
+        ctx.isFallback,
+      );
     }
 
     return cachedData ?? null;

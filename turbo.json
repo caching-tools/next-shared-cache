@@ -6,6 +6,7 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
+      "cache": false,
       "env": [
         "REDIS_URL",
         "REMOTE_CACHE_SERVER_BASE_URL",

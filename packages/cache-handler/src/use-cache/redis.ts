@@ -417,13 +417,6 @@ function createRedisCacheHandler(config: RedisConfig = {}) {
             errorRetryCount: 0,
           };
 
-          console.info(
-            'entry.expire, entry.revalidate, entry.stale',
-            entry.expire,
-            entry.revalidate,
-            entry.stale,
-          );
-
           // Store in Redis with an expiration
           await redisClient.set(
             getKey(cacheKey),
