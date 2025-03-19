@@ -2,9 +2,8 @@ import { promises as fsPromises } from 'node:fs';
 import path from 'node:path';
 import { PRERENDER_MANIFEST, SERVER_DIRECTORY } from 'next/constants.js';
 import type { PrerenderManifest } from 'next/dist/build/index.js';
+import type { CacheHandlerType } from '../cache-handler.js';
 import { CachedRouteKind, type Revalidate } from '../next-common-types.js';
-
-type CacheHandlerType = typeof import('../cache-handler.js').CacheHandler;
 
 type Router = 'pages' | 'app';
 

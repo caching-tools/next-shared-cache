@@ -1,111 +1,118 @@
+import { randomUUID } from 'node:crypto';
+import { tagsManifest } from 'next/dist/server/lib/incremental-cache/tags-manifest.external.js';
 import type { createClient } from 'redis';
 import { createRedisTimeoutConfig } from '../helpers/create-redis-timeout-config.js';
 import { type RemoteStore, createCacheHandler } from '../use-cache-cache.js';
 
 export type Config<T extends ReturnType<typeof createClient>> = {
   client: T;
+  pubClient: T;
+  subClientId: string;
+  channel: string;
   keyPrefix?: string;
-  sharedTagsKey?: string;
   timeoutMs?: number;
+  expireTrigger?: 'stale' | 'expire';
+};
+
+type Message = {
+  expiredTags: Record<string, number>;
+  subClientId: string;
 };
 
 function createRedisStore<T extends ReturnType<typeof createClient>>({
   client,
+  pubClient,
+  channel,
+  subClientId,
   keyPrefix,
-  sharedTagsKey,
   timeoutMs = 5000,
+  expireTrigger = 'stale',
 }: Config<T>): RemoteStore {
   const getKey = (key: string) => `${keyPrefix}${key}`;
-  const getSharedTagsKey = () => `${keyPrefix}${sharedTagsKey}`;
 
   return {
     async get(key) {
       if (!client.isReady) {
-        return Promise.resolve(undefined);
+        return;
       }
 
       const options = createRedisTimeoutConfig(timeoutMs);
 
       return (await client.get(options, getKey(key))) ?? undefined;
     },
-    async set(key, value) {
+    async set(key, value, { expire, timestamp, stale }) {
       if (!client.isReady) {
         return;
       }
 
       const options = createRedisTimeoutConfig(timeoutMs);
 
-      await client.set(options, getKey(key), value);
+      const expireAt =
+        expireTrigger === 'stale'
+          ? Math.floor(timestamp / 1000 + Math.min(expire, stale))
+          : Math.floor(timestamp / 1000 + expire);
+
+      await client.set(options, getKey(key), value, {
+        EXAT: expireAt,
+      });
     },
     async expireTags(expiredTags) {
-      if (!client.isReady) {
+      if (!pubClient.isReady) {
         return;
       }
 
-      const options = createRedisTimeoutConfig(timeoutMs);
-
-      await client.hSet(
-        options,
-        getSharedTagsKey(),
-        Object.fromEntries(expiredTags),
+      await pubClient.publish(
+        channel,
+        JSON.stringify({
+          expiredTags: Object.fromEntries(expiredTags),
+          subClientId,
+        } satisfies Message),
       );
     },
     getExpirationTimestamps() {
-      return Promise.resolve([]);
+      return Promise.resolve([0]);
     },
-    async refreshTags(tagsManifest) {
-      try {
-        if (!client?.isReady) {
-          return;
-        }
-
-        let cursor = 0;
-
-        const hScanOptions = { COUNT: 10 };
-
-        do {
-          const options = createRedisTimeoutConfig(timeoutMs);
-
-          const remoteTagsPortion = await client.hScan(
-            options,
-            getSharedTagsKey(),
-            cursor,
-            hScanOptions,
-          );
-
-          for (const {
-            field: tag,
-            value: timestampStr,
-          } of remoteTagsPortion.tuples) {
-            try {
-              const timestamp = Number.parseInt(timestampStr, 10);
-
-              if (!Number.isNaN(timestamp)) {
-                tagsManifest.set(tag, timestamp);
-              }
-            } catch (err) {
-              console.error(`Failed to parse tag timestamp for ${tag}:`, err);
-            }
-          }
-
-          cursor = remoteTagsPortion.cursor;
-        } while (cursor !== 0);
-      } catch (error) {
-        console.error('Failed to load tags from Redis:', error);
-      }
+    async refreshTags() {
+      // must be empty when using pub/sub
     },
   };
 }
 
 export function createRedisCacheHandler<
   T extends ReturnType<typeof createClient>,
->({ client, keyPrefix, sharedTagsKey, timeoutMs }: Config<T>) {
-  const remoteStore = client
-    .connect()
-    .then((redisClient) => ({
-      client: redisClient,
+>({ client, keyPrefix, timeoutMs }: Config<T>) {
+  const remoteStore = Promise.all([
+    client.connect(),
+    client.duplicate().connect(),
+    client.duplicate().connect(),
+  ])
+    .then(async ([mainClient, pubClient, subClient]) => {
+      const subClientId = randomUUID();
+      const channel = `${keyPrefix}__revalidate_channel__`;
+
+      await subClient.subscribe(channel, (message) => {
+        const { expiredTags, subClientId: messageSubClientId } = JSON.parse(
+          message,
+        ) as Message;
+
+        if (subClientId === messageSubClientId) {
+          console.info('ignoring message from self');
+          return;
+        }
+
+        for (const [tag, timestamp] of Object.entries(expiredTags)) {
+          tagsManifest.set(tag, timestamp);
+        }
+      });
+
+      return { mainClient, pubClient, subClientId, channel };
+    })
+    .then(({ mainClient, pubClient, subClientId, channel }) => ({
+      client: mainClient,
+      pubClient,
+      subClientId,
+      channel,
       keyPrefix,
-      sharedTagsKey,
       timeoutMs,
     }))
     .then(createRedisStore);

@@ -12,7 +12,7 @@
     "start:docs": "serve out"
   },
   "dependencies": {
-    "next": "15.3.0-canary.13",
+    "next": "15.3.0-canary.14",
     "nextra": "4.2.16",
     "nextra-theme-docs": "4.2.16",
     "react": "19.0.0",

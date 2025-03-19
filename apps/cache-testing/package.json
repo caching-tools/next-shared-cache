@@ -17,8 +17,8 @@
   },
   "dependencies": {
     "@neshca/cache-handler": "workspace:*",
-    "axios": "1.8.3",
-    "next": "15.3.0-canary.13",
+    "axios": "1.8.4",
+    "next": "15.3.0-canary.14",
     "react": "19.0.0",
     "react-dom": "19.0.0",
     "redis": "4.7.0"

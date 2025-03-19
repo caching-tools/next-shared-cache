@@ -1,6 +1,7 @@
 import type {
   CacheEntry,
   CacheHandlerV2,
+  Timestamp,
 } from 'next/dist/server/lib/cache-handlers/types.js';
 import {
   isStale,
@@ -15,9 +16,16 @@ export type { CacheHandlerV2, CacheEntry };
 
 const pendingSets = new Map<string, Promise<void>>();
 
+type RemoteStoreOptions = {
+  timestamp: Timestamp;
+  revalidate: number;
+  expire: number;
+  stale: number;
+};
+
 export type RemoteStore = {
   get(key: string): Promise<string | undefined>;
-  set(key: string, value: string): Promise<void>;
+  set(key: string, value: string, options: RemoteStoreOptions): Promise<void>;
   refreshTags(tagsManifest: Map<string, number>): Promise<void>;
   getExpirationTimestamps(tags: string[]): Promise<number[]>;
   expireTags(expiredTags: Map<string, number>): Promise<void>;
@@ -100,7 +108,12 @@ export async function createCacheHandler(
 
           const remoteStore = await remoteStorePromise;
 
-          await remoteStore.set(cacheKey, JSON.stringify(storageEntry));
+          await remoteStore.set(cacheKey, JSON.stringify(storageEntry), {
+            expire: entry.expire,
+            revalidate: entry.revalidate,
+            stale: entry.stale,
+            timestamp: entry.timestamp,
+          });
         } catch (_error) {
           //
         } finally {

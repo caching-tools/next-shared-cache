@@ -323,6 +323,8 @@ async function removeEntryFromHandlers(
   });
 }
 
+export type CacheHandlerType = typeof CacheHandler;
+
 export class CacheHandler implements NextCacheHandler {
   /**
    * Provides a descriptive name for the CacheHandler class.

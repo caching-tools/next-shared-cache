@@ -15,7 +15,6 @@ export function createGetData(path: string, revalidate?: number) {
 
     cacheLife({
       revalidate,
-      expire: revalidate ? revalidate * 2 : undefined,
     });
 
     cacheTag(pathAndTag, 'whole-app-route');
