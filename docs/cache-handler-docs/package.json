@@ -7,14 +7,14 @@
     "build:docs": "next build && pagefind --site .next/server/app --output-path out/_pagefind",
     "check-types": "tsc --noEmit",
     "dev:docs": "next dev --turbo",
-    "eslint:check": "next lint",
-    "eslint:fix": "next lint --fix",
+    "lint:check": "next lint --max-warnings=0",
+    "lint:fix": "next lint --fix --max-warnings=0",
     "start:docs": "serve out"
   },
   "dependencies": {
-    "next": "15.3.0-canary.14",
-    "nextra": "4.2.16",
-    "nextra-theme-docs": "4.2.16",
+    "next": "15.3.0-canary.16",
+    "nextra": "4.2.17",
+    "nextra-theme-docs": "4.2.17",
     "react": "19.0.0",
     "react-dom": "19.0.0"
   },

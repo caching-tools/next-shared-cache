@@ -1,11 +1,9 @@
-import js from '@eslint/js';
+import { globalIgnores } from 'eslint/config';
 import pluginNext from '@next/eslint-plugin-next';
-import eslintConfigPrettier from 'eslint-config-prettier';
 import pluginReact from 'eslint-plugin-react';
 import pluginReactHooks from 'eslint-plugin-react-hooks';
-import turboPlugin from 'eslint-plugin-turbo';
-import globals from 'globals';
 import tseslint from 'typescript-eslint';
+import baseEslintConfig from './base.js';
 
 /**
  * A shared ESLint configuration for the repository.
@@ -13,39 +11,23 @@ import tseslint from 'typescript-eslint';
  * @type {import("typescript-eslint").ConfigArray}
  * */
 export const nextJsConfig = tseslint.config(
-  js.configs.recommended,
-  eslintConfigPrettier,
-  ...tseslint.configs.recommended,
+  globalIgnores(['**/.next']),
+  baseEslintConfig,
   {
-    languageOptions: {
-      globals: {
-        ...globals.node,
-      },
-    },
-  },
-  {
-    plugins: {
-      turbo: turboPlugin,
-    },
-    rules: {
-      'turbo/no-undeclared-env-vars': 'warn',
-    },
-  },
-  {
-    ignores: ['dist/**'],
-  },
-  {
-    ...pluginReact.configs.flat.recommended,
-    languageOptions: {
-      ...pluginReact.configs.flat.recommended.languageOptions,
-      globals: {
-        ...globals.serviceworker,
-      },
-    },
+    extends: [
+      pluginReact.configs.flat.recommended,
+      pluginReact.configs.flat['jsx-runtime'],
+    ],
     rules: {
       'react/prop-types': 'off',
     },
+    settings: {
+      react: {
+        version: 'detect',
+      },
+    },
   },
+  pluginReactHooks.configs['recommended-latest'],
   {
     plugins: {
       '@next/next': pluginNext,
@@ -56,30 +38,9 @@ export const nextJsConfig = tseslint.config(
     },
   },
   {
-    plugins: {
-      'react-hooks': pluginReactHooks,
-    },
-    settings: { react: { version: 'detect' } },
     rules: {
-      ...pluginReactHooks.configs.recommended.rules,
-      // React scope no longer necessary with new JSX transform.
-      'react/react-in-jsx-scope': 'off',
-    },
-  },
-  {
-    rules: {
-      '@typescript-eslint/no-unused-vars': [
-        'error',
-        {
-          args: 'all',
-          argsIgnorePattern: '^_',
-          caughtErrors: 'all',
-          caughtErrorsIgnorePattern: '^_',
-          destructuredArrayIgnorePattern: '^_',
-          varsIgnorePattern: '^_',
-          ignoreRestSiblings: true,
-        },
-      ],
+      'check-file/filename-naming-convention': 'off',
+      'check-file/folder-naming-convention': 'off',
     },
   },
 );

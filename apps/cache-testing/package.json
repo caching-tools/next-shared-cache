@@ -10,15 +10,15 @@
     "cluster:stop": "pm2 kill",
     "e2e": "playwright test --config=./playwright.config.ts",
     "e2e:ui": "playwright test --ui --config=./playwright.config.ts",
-    "eslint:check": "next lint",
-    "eslint:fix": "next lint --fix",
+    "lint:check": "next lint --max-warnings=0",
+    "lint:fix": "next lint --fix --max-warnings=0",
     "playwright:install": "playwright install chromium",
     "start": "dotenv -e .env.local -v SERVER_STARTED=1 node .next/standalone/apps/cache-testing/server.js"
   },
   "dependencies": {
     "@neshca/cache-handler": "workspace:*",
     "axios": "1.8.4",
-    "next": "15.3.0-canary.14",
+    "next": "15.3.0-canary.16",
     "react": "19.0.0",
     "react-dom": "19.0.0",
     "redis": "4.7.0"

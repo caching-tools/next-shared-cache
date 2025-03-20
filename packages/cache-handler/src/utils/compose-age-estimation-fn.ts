@@ -27,7 +27,9 @@ export function getInitialExpireAge(staleAge: number): number {
  * 3. Floored to the nearest integer
  *
  * @param callback - A function that calculates expire age from stale age
+ *
  * @returns A validated function that safely converts stale age to expire age
+ *
  * @throws Assertion error if the calculated expire age is not a positive integer
  *
  * @example

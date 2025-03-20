@@ -4,6 +4,5 @@ packages:
   - docs/cache-handler-docs
   - internal/*
 onlyBuiltDependencies:
-  - '@biomejs/biome'
   - esbuild
   - sharp

@@ -4,13 +4,24 @@
   "private": true,
   "type": "module",
   "exports": {
-    "./next-js": "./next.js"
+    "./base": "./base.js",
+    "./vitest": "./vitest.js",
+    "./next-js": "./next.js",
+    "./lib": "./lib.js"
   },
   "devDependencies": {
     "@eslint/js": "9.22.0",
-    "@next/eslint-plugin-next": "15.3.0-canary.14",
+    "@next/eslint-plugin-next": "15.3.0-canary.16",
+    "@typescript-eslint/parser": "8.27.0",
+    "@vitest/eslint-plugin": "1.1.38",
     "eslint": "9.22.0",
     "eslint-config-prettier": "10.1.1",
+    "eslint-import-resolver-typescript": "4.2.2",
+    "eslint-plugin-check-file": "3.1.0",
+    "eslint-plugin-import-x": "4.9.1",
+    "eslint-plugin-jsdoc": "50.6.8",
+    "eslint-plugin-mdx": "3.2.0",
+    "eslint-plugin-only-warn": "1.1.0",
     "eslint-plugin-react": "7.37.4",
     "eslint-plugin-react-hooks": "5.2.0",
     "eslint-plugin-turbo": "2.4.4",

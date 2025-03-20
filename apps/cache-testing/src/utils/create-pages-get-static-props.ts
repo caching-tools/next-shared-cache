@@ -1,10 +1,9 @@
+import type { CountBackendApiResponseJson, PageProps } from './types';
 import type {
   GetStaticProps,
   GetStaticPropsContext,
   GetStaticPropsResult,
 } from 'next';
-
-import type { CountBackendApiResponseJson, PageProps } from './types';
 
 const revalidate = 5;
 

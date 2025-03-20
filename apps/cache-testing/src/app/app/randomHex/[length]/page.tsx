@@ -1,20 +1,22 @@
-import { CacheStateWatcher } from 'cache-testing/components/cache-state-watcher';
-import { PreRenderedAt } from 'cache-testing/components/pre-rendered-at';
-import type { RandomHexPageProps } from 'cache-testing/utils/types';
 import { unstable_cacheTag as cacheTag } from 'next/cache';
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
+import { CacheStateWatcher } from 'cache-testing/components/cache-state-watcher';
+import { PreRenderedAt } from 'cache-testing/components/pre-rendered-at';
+import type { RandomHexPageProps } from 'cache-testing/utils/types';
 
 const lengthSteps = new Array(5).fill(0).map((_, i) => 10 ** (i + 1));
 
 type PageParams = { params: Promise<{ length: string }> };
 
-export async function generateStaticParams(): Promise<
+export function generateStaticParams(): Promise<
   {
     length: string;
   }[]
 > {
-  return lengthSteps.map((length) => ({ length: `${length}` }));
+  return Promise.resolve(
+    lengthSteps.map((length) => ({ length: `${length}` })),
+  );
 }
 
 export default async function Page({

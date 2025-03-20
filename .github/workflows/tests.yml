@@ -13,7 +13,6 @@ on:
       - '.github/workflows/tests.yml'
       - 'internal/eslint-config/**'
       - 'package.json'
-      - 'biome.json'
       - 'turbo.json'
       - 'prettier.config.js'
   pull_request:
@@ -28,7 +27,6 @@ on:
       - '.github/workflows/tests.yml'
       - 'internal/eslint-config/**'
       - 'package.json'
-      - 'biome.json'
       - 'turbo.json'
       - 'prettier.config.js'
 jobs:

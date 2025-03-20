@@ -21,13 +21,11 @@
       "dependsOn": ["^build:docs"],
       "outputs": [".next/**", "!.next/cache/**", "out/**"]
     },
-    "eslint:check": {
-      "cache": false,
-      "dependsOn": ["^eslint:check"]
+    "lint:check": {
+      "cache": false
     },
-    "eslint:fix": {
-      "cache": false,
-      "dependsOn": ["^eslint:fix"]
+    "lint:fix": {
+      "cache": false
     },
     "test": {
       "cache": false

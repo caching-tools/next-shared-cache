@@ -1,6 +1,5 @@
 {
   "recommendations": [
-    "biomejs.biome",
     "dbaeumer.vscode-eslint",
     "esbenp.prettier-vscode",
     "unifiedjs.vscode-mdx",

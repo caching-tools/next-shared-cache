@@ -1,12 +1,12 @@
+import {
+  isStale,
+  tagsManifest,
+} from 'next/dist/server/lib/incremental-cache/tags-manifest.external.js';
 import type {
   CacheEntry,
   CacheHandlerV2,
   Timestamp,
 } from 'next/dist/server/lib/cache-handlers/types.js';
-import {
-  isStale,
-  tagsManifest,
-} from 'next/dist/server/lib/incremental-cache/tags-manifest.external.js';
 
 export type SerializedCacheEntry = Omit<CacheEntry, 'value'> & {
   value: string;
@@ -30,12 +30,25 @@ export type RemoteStore = {
   getExpirationTimestamps(tags: string[]): Promise<number[]>;
   expireTags(expiredTags: Map<string, number>): Promise<void>;
 };
-export async function createCacheHandler(
+
+/**
+ * Creates a cache handler that uses a remote store to store and retrieve cache entries.
+ * This cache handler is used for 'use cache' in Next.js.
+ *
+ * @param remoteStorePromise - A promise that resolves to a remote store.
+ *
+ * @returns A cache handler that uses the remote store to store and retrieve cache entries.
+ */
+export function createCacheHandler(
   remoteStorePromise: Promise<RemoteStore>,
-) {
+): CacheHandlerV2 {
   const cacheHandler: CacheHandlerV2 = {
     async get(cacheKey) {
-      await pendingSets.get(cacheKey);
+      const pendingPromise = pendingSets.get(cacheKey);
+
+      if (pendingPromise) {
+        await pendingPromise;
+      }
 
       try {
         const remoteStore = await remoteStorePromise;
@@ -47,7 +60,7 @@ export async function createCacheHandler(
           return undefined;
         }
 
-        const entry: SerializedCacheEntry = JSON.parse(serializedEntry);
+        const entry = JSON.parse(serializedEntry) as SerializedCacheEntry;
 
         const now = performance.timeOrigin + performance.now();
 
@@ -66,7 +79,7 @@ export async function createCacheHandler(
           tags: entry.tags,
           timestamp: entry.timestamp,
           value: new ReadableStream<Uint8Array>({
-            start(controller) {
+            start(controller): void {
               controller.enqueue(Buffer.from(entry.value, 'base64'));
               controller.close();
             },

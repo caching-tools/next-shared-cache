@@ -1,11 +1,18 @@
 import { LRUCache } from 'lru-cache';
-import type { Handler } from '../cache-handler.js';
 import { NEXT_CACHE_IMPLICIT_TAG_ID } from '../next-common-types.js';
-import {
-  type CacheHandlerValue,
-  CachedRouteKind,
-} from '../next-common-types.js';
+import { CachedRouteKind } from '../next-common-types.js';
+import type { Handler } from '../cache-handler.js';
+import type { CacheHandlerValue } from '../next-common-types.js';
 
+/**
+ * Calculates the size of a cache item.
+ *
+ * @param cacheHandlerValue - The cache item to calculate the size of.
+ *
+ * @param cacheHandlerValue.value - The value of the cache item.
+ *
+ * @returns The size of the cache item.
+ */
 function calculateObjectSize({ value }: CacheHandlerValue): number {
   // Return default size if value is falsy
   if (!value) {
@@ -25,7 +32,7 @@ function calculateObjectSize({ value }: CacheHandlerValue): number {
     }
     case CachedRouteKind.FETCH: {
       // Calculate size based on the length of the stringified data
-      return JSON.stringify(value.data || '').length;
+      return JSON.stringify(value.data).length;
     }
     case CachedRouteKind.APP_ROUTE: {
       // Size based on the length of the body
@@ -43,6 +50,13 @@ function calculateObjectSize({ value }: CacheHandlerValue): number {
   }
 }
 
+/**
+ * Creates a cache store.
+ *
+ * @param options - The options for the cache store.
+ *
+ * @returns A new instance of LRUCache.
+ */
 export function createCacheStore(
   options?: LruCacheOptions,
 ): LRUCache<string, CacheHandlerValue> {
@@ -87,6 +101,10 @@ const DEFAULT_OPTIONS: LruCacheOptions = {
  * @param calculateSizeCallback - A callback function to calculate the size of cache items.
  *
  * @param options - Optional configuration options for the cache.
+ *
+ * @param options.maxItemsNumber - The maximum number of items in the cache.
+ *
+ * @param options.maxItemSizeBytes - The maximum size in bytes for each item in the cache.
  *
  * @returns A new instance of LRUCache.
  */
@@ -138,7 +156,7 @@ export default function createHandler({
 
   return {
     name: 'local-lru',
-    get(key, { implicitTags }) {
+    get(key, { implicitTags }): Promise<CacheHandlerValue | null | undefined> {
       const cacheValue = lruCacheStore.get(key);
 
       if (!cacheValue) {
@@ -168,12 +186,12 @@ export default function createHandler({
 
       return Promise.resolve(cacheValue);
     },
-    set(key, cacheHandlerValue) {
+    set(key, cacheHandlerValue): Promise<void> {
       lruCacheStore.set(key, cacheHandlerValue);
 
       return Promise.resolve();
     },
-    revalidateTag(tag) {
+    revalidateTag(tag): Promise<void> {
       // Iterate over all entries in the cache
       for (const [key, { tags }] of lruCacheStore.entries()) {
         // If the value's tags include the specified tag, delete this entry
@@ -188,7 +206,7 @@ export default function createHandler({
 
       return Promise.resolve();
     },
-    delete(key) {
+    delete(key): Promise<void> {
       lruCacheStore.delete(key);
 
       return Promise.resolve();

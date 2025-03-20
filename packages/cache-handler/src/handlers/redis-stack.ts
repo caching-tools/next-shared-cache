@@ -1,14 +1,13 @@
-import { ErrorReply, SchemaFieldTypes } from 'redis';
-
 import { randomBytes } from 'node:crypto';
+import { ErrorReply, SchemaFieldTypes } from 'redis';
+import { REVALIDATED_TAGS_KEY, TIME_ONE_YEAR } from '../constants.js';
+import { createRedisTimeoutConfig } from '../helpers/create-redis-timeout-config.js';
+import { isTagImplicit } from '../helpers/is-tag-implicit.js';
 import type { CacheHandlerValue, Handler } from '../cache-handler.js';
 import type {
   CreateRedisStackHandlerOptions,
   RedisJSON,
 } from '../common-types.js';
-import { REVALIDATED_TAGS_KEY, TIME_ONE_YEAR } from '../constants.js';
-import { createRedisTimeoutConfig } from '../helpers/create-redis-timeout-config.js';
-import { isTagImplicit } from '../helpers/is-tag-implicit.js';
 
 export type { CreateRedisStackHandlerOptions };
 
@@ -20,6 +19,14 @@ export type { CreateRedisStackHandlerOptions };
  * methods to get, set, and manage cache values fot on-demand revalidation.
  *
  * @param options - The configuration options for the Redis Stack Handler. See {@link CreateRedisStackHandlerOptions}.
+ *
+ * @param options.client - The Redis client.
+ *
+ * @param options.keyPrefix - The prefix to use for the Redis keys.
+ *
+ * @param options.timeoutMs - The timeout for the Redis operations.
+ *
+ * @param options.revalidateTagQuerySize - The size of the query to use for the revalidate tag.
  *
  * @returns An object representing the cache, with methods for cache operations.
  *
@@ -44,18 +51,35 @@ export default function createHandler({
   timeoutMs = 5000,
   revalidateTagQuerySize = 100,
 }: CreateRedisStackHandlerOptions): Handler {
+  /**
+   * Asserts that the Redis client is ready.
+   *
+   * @throws An error if the Redis client is not ready.
+   */
   function assertClientIsReady(): void {
     if (!client.isReady) {
       throw new Error('Redis client is not ready');
     }
   }
 
-  function sanitizeTag(str: string) {
+  /**
+   * Sanitizes a tag to be used in Redis.
+   *
+   * @param str - The tag to sanitize.
+   *
+   * @returns The sanitized tag.
+   */
+  function sanitizeTag(str: string): string {
     return str.replace(/[^a-zA-Z0-9]/gi, '_');
   }
 
   const indexName = `idx:tags-${randomBytes(32).toString('hex')}`;
 
+  /**
+   * Creates an index if it does not exist.
+   *
+   * @throws An error if the creation of the index fails but not because the index already exists.
+   */
   async function createIndexIfNotExists(): Promise<void> {
     try {
       await client.ft.create(
@@ -84,7 +108,10 @@ export default function createHandler({
 
   return {
     name: 'redis-stack',
-    async get(key, { implicitTags }) {
+    async get(
+      key,
+      { implicitTags },
+    ): Promise<CacheHandlerValue | null | undefined> {
       assertClientIsReady();
 
       const cacheValue = (await client.json.get(
@@ -129,7 +156,7 @@ export default function createHandler({
 
       return cacheValue;
     },
-    async set(key, cacheHandlerValue) {
+    async set(key, cacheHandlerValue): Promise<void> {
       assertClientIsReady();
 
       cacheHandlerValue.tags = cacheHandlerValue.tags.map(sanitizeTag);
@@ -153,7 +180,7 @@ export default function createHandler({
 
       await Promise.all([setCacheValue, expireCacheValue]);
     },
-    async revalidateTag(tag) {
+    async revalidateTag(tag): Promise<void> {
       assertClientIsReady();
 
       await createIndexIfNotExists();
@@ -205,7 +232,7 @@ export default function createHandler({
 
       await client.unlink(options, keysToDelete);
     },
-    async delete(key) {
+    async delete(key): Promise<void> {
       await client.unlink(createRedisTimeoutConfig(timeoutMs), key);
     },
   };

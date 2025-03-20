@@ -1,5 +1,4 @@
 import { notFound } from 'next/navigation';
-
 import { CommonAppPage } from 'cache-testing/utils/common-app-page';
 import { createGetData } from 'cache-testing/utils/create-get-data';
 

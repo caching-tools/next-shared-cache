@@ -1,4 +1,3 @@
-import type { OutgoingHttpHeaders } from 'node:http';
 import type {
   CacheHandler,
   CacheHandlerContext,
@@ -8,6 +7,7 @@ import type {
   CachedRouteKind,
   IncrementalCacheValue,
 } from 'next/dist/server/response-cache/types.js';
+import type { OutgoingHttpHeaders } from 'node:http';
 
 export type { PrerenderManifest } from 'next/dist/build/index.js';
 export type { CacheHandler } from 'next/dist/server/lib/incremental-cache/index.js';

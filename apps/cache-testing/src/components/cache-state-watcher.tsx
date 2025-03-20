@@ -41,7 +41,7 @@ export function CacheStateWatcher({
 
     id = requestAnimationFrame(check);
 
-    return () => {
+    return (): void => {
       cancelAnimationFrame(id);
     };
   }, [revalidateAfter, time]);

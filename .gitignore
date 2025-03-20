@@ -41,3 +41,4 @@ yarn-error.log*
 
 # TypeScript build info
 tsconfig.tsbuildinfo
+tsconfig.build.tsbuildinfo

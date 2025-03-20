@@ -1,8 +1,9 @@
 import { randomUUID } from 'node:crypto';
 import { tagsManifest } from 'next/dist/server/lib/incremental-cache/tags-manifest.external.js';
-import type { createClient } from 'redis';
 import { createRedisTimeoutConfig } from '../helpers/create-redis-timeout-config.js';
-import { type RemoteStore, createCacheHandler } from '../use-cache-cache.js';
+import { createCacheHandler } from '../use-cache-cache.js';
+import type { CacheHandlerV2, RemoteStore } from '../use-cache-cache.js';
+import type { createClient } from 'redis';
 
 export type Config<T extends ReturnType<typeof createClient>> = {
   client: T;
@@ -19,19 +20,40 @@ type Message = {
   subClientId: string;
 };
 
+/**
+ * Creates a remote store that uses Redis to store and retrieve cache entries.
+ *
+ * @param config - The configuration for the remote store.
+ *
+ * @param config.client - The Redis client.
+ *
+ * @param config.pubClient - The Redis publish client.
+ *
+ * @param config.channel - The channel to use for the Redis pub/sub.
+ *
+ * @param config.subClientId - The ID of the Redis subscriber client.
+ *
+ * @param config.keyPrefix - The prefix to use for the Redis keys.
+ *
+ * @param config.timeoutMs - The timeout for the Redis operations.
+ *
+ * @param config.expireTrigger - The trigger for the Redis expiration.
+ *
+ * @returns A remote store that uses Redis to store and retrieve cache entries.
+ */
 function createRedisStore<T extends ReturnType<typeof createClient>>({
   client,
   pubClient,
   channel,
   subClientId,
-  keyPrefix,
+  keyPrefix = '',
   timeoutMs = 5000,
   expireTrigger = 'stale',
 }: Config<T>): RemoteStore {
-  const getKey = (key: string) => `${keyPrefix}${key}`;
+  const getKey = (key: string): string => `${keyPrefix}${key}`;
 
   return {
-    async get(key) {
+    async get(key): Promise<string | undefined> {
       if (!client.isReady) {
         return;
       }
@@ -40,7 +62,7 @@ function createRedisStore<T extends ReturnType<typeof createClient>>({
 
       return (await client.get(options, getKey(key))) ?? undefined;
     },
-    async set(key, value, { expire, timestamp, stale }) {
+    async set(key, value, { expire, timestamp, stale }): Promise<void> {
       if (!client.isReady) {
         return;
       }
@@ -56,7 +78,7 @@ function createRedisStore<T extends ReturnType<typeof createClient>>({
         EXAT: expireAt,
       });
     },
-    async expireTags(expiredTags) {
+    async expireTags(expiredTags): Promise<void> {
       if (!pubClient.isReady) {
         return;
       }
@@ -69,18 +91,31 @@ function createRedisStore<T extends ReturnType<typeof createClient>>({
         } satisfies Message),
       );
     },
-    getExpirationTimestamps() {
+    getExpirationTimestamps(): Promise<number[]> {
       return Promise.resolve([0]);
     },
-    async refreshTags() {
+    async refreshTags(): Promise<void> {
       // must be empty when using pub/sub
     },
   };
 }
 
+/**
+ * Creates a cache handler that uses Redis to store and retrieve cache entries.
+ *
+ * @param config - The configuration for the cache handler.
+ *
+ * @param config.client - The Redis client.
+ *
+ * @param config.keyPrefix - The prefix to use for the Redis keys.
+ *
+ * @param config.timeoutMs - The timeout for the Redis operations.
+ *
+ * @returns A cache handler that uses Redis to store and retrieve cache entries.
+ */
 export function createRedisCacheHandler<
   T extends ReturnType<typeof createClient>,
->({ client, keyPrefix, timeoutMs }: Config<T>) {
+>({ client, keyPrefix, timeoutMs }: Config<T>): CacheHandlerV2 {
   const remoteStore = Promise.all([
     client.connect(),
     client.duplicate().connect(),
@@ -88,7 +123,9 @@ export function createRedisCacheHandler<
   ])
     .then(async ([mainClient, pubClient, subClient]) => {
       const subClientId = randomUUID();
-      const channel = `${keyPrefix}__revalidate_channel__`;
+      const channel = keyPrefix
+        ? `${keyPrefix}__revalidate_channel__`
+        : '__revalidate_channel__';
 
       await subClient.subscribe(channel, (message) => {
         const { expiredTags, subClientId: messageSubClientId } = JSON.parse(

@@ -30,9 +30,11 @@
     "./use-cache/*": "./dist/use-cache/*.js"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc -p tsconfig.build.json",
     "check-types": "tsc --noEmit",
-    "dev": "tsc --watch",
+    "dev": "tsc -w -p tsconfig.build.json",
+    "lint:check": "eslint . --max-warnings=0",
+    "lint:fix": "eslint --fix . --max-warnings=0",
     "test": "vitest run",
     "test:watch": "vitest"
   },
@@ -42,9 +44,11 @@
     "superjson": "^2.2.2"
   },
   "devDependencies": {
+    "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "@types/node": "22.13.10",
-    "next": "15.3.0-canary.14",
+    "eslint": "9.22.0",
+    "next": "15.3.0-canary.16",
     "tsx": "4.19.3",
     "typescript": "5.8.2",
     "vitest": "3.0.9"

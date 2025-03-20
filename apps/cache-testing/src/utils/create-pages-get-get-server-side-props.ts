@@ -1,6 +1,5 @@
-import type { GetServerSideProps, GetServerSidePropsResult } from 'next';
-
 import type { CountBackendApiResponseJson, PageProps } from './types';
+import type { GetServerSideProps, GetServerSidePropsResult } from 'next';
 
 export function createPagesGetServerSideProps(
   path: string,

@@ -2,9 +2,9 @@
   "$schema": "https://json.schemastore.org/tsconfig",
   "extends": "@repo/typescript-config/lib.json",
   "compilerOptions": {
-    "outDir": "dist",
-    "rootDir": "src"
+    "rootDir": ".",
+    "erasableSyntaxOnly": true
   },
   "include": ["**/*.ts"],
-  "exclude": ["node_modules", "dist", "test", "vitest.config.ts"]
+  "exclude": ["node_modules", "dist"]
 }

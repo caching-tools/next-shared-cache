@@ -1,6 +1,8 @@
-import { promises as fsPromises } from 'node:fs';
+import { promises as fsPromises, constants } from 'node:fs';
 import path from 'node:path';
-
+import { PRERENDER_MANIFEST_VERSION } from './constants.js';
+import { CachedRouteKind, IncrementalCacheKind } from './next-common-types.js';
+import { composeAgeEstimationFn } from './utils/compose-age-estimation-fn.js';
 import type {
   CacheHandlerParametersGet,
   CacheHandlerParametersSet,
@@ -12,13 +14,8 @@ import type {
   PrerenderManifest,
   Revalidate,
 } from './next-common-types.js';
-import { CachedRouteKind, IncrementalCacheKind } from './next-common-types.js';
-
-import { composeAgeEstimationFn } from './utils/compose-age-estimation-fn.js';
 
 export type { CacheHandlerValue };
-
-const PRERENDER_MANIFEST_VERSION = 4;
 
 /**
  * Represents an internal Next.js metadata for a `get` method.
@@ -275,16 +272,16 @@ export type OnCreationHook = (
  * Deletes an entry from all handlers.
  *
  * @param handlers - The list of handlers.
- * @param key - The key to delete.
- * @param debug - Whether to log debug messages.
  *
- * @returns A Promise that resolves when all handlers have finished deleting the entry.
+ * @param key - The key to delete.
+ *
+ * @param debug - Whether to log debug messages.
  */
-async function removeEntryFromHandlers(
+function removeEntryFromHandlers(
   handlers: Handler[],
   key: string,
   debug: boolean,
-): Promise<void> {
+): void {
   if (debug) {
     console.info(
       '[CacheHandler] [method: %s] [key: %s] %s',
@@ -294,33 +291,34 @@ async function removeEntryFromHandlers(
     );
   }
 
-  const operationsResults = await Promise.allSettled(
-    handlers.map((handler) => handler.delete?.(key)),
+  Promise.allSettled(handlers.map((handler) => handler.delete?.(key))).then(
+    (operationsResults) => {
+      if (!debug) {
+        return;
+      }
+
+      operationsResults.forEach((handlerResult, index) => {
+        if (handlerResult.status === 'rejected') {
+          console.warn(
+            '[CacheHandler] [handler: %s] [method: %s] [key: %s] %s',
+            handlers[index]?.name ?? `unknown-${index}`,
+            'delete',
+            key,
+            `Error: ${handlerResult.reason}`,
+          );
+        } else {
+          console.info(
+            '[CacheHandler] [handler: %s] [method: %s] [key: %s] %s',
+            handlers[index]?.name ?? `unknown-${index}`,
+            'delete',
+            key,
+            'Successfully deleted value.',
+          );
+        }
+      });
+    },
+    () => {},
   );
-
-  if (!debug) {
-    return;
-  }
-
-  operationsResults.forEach((handlerResult, index) => {
-    if (handlerResult.status === 'rejected') {
-      console.warn(
-        '[CacheHandler] [handler: %s] [method: %s] [key: %s] %s',
-        handlers[index]?.name ?? `unknown-${index}`,
-        'delete',
-        key,
-        `Error: ${handlerResult.reason}`,
-      );
-    } else {
-      console.info(
-        '[CacheHandler] [handler: %s] [method: %s] [key: %s] %s',
-        handlers[index]?.name ?? `unknown-${index}`,
-        'delete',
-        key,
-        'Successfully deleted value.',
-      );
-    }
-  });
 }
 
 export type CacheHandlerType = typeof CacheHandler;
@@ -358,7 +356,7 @@ export class CacheHandler implements NextCacheHandler {
    * ```
    */
   static get name(): string {
-    if (CacheHandler.#cacheListLength === undefined) {
+    if (CacheHandler.#cacheListLength === 0) {
       return '@neshca/cache-handler is not configured yet';
     }
 
@@ -369,9 +367,9 @@ export class CacheHandler implements NextCacheHandler {
 
   static #context: FileSystemCacheContext;
 
-  static #mergedHandler: Omit<Handler, 'name'>;
+  static #mergedHandler: Omit<Handler, 'name'> | null = null;
 
-  static #cacheListLength: number;
+  static #cacheListLength = 0;
 
   static #debug = typeof process.env.NEXT_PRIVATE_DEBUG_CACHE !== 'undefined';
 
@@ -390,9 +388,6 @@ export class CacheHandler implements NextCacheHandler {
     cacheKey: string,
     isFallback: boolean,
   ): Promise<CacheHandlerValue | null> {
-    let cacheHandlerValue: CacheHandlerValue | null = null;
-    let pageHtmlHandle: fsPromises.FileHandle | null = null;
-
     if (CacheHandler.#debug) {
       console.info(
         '[CacheHandler] [handler: %s] [method: %s] [key: %s] %s',
@@ -409,13 +404,17 @@ export class CacheHandler implements NextCacheHandler {
         'pages',
         `${cacheKey}.html`,
       );
+
       const pageDataPath = path.join(
         CacheHandler.#serverDistDir,
         'pages',
         `${cacheKey}.json`,
       );
 
-      pageHtmlHandle = await fsPromises.open(pageHtmlPath, 'r');
+      await using pageHtmlHandle = await fsPromises.open(
+        pageHtmlPath,
+        constants.O_RDONLY,
+      );
 
       const [pageHtmlFile, { mtimeMs }, pageData] = await Promise.all([
         pageHtmlHandle.readFile('utf-8'),
@@ -437,7 +436,7 @@ export class CacheHandler implements NextCacheHandler {
         );
       }
 
-      cacheHandlerValue = {
+      return {
         lastModified: mtimeMs,
         lifespan: null,
         tags: [],
@@ -450,22 +449,18 @@ export class CacheHandler implements NextCacheHandler {
         },
       };
     } catch (error) {
-      cacheHandlerValue = null;
-
       if (CacheHandler.#debug) {
         console.warn(
           '[CacheHandler] [handler: %s] [method: %s] [key: %s] %s',
           'file system',
           'get',
           cacheKey,
-          `Error: ${error}`,
+          `Error: ${error as Error}`,
         );
       }
-    } finally {
-      await pageHtmlHandle?.close();
     }
 
-    return cacheHandlerValue;
+    return null;
   }
 
   static async #writePagesRouterPage(
@@ -478,6 +473,7 @@ export class CacheHandler implements NextCacheHandler {
         'pages',
         `${cacheKey}.html`,
       );
+
       const pageDataPath = path.join(
         CacheHandler.#serverDistDir,
         'pages',
@@ -509,7 +505,7 @@ export class CacheHandler implements NextCacheHandler {
           'file system',
           'set',
           cacheKey,
-          `Error: ${error}`,
+          `Error: ${error as Error}`,
         );
       }
     }
@@ -666,13 +662,13 @@ export class CacheHandler implements NextCacheHandler {
           CacheHandler.#fallbackFalseRoutes.add(route);
         }
       }
-    } catch (_error) {
+    } catch (error) {
       if (CacheHandler.#debug) {
         console.warn(
           '[CacheHandler] [%s] %s %s',
           'instrumentation.cache',
           'Failed to read prerender manifest. Pages from the Pages Router with `fallback: false` will return 404 errors.',
-          `Error: ${_error}`,
+          `Error: ${error as Error}`,
         );
       }
     }
@@ -682,7 +678,7 @@ export class CacheHandler implements NextCacheHandler {
     CacheHandler.#cacheListLength = handlersList.length;
 
     CacheHandler.#mergedHandler = {
-      async get(key, meta) {
+      async get(key, meta): Promise<CacheHandlerValue | null | undefined> {
         for (const handler of handlersList) {
           if (CacheHandler.#debug) {
             console.info(
@@ -714,7 +710,6 @@ export class CacheHandler implements NextCacheHandler {
 
               cacheHandlerValue = null;
 
-              // remove the entry from all handlers in background
               removeEntryFromHandlers(handlersList, key, CacheHandler.#debug);
             }
 
@@ -736,7 +731,7 @@ export class CacheHandler implements NextCacheHandler {
                 handler.name,
                 'get',
                 key,
-                `Error: ${error}`,
+                `Error: ${error as Error}`,
               );
             }
           }
@@ -744,7 +739,7 @@ export class CacheHandler implements NextCacheHandler {
 
         return null;
       },
-      async set(key, cacheHandlerValue) {
+      async set(key, cacheHandlerValue): Promise<void> {
         const operationsResults = await Promise.allSettled(
           handlersList.map((handler) =>
             handler.set(key, { ...cacheHandlerValue }),
@@ -775,7 +770,7 @@ export class CacheHandler implements NextCacheHandler {
           }
         });
       },
-      async revalidateTag(tag) {
+      async revalidateTag(tag): Promise<void> {
         const operationsResults = await Promise.allSettled(
           handlersList.map((handler) => handler.revalidateTag(tag)),
         );
@@ -817,6 +812,8 @@ export class CacheHandler implements NextCacheHandler {
 
   /**
    * Creates a new CacheHandler instance. Constructor is intended for internal use only.
+   *
+   * @param context - The context for the CacheHandler.
    */
   constructor(context: FileSystemCacheContext) {
     CacheHandler.#context = context;
@@ -833,7 +830,7 @@ export class CacheHandler implements NextCacheHandler {
     cacheKey: CacheHandlerParametersGet[0],
     ctx: CacheHandlerParametersGet[1],
   ): Promise<CacheHandlerValue | null> {
-    if (ctx?.kind !== IncrementalCacheKind.PAGES) {
+    if (ctx.kind !== IncrementalCacheKind.PAGES) {
       return null;
     }
 
@@ -849,7 +846,7 @@ export class CacheHandler implements NextCacheHandler {
     }
 
     let cachedData: CacheHandlerValue | null | undefined =
-      await CacheHandler.#mergedHandler.get(cacheKey, {
+      await CacheHandler.#mergedHandler?.get(cacheKey, {
         implicitTags: [],
       });
 
@@ -858,7 +855,7 @@ export class CacheHandler implements NextCacheHandler {
 
       // if we have a value from the file system, we should set it to the cache store
       if (cachedData) {
-        await CacheHandler.#mergedHandler.set(cacheKey, cachedData);
+        await CacheHandler.#mergedHandler?.set(cacheKey, cachedData);
       }
     }
 
@@ -919,7 +916,7 @@ export class CacheHandler implements NextCacheHandler {
       value: incrementalCacheValue,
     } as const;
 
-    await CacheHandler.#mergedHandler.set(cacheKey, cacheHandlerValue);
+    await CacheHandler.#mergedHandler?.set(cacheKey, cacheHandlerValue);
 
     if (hasFallbackFalse) {
       await CacheHandler.#writePagesRouterPage(

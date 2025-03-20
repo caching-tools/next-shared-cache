@@ -1,7 +1,6 @@
-import type { PropsWithChildren } from 'react';
-
 import { RestartButton } from 'cache-testing/components/restart-button';
 import { RevalidateButton } from 'cache-testing/components/revalidate-button';
+import type { PropsWithChildren } from 'react';
 import 'cache-testing/globals.css';
 
 export default function Layout({

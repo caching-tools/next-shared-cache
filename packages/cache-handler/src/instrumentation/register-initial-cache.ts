@@ -1,13 +1,13 @@
 import { promises as fsPromises } from 'node:fs';
 import path from 'node:path';
 import { PRERENDER_MANIFEST, SERVER_DIRECTORY } from 'next/constants.js';
-import type { PrerenderManifest } from 'next/dist/build/index.js';
+import { PRERENDER_MANIFEST_VERSION } from '../constants.js';
+import { CachedRouteKind } from '../next-common-types.js';
 import type { CacheHandlerType } from '../cache-handler.js';
-import { CachedRouteKind, type Revalidate } from '../next-common-types.js';
+import type { Revalidate } from '../next-common-types.js';
+import type { PrerenderManifest } from 'next/dist/build/index.js';
 
 type Router = 'pages' | 'app';
-
-const PRERENDER_MANIFEST_VERSION = 4;
 
 /**
  * Options for the `registerInitialCache` instrumentation.
@@ -35,13 +35,13 @@ export type RegisterInitialCacheOptions = {
  *
  * @param CacheHandler - The configured CacheHandler class, not an instance.
  *
- * @param [options={}] - Options for the instrumentation. See {@link RegisterInitialCacheOptions}.
+ * @param [options] - Options for the instrumentation. See {@link RegisterInitialCacheOptions}.
  *
- * @param [options.fetch=true] - Whether to populate the cache with fetch calls.
+ * @param [options.fetch] - Whether to populate the cache with fetch calls.
  *
- * @param [options.pages=true] - Whether to populate the cache with pre-rendered pages.
+ * @param [options.pages] - Whether to populate the cache with pre-rendered pages.
  *
- * @param [options.routes=true] - Whether to populate the cache with routes.
+ * @param [options.routes] - Whether to populate the cache with routes.
  *
  * @example file: `instrumentation.ts`
  *
@@ -63,7 +63,7 @@ export type RegisterInitialCacheOptions = {
 export async function registerInitialCache(
   CacheHandler: CacheHandlerType,
   options: RegisterInitialCacheOptions = {},
-) {
+): Promise<void> {
   const debug = typeof process.env.NEXT_PRIVATE_DEBUG_CACHE !== 'undefined';
   const nextJsPath = path.join(process.cwd(), '.next');
   const prerenderManifestPath = path.join(nextJsPath, PRERENDER_MANIFEST);
@@ -91,7 +91,7 @@ export async function registerInitialCache(
         '[CacheHandler] [%s] %s %s',
         'registerInitialCache',
         'Failed to read prerender manifest',
-        `Error: ${error}`,
+        `Error: ${error as Error}`,
       );
     }
 
@@ -115,18 +115,27 @@ export async function registerInitialCache(
         '[CacheHandler] [%s] %s %s',
         'registerInitialCache',
         'Failed to create CacheHandler instance',
-        `Error: ${error}`,
+        `Error: ${error as Error}`,
       );
     }
 
     return;
   }
 
+  /**
+   * Sets the page cache.
+   *
+   * @param cachePath - The path to the page cache.
+   *
+   * @param router - The router to set the page cache for.
+   *
+   * @param revalidate - The revalidate time for the page cache.
+   */
   async function setPageCache(
     cachePath: string,
     router: Router,
     revalidate: Revalidate,
-  ) {
+  ): Promise<void> {
     const pathToRouteFiles = path.join(serverDistDir, router, cachePath);
 
     let lastModified: number | undefined;
@@ -140,7 +149,7 @@ export async function registerInitialCache(
           '[CacheHandler] [%s] %s %s',
           'registerInitialCache',
           'Failed to read page html file',
-          `Error: ${error}`,
+          `Error: ${error as Error}`,
         );
       }
       return;
@@ -162,7 +171,7 @@ export async function registerInitialCache(
           '[CacheHandler] [%s] %s %s',
           'registerInitialCache',
           'Failed to read page html, page data, or metadata file, or parse metadata',
-          `Error: ${error}`,
+          `Error: ${error as Error}`,
         );
       }
 
@@ -191,7 +200,7 @@ export async function registerInitialCache(
           '[CacheHandler] [%s] %s %s',
           'registerInitialCache',
           'Failed to set page cache. Please check if the CacheHandler is configured correctly',
-          `Error: ${error}`,
+          `Error: ${error as Error}`,
         );
       }
 

@@ -1,11 +1,9 @@
 import superjson from 'superjson';
-
-import type { CacheHandlerValue, Handler } from '../cache-handler.js';
-import type { CreateRedisStringsHandlerOptions } from '../common-types.js';
-
 import { REVALIDATED_TAGS_KEY } from '../constants.js';
 import { createRedisTimeoutConfig } from '../helpers/create-redis-timeout-config.js';
 import { isTagImplicit } from '../helpers/is-tag-implicit.js';
+import type { CacheHandlerValue, Handler } from '../cache-handler.js';
+import type { CreateRedisStringsHandlerOptions } from '../common-types.js';
 
 export type { CreateRedisStringsHandlerOptions };
 
@@ -16,7 +14,19 @@ export type { CreateRedisStringsHandlerOptions };
  * It supports Redis Client. The resulting Handler includes
  * methods to get, set, and manage cache values fot on-demand revalidation.
  *
- * @param options - The configuration options for the Redis Handler. See {@link CreateRedisStringsHandlerOptions}.
+ * @param options - The configuration options for the Redis Handler.
+ *
+ * @param options.client - The Redis client.
+ *
+ * @param options.keyPrefix - The prefix to use for the Redis keys.
+ *
+ * @param options.sharedTagsKey - The key to use for the shared tags.
+ *
+ * @param options.timeoutMs - The timeout for the Redis operations.
+ *
+ * @param options.keyExpirationStrategy - The strategy to use for the key expiration.
+ *
+ * @param options.revalidateTagQuerySize - The size of the query to use for the revalidate tag.
  *
  * @returns An object representing the cache, with methods for cache operations.
  *
@@ -44,6 +54,11 @@ export default function createHandler({
   keyExpirationStrategy = 'EXPIREAT',
   revalidateTagQuerySize = 100,
 }: CreateRedisStringsHandlerOptions): Handler {
+  /**
+   * Asserts that the Redis client is ready.
+   *
+   * @throws An error if the Redis client is not ready.
+   */
   function assertClientIsReady(): void {
     if (!client.isReady) {
       throw new Error(
@@ -56,7 +71,10 @@ export default function createHandler({
 
   return {
     name: 'redis-strings',
-    async get(key, { implicitTags }) {
+    async get(
+      key,
+      { implicitTags },
+    ): Promise<CacheHandlerValue | null | undefined> {
       assertClientIsReady();
 
       const result = await client.get(
@@ -102,7 +120,7 @@ export default function createHandler({
 
       return cacheValue;
     },
-    async set(key, cacheHandlerValue) {
+    async set(key, cacheHandlerValue): Promise<void> {
       assertClientIsReady();
 
       const options = createRedisTimeoutConfig(timeoutMs);
@@ -160,7 +178,7 @@ export default function createHandler({
 
       await Promise.all([setOperation, expireOperation, setTagsOperation]);
     },
-    async revalidateTag(tag) {
+    async revalidateTag(tag): Promise<void> {
       assertClientIsReady();
 
       // If the tag is an implicit tag, we need to mark it as revalidated.
@@ -223,7 +241,7 @@ export default function createHandler({
 
       await Promise.all([deleteKeysOperation, updateTagsOperation]);
     },
-    async delete(key) {
+    async delete(key): Promise<void> {
       await client.unlink(createRedisTimeoutConfig(timeoutMs), key);
     },
   };

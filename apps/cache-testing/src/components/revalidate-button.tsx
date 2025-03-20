@@ -28,8 +28,8 @@ export function RevalidateButton({
       searchParams.set(type, pathname);
     }
 
-    fetch(`/api/revalidate-${nextApi}?${searchParams.toString()}`).then(
-      async (result) => {
+    fetch(`/api/revalidate-${nextApi}?${searchParams.toString()}`)
+      .then(async (result) => {
         if (!result.ok) {
           setRevalidation('Fail to revalidate');
 
@@ -39,8 +39,10 @@ export function RevalidateButton({
         const json = (await result.json()) as { now: string };
 
         setRevalidation(`Revalidated at ${json.now}`);
-      },
-    );
+      })
+      .catch(() => {
+        setRevalidation('Fail to revalidate');
+      });
   }
 
   return (

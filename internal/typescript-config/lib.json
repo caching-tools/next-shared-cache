@@ -4,7 +4,7 @@
   "_version": "20.17.0",
   "compilerOptions": {
     "target": "es2022",
-    "lib": ["es2024"],
+    "lib": ["es2024", "esnext.disposable"],
 
     "module": "NodeNext",
     "moduleDetection": "force",

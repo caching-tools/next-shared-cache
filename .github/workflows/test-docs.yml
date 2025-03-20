@@ -10,7 +10,6 @@ on:
       - 'docs/cache-handler-docs/**'
       - 'internal/eslint-config/**'
       - 'package.json'
-      - 'biome.json'
       - 'prettier.config.js'
 jobs:
   test:

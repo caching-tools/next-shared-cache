@@ -1,11 +1,10 @@
 import calculate from 'cluster-key-slot';
-import type { createCluster } from 'redis';
-import type { CacheHandlerValue, Handler } from '../cache-handler.js';
-import type { CreateRedisStringsHandlerOptions } from '../common-types.js';
-
 import { REVALIDATED_TAGS_KEY } from '../constants.js';
 import { createRedisTimeoutConfig } from '../helpers/create-redis-timeout-config.js';
 import { isTagImplicit } from '../helpers/is-tag-implicit.js';
+import type { CacheHandlerValue, Handler } from '../cache-handler.js';
+import type { CreateRedisStringsHandlerOptions } from '../common-types.js';
+import type { createCluster } from 'redis';
 
 type CreateRedisClusterHandlerOptions<T = ReturnType<typeof createCluster>> =
   CreateRedisStringsHandlerOptions & {
@@ -21,6 +20,13 @@ type CreateRedisClusterHandlerOptions<T = ReturnType<typeof createCluster>> =
     cluster: T;
   };
 
+/**
+ * Groups keys by slot.
+ *
+ * @param keys - The keys to group.
+ *
+ * @returns A map of slot to keys.
+ */
 function groupKeysBySlot(keys: string[]): Map<number, string[]> {
   const slotKeysMap: Map<number, string[]> = new Map();
 
@@ -52,6 +58,18 @@ function groupKeysBySlot(keys: string[]): Map<number, string[]> {
  *
  * @param options - The configuration options for the Redis Handler. See {@link CreateRedisClusterHandlerOptions}.
  *
+ * @param options.cluster - The Redis cluster instance.
+ *
+ * @param options.keyPrefix - The prefix to use for the Redis keys.
+ *
+ * @param options.sharedTagsKey - The key to use for the shared tags.
+ *
+ * @param options.timeoutMs - The timeout for the Redis operations.
+ *
+ * @param options.keyExpirationStrategy - The strategy to use for the key expiration.
+ *
+ * @param options.revalidateTagQuerySize - The size of the query to use for the revalidate tag.
+ *
  * @returns An object representing the cache, with methods for cache operations.
  *
  * @example
@@ -81,7 +99,10 @@ export default function createHandler({
 
   return {
     name: 'experimental-redis-cluster',
-    async get(key, { implicitTags }) {
+    async get(
+      key,
+      { implicitTags },
+    ): Promise<CacheHandlerValue | null | undefined> {
       const result = await cluster.get(
         createRedisTimeoutConfig(timeoutMs),
         keyPrefix + key,
@@ -125,7 +146,7 @@ export default function createHandler({
 
       return cacheValue;
     },
-    async set(key, cacheHandlerValue) {
+    async set(key, cacheHandlerValue): Promise<void> {
       const options = createRedisTimeoutConfig(timeoutMs);
 
       let setOperation: Promise<string | null>;
@@ -181,7 +202,7 @@ export default function createHandler({
 
       await Promise.all([setOperation, expireOperation, setTagsOperation]);
     },
-    async revalidateTag(tag) {
+    async revalidateTag(tag): Promise<void> {
       // If the tag is an implicit tag, we need to mark it as revalidated.
       // The revalidation process is done by the CacheHandler class on the next get operation.
       if (isTagImplicit(tag)) {
@@ -208,7 +229,7 @@ export default function createHandler({
         );
 
         for (const { field, value } of remoteTagsPortion.tuples) {
-          tagsMap.set(field, JSON.parse(value));
+          tagsMap.set(field, JSON.parse(value) as string[]);
         }
 
         cursor = remoteTagsPortion.cursor;
@@ -241,14 +262,9 @@ export default function createHandler({
           continue;
         }
 
-        const unlinkPromisesForSlot = client.unlink(
-          createRedisTimeoutConfig(timeoutMs),
-          keys,
+        unlinkPromises.push(
+          client.unlink(createRedisTimeoutConfig(timeoutMs), keys),
         );
-
-        if (unlinkPromisesForSlot) {
-          unlinkPromises.push(unlinkPromisesForSlot);
-        }
       }
 
       const updateTagsOperation = cluster.hDel(
@@ -259,7 +275,7 @@ export default function createHandler({
 
       await Promise.allSettled([...unlinkPromises, updateTagsOperation]);
     },
-    async delete(key) {
+    async delete(key): Promise<void> {
       await cluster.unlink(createRedisTimeoutConfig(timeoutMs), key);
     },
   };
