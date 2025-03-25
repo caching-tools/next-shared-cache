@@ -9,7 +9,7 @@
     "start": "tsx ./src/backend.ts"
   },
   "dependencies": {
-    "fastify": "5.2.1",
+    "fastify": "5.2.2",
     "pino": "9.6.0"
   },
   "devDependencies": {
