@@ -29,7 +29,7 @@
     "@types/node": "22.13.1",
     "@types/react": "18.3.12",
     "@types/react-dom": "18.3.1",
-    "eslint": "9.20.0",
+    "eslint": "9.23.0",
     "fastify": "5.2.1",
     "pm2": "5.4.3",
     "tsx": "4.19.2",
