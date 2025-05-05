@@ -20,7 +20,7 @@
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
-    "@types/node": "22.13.1",
+    "@types/node": "22.15.5",
     "@types/react": "19.0.8",
     "@types/react-dom": "19.0.3",
     "eslint": "9.20.0",
