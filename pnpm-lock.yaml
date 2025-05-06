@@ -55,8 +55,8 @@ importers:
         specifier: workspace:*
         version: link:../../internal/typescript-config
       '@types/node':
-        specifier: 22.13.1
-        version: 22.13.1
+        specifier: 22.15.14
+        version: 22.15.14
       '@types/react':
         specifier: 18.3.12
         version: 18.3.12
@@ -104,8 +104,8 @@ importers:
         specifier: workspace:*
         version: link:../../internal/typescript-config
       '@types/node':
-        specifier: 22.13.1
-        version: 22.13.1
+        specifier: 22.15.14
+        version: 22.15.14
       '@types/react':
         specifier: 19.0.8
         version: 19.0.8
@@ -138,8 +138,8 @@ importers:
         specifier: workspace:*
         version: link:../typescript-config
       '@types/node':
-        specifier: 22.13.1
-        version: 22.13.1
+        specifier: 22.15.14
+        version: 22.15.14
       pino-pretty:
         specifier: 13.0.0
         version: 13.0.0
@@ -193,8 +193,8 @@ importers:
         specifier: workspace:*
         version: link:../typescript-config
       '@types/node':
-        specifier: 22.13.1
-        version: 22.13.1
+        specifier: 22.15.14
+        version: 22.15.14
       typescript:
         specifier: 5.7.3
         version: 5.7.3
@@ -212,8 +212,8 @@ importers:
         specifier: workspace:*
         version: link:../typescript-config
       '@types/node':
-        specifier: 22.13.1
-        version: 22.13.1
+        specifier: 22.15.14
+        version: 22.15.14
       typescript:
         specifier: 5.7.3
         version: 5.7.3
@@ -245,8 +245,8 @@ importers:
         specifier: workspace:*
         version: link:../../internal/typescript-config
       '@types/node':
-        specifier: 22.13.1
-        version: 22.13.1
+        specifier: 22.15.14
+        version: 22.15.14
       tsup:
         specifier: 8.3.6
         version: 8.3.6(postcss@8.4.31)(tsx@4.19.2)(typescript@5.7.3)(yaml@2.7.0)
@@ -263,8 +263,8 @@ importers:
         specifier: workspace:*
         version: link:../../internal/typescript-config
       '@types/node':
-        specifier: 22.13.1
-        version: 22.13.1
+        specifier: 22.15.14
+        version: 22.15.14
       tsup:
         specifier: 8.3.6
         version: 8.3.6(postcss@8.4.31)(tsx@4.19.2)(typescript@5.7.3)(yaml@2.7.0)
@@ -294,8 +294,8 @@ importers:
         specifier: workspace:*
         version: link:../../internal/typescript-config
       '@types/node':
-        specifier: 22.13.1
-        version: 22.13.1
+        specifier: 22.15.14
+        version: 22.15.14
       tsup:
         specifier: 8.3.6
         version: 8.3.6(postcss@8.4.31)(tsx@4.19.2)(typescript@5.7.3)(yaml@2.7.0)
@@ -1599,8 +1599,8 @@ packages:
   '@types/node@12.20.55':
     resolution: {integrity: sha512-J8xLz7q2OFulZ2cyGTLE1TbbZcjpno7FaN6zdJNrgAdrJ+DZzh/uFR6YrTb4C+nXakvud8Q4+rbhoIWlYQbUFQ==}
 
-  '@types/node@22.13.1':
-    resolution: {integrity: sha512-jK8uzQlrvXqEU91UxiK5J7pKHyzgnI1Qnl0QDHIgVGuolJhRb9EEl28Cj9b3rGR8B2lhFCtvIm5os8lFnO/1Ew==}
+  '@types/node@22.15.14':
+    resolution: {integrity: sha512-BL1eyu/XWsFGTtDWOYULQEs4KR0qdtYfCxYAUYRoB7JP7h9ETYLgQTww6kH8Sj2C0pFGgrpM0XKv6/kbIzYJ1g==}
 
   '@types/prop-types@15.7.14':
     resolution: {integrity: sha512-gNMvNH49DJ7OJYv+KAKn0Xp45p8PLl6zo2YnvDIbTd4J6MER2BmWN49TG7n9LvkyihINxeKW8+3bfS2yDC9dzQ==}
@@ -4762,8 +4762,8 @@ packages:
     resolution: {integrity: sha512-nWJ91DjeOkej/TA8pXQ3myruKpKEYgqvpw9lz4OPHj/NWFNluYrjbz9j01CJ8yKQd2g4jFoOkINCTW2I5LEEyw==}
     engines: {node: '>= 0.4'}
 
-  undici-types@6.20.0:
-    resolution: {integrity: sha512-Ny6QZ2Nju20vw1SRHe3d9jVu6gJ+4e3+MMpqu7pqE5HT6WsTSlce++GQmK5UXS8mzV8DSYHrQH+Xrf2jVcuKNg==}
+  undici-types@6.21.0:
+    resolution: {integrity: sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ==}
 
   unified@11.0.5:
     resolution: {integrity: sha512-xKvGhPWw3k84Qjh8bI3ZeJjqnyadK+GEFtazSfZv/rKeTkTjOJho6mFqh2SM96iIcZokxiOpg78GazTSg8+KHA==}
@@ -6182,9 +6182,9 @@ snapshots:
 
   '@types/node@12.20.55': {}
 
-  '@types/node@22.13.1':
+  '@types/node@22.15.14':
     dependencies:
-      undici-types: 6.20.0
+      undici-types: 6.21.0
 
   '@types/prop-types@15.7.14': {}
 
@@ -10323,7 +10323,7 @@ snapshots:
       has-symbols: 1.1.0
       which-boxed-primitive: 1.1.1
 
-  undici-types@6.20.0: {}
+  undici-types@6.21.0: {}
 
   unified@11.0.5:
     dependencies:
