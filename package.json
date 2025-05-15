@@ -27,13 +27,13 @@
     "test": "turbo run test"
   },
   "devDependencies": {
-    "@changesets/cli": "2.28.1",
+    "@changesets/cli": "2.29.4",
     "prettier": "3.5.3",
-    "prettier-plugin-packagejson": "2.5.10",
-    "turbo": "2.4.4",
-    "typescript": "5.8.2"
+    "prettier-plugin-packagejson": "2.5.13",
+    "turbo": "2.5.3",
+    "typescript": "5.8.3"
   },
-  "packageManager": "pnpm@10.6.4+sha512.da3d715bfd22a9a105e6e8088cfc7826699332ded60c423b14ec613a185f1602206702ff0fe4c438cb15c979081ce4cb02568e364b15174503a63c7a8e2a5f6c",
+  "packageManager": "pnpm@10.11.0+sha512.6540583f41cc5f628eb3d9773ecee802f4f9ef9923cc45b69890fb47991d4b092964694ec3a4f738a420c918a333062c8b925d312f42e4f0c263eb603551f977",
   "engines": {
     "node": ">=22.11.0"
   }
