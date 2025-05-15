@@ -1,6 +1,5 @@
 import { randomUUID } from 'node:crypto';
 import { tagsManifest } from 'next/dist/server/lib/incremental-cache/tags-manifest.external.js';
-import { createRedisTimeoutConfig } from '../helpers/create-redis-timeout-config.js';
 import { createCacheHandler } from '../use-cache-cache.js';
 import type { CacheHandlerV2, RemoteStore } from '../use-cache-cache.js';
 import type { createClient } from 'redis';
@@ -58,23 +57,25 @@ function createRedisStore<T extends ReturnType<typeof createClient>>({
         return;
       }
 
-      const options = createRedisTimeoutConfig(timeoutMs);
+      const signal = AbortSignal.timeout(timeoutMs);
 
-      return (await client.get(options, getKey(key))) ?? undefined;
+      return (
+        (await client.withAbortSignal(signal).get(getKey(key))) ?? undefined
+      );
     },
     async set(key, value, { expire, timestamp, stale }): Promise<void> {
       if (!client.isReady) {
         return;
       }
 
-      const options = createRedisTimeoutConfig(timeoutMs);
+      const signal = AbortSignal.timeout(timeoutMs);
 
       const expireAt =
         expireTrigger === 'stale'
           ? Math.floor(timestamp / 1000 + Math.min(expire, stale))
           : Math.floor(timestamp / 1000 + expire);
 
-      await client.set(options, getKey(key), value, {
+      await client.withAbortSignal(signal).set(getKey(key), value, {
         EXAT: expireAt,
       });
     },

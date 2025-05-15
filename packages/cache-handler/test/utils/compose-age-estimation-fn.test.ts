@@ -5,7 +5,7 @@ import {
   getInitialExpireAge,
 } from '../../src/utils/compose-age-estimation-fn.js';
 
-describe('composeAgeEstimationFn', () => {
+describe(composeAgeEstimationFn, () => {
   describe('valid inputs', () => {
     it('returns the same age for simple callback', () => {
       expect.hasAssertions();

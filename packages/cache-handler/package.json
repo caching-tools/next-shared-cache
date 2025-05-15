@@ -55,6 +55,6 @@
   },
   "peerDependencies": {
     "next": ">= 15 < 16",
-    "redis": ">= 4.6"
+    "redis": ">= 5 < 6"
   }
 }
