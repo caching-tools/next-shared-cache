@@ -2,6 +2,7 @@
 
 **Flexible API for replacing the default Next.js cache, enabling custom caching solutions for multi-instance self-hosted deployments.**
 
+[![X (formerly Twitter) Follow](https://img.shields.io/twitter/follow/better_salmon?style=flat)](https://x.com/better_salmon)
 [![npm package](https://img.shields.io/npm/v/@neshca/cache-handler/latest.svg)](https://www.npmjs.com/package/@neshca/cache-handler)
 [![Dependencies](https://img.shields.io/npm/dm/@neshca/cache-handler)](https://www.npmjs.com/package/@neshca/cache-handler)
 [![License](https://img.shields.io/npm/l/express.svg)](https://github.com/caching-tools/next-shared-cache/blob/canary/packages/cache-handler/LICENSE)
