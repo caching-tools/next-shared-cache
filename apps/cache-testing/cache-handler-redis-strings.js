@@ -15,6 +15,7 @@ CacheHandler.onCreation(async () => {
 
   /** @type {import("redis").RedisClientType} */
   const client = createClient({
+    RESP: 2,
     url: process.env.REDIS_URL,
     name: `cache-handler:${PREFIX}${process.env.PORT ?? process.pid}`,
   });

@@ -3,6 +3,7 @@ import { createClient } from 'redis';
 
 export default createRedisCacheHandler({
   client: createClient({
+    RESP: 2,
     url: process.env.REDIS_URL,
   }),
   keyPrefix: 'use-cache-redis:',

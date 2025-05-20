@@ -2,9 +2,9 @@ import { randomUUID } from 'node:crypto';
 import { tagsManifest } from 'next/dist/server/lib/incremental-cache/tags-manifest.external.js';
 import { createCacheHandler } from '../use-cache-cache.js';
 import type { CacheHandlerV2, RemoteStore } from '../use-cache-cache.js';
-import type { createClient } from 'redis';
+import type { RedisClientType } from 'redis';
 
-export type Config<T extends ReturnType<typeof createClient>> = {
+export type Config<T extends RedisClientType> = {
   client: T;
   pubClient: T;
   subClientId: string;
@@ -40,7 +40,7 @@ type Message = {
  *
  * @returns A remote store that uses Redis to store and retrieve cache entries.
  */
-function createRedisStore<T extends ReturnType<typeof createClient>>({
+function createRedisStore<T extends RedisClientType>({
   client,
   pubClient,
   channel,
@@ -114,9 +114,11 @@ function createRedisStore<T extends ReturnType<typeof createClient>>({
  *
  * @returns A cache handler that uses Redis to store and retrieve cache entries.
  */
-export function createRedisCacheHandler<
-  T extends ReturnType<typeof createClient>,
->({ client, keyPrefix, timeoutMs }: Config<T>): CacheHandlerV2 {
+export function createRedisCacheHandler<T extends RedisClientType>({
+  client,
+  keyPrefix,
+  timeoutMs,
+}: Config<T>): CacheHandlerV2 {
   const remoteStore = Promise.all([
     client.connect(),
     client.duplicate().connect(),

@@ -97,44 +97,40 @@ export function createCacheHandler(
 
       pendingSets.set(cacheKey, pendingPromise);
 
+      const entry = await pendingEntry;
+
       try {
-        const entry = await pendingEntry;
+        const chunks: Uint8Array[] = [];
 
-        try {
-          const [value, clonedValue] = entry.value.tee();
-          entry.value = value;
+        const reader = entry.value.getReader();
 
-          const chunks: Uint8Array[] = [];
+        while (true) {
+          const readerResult = await reader.read();
 
-          for await (const chunk of clonedValue) {
-            chunks.push(chunk);
+          if (readerResult.done) {
+            break;
           }
 
-          const storageEntry: SerializedCacheEntry = {
-            expire: entry.expire,
-            revalidate: entry.revalidate,
-            stale: entry.stale,
-            tags: entry.tags,
-            timestamp: entry.timestamp,
-            value: Buffer.concat(chunks).toString('base64'),
-          };
-
-          const remoteStore = await remoteStorePromise;
-
-          await remoteStore.set(cacheKey, JSON.stringify(storageEntry), {
-            expire: entry.expire,
-            revalidate: entry.revalidate,
-            stale: entry.stale,
-            timestamp: entry.timestamp,
-          });
-        } catch (_error) {
-          //
-        } finally {
-          resolvePending();
-          pendingSets.delete(cacheKey);
+          chunks.push(readerResult.value);
         }
-      } catch (_error) {
-        //
+
+        const storageEntry: SerializedCacheEntry = {
+          expire: entry.expire,
+          revalidate: entry.revalidate,
+          stale: entry.stale,
+          tags: entry.tags,
+          timestamp: entry.timestamp,
+          value: Buffer.concat(chunks).toString('base64'),
+        };
+
+        const remoteStore = await remoteStorePromise;
+
+        await remoteStore.set(cacheKey, JSON.stringify(storageEntry), {
+          expire: entry.expire,
+          revalidate: entry.revalidate,
+          stale: entry.stale,
+          timestamp: entry.timestamp,
+        });
       } finally {
         resolvePending();
         pendingSets.delete(cacheKey);
