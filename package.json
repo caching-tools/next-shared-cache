@@ -28,7 +28,7 @@
     "@biomejs/biome": "1.9.4",
     "@changesets/cli": "2.27.12",
     "prettier": "3.4.2",
-    "prettier-plugin-packagejson": "2.5.8",
+    "prettier-plugin-packagejson": "2.5.12",
     "turbo": "2.4.0"
   },
   "packageManager": "pnpm@10.2.1+sha512.398035c7bd696d0ba0b10a688ed558285329d27ea994804a52bad9167d8e3a72bcb993f9699585d3ca25779ac64949ef422757a6c31102c12ab932e5cbe5cc92",
