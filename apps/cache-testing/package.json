@@ -33,6 +33,6 @@
     "fastify": "5.2.1",
     "pm2": "5.4.3",
     "tsx": "4.19.2",
-    "typescript": "5.7.3"
+    "typescript": "5.8.3"
   }
 }
