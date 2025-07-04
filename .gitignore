@@ -38,3 +38,7 @@ yarn-error.log*
 # Misc
 .DS_Store
 *.pem
+
+# TypeScript build info
+tsconfig.tsbuildinfo
+tsconfig.build.tsbuildinfo

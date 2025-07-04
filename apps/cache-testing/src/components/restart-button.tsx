@@ -2,17 +2,19 @@
 
 import { useState } from 'react';
 
-export function RestartButton(): JSX.Element {
+export function RestartButton(): React.ReactNode {
   const [restartState, setRestartState] = useState('');
 
   function restart(): void {
-    fetch('/api/restart-app').then((result) => {
-      if (!result.ok) {
+    fetch('/api/restart-app')
+      .then((result) => {
+        if (!result.ok) {
+          throw new Error('Fail to restart');
+        }
+      })
+      .catch(() => {
         setRestartState('Fail to restart');
-      }
-    });
-
-    setRestartState('Restarting...');
+      });
   }
 
   return (

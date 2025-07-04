@@ -1,6 +1,5 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-
 import { formatTime } from 'cache-testing/utils/format-time';
+import type { NextApiRequest, NextApiResponse } from 'next';
 
 export default async function handler(
   request: NextApiRequest,

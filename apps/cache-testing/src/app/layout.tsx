@@ -1,8 +1,7 @@
-import type { PropsWithChildren } from 'react';
 import { Suspense } from 'react';
-
 import { RestartButton } from 'cache-testing/components/restart-button';
 import { RevalidateButton } from 'cache-testing/components/revalidate-button';
+import type { PropsWithChildren } from 'react';
 import 'cache-testing/globals.css';
 
 export const metadata = {
@@ -12,7 +11,7 @@ export const metadata = {
 
 export default function RootLayout({
   children,
-}: PropsWithChildren): JSX.Element {
+}: PropsWithChildren): React.ReactNode {
   return (
     <html lang="en">
       <body>

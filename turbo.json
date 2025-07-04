@@ -6,12 +6,14 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
+      "cache": false,
       "env": [
         "REDIS_URL",
         "REMOTE_CACHE_SERVER_BASE_URL",
         "SERVER_STARTED",
         "PORT",
-        "PPR_ENABLED"
+        "PPR_ENABLED",
+        "NEXT_PRIVATE_DEBUG_CACHE"
       ],
       "outputs": [".next/**", "!.next/cache/**", "dist/**", "out/**"]
     },
@@ -19,13 +21,11 @@
       "dependsOn": ["^build:docs"],
       "outputs": [".next/**", "!.next/cache/**", "out/**"]
     },
-    "eslint:check": {
-      "cache": false,
-      "dependsOn": ["^eslint:check"]
+    "lint:check": {
+      "cache": false
     },
-    "eslint:fix": {
-      "cache": false,
-      "dependsOn": ["^eslint:fix"]
+    "lint:fix": {
+      "cache": false
     },
     "test": {
       "cache": false
@@ -48,6 +48,9 @@
     "dev:docs": {
       "cache": false,
       "persistent": true
+    },
+    "check-types": {
+      "cache": false
     }
   }
 }

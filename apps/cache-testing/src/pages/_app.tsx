@@ -1,8 +1,10 @@
+import Layout from './layout';
 import type { AppProps } from 'next/app';
 
-import Layout from './layout';
-
-export default function MyApp({ Component, pageProps }: AppProps): JSX.Element {
+export default function MyApp({
+  Component,
+  pageProps,
+}: AppProps): React.ReactNode {
   return (
     <Layout>
       <Component {...pageProps} />

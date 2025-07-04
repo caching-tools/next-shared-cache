@@ -1,10 +1,9 @@
 import { unstable_noStore as noStore } from 'next/cache';
 import { Suspense } from 'react';
-
 import { formatTime } from 'cache-testing/utils/format-time';
 import type { TimeBackendApiResponseJson } from 'cache-testing/utils/types';
 
-async function ActualData(): Promise<JSX.Element> {
+async function ActualData(): Promise<React.ReactNode> {
   noStore();
 
   const response = await fetch('http://localhost:8081/time', {
@@ -20,11 +19,11 @@ async function ActualData(): Promise<JSX.Element> {
   return <div data-pw="ppr-postponed">{formatTime(data.unixTimeMs)}</div>;
 }
 
-function Skeleton(): JSX.Element {
+function Skeleton(): React.ReactNode {
   return <div data-pw="ppr-prerendered">Skeleton</div>;
 }
 
-export default function Page(): JSX.Element {
+export default function Page(): React.ReactNode {
   return (
     <main>
       <h3>Partial Prerendering</h3>

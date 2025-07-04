@@ -1,20 +1,20 @@
 import { notFound } from 'next/navigation';
-
 import { CommonAppPage } from 'cache-testing/utils/common-app-page';
 import { createGetData } from 'cache-testing/utils/create-get-data';
 
 export const dynamicParams = false;
 
-export const revalidate = 5;
+const revalidate = 5;
 
-type PageParams = { params: { slug: string } };
+type PageParams = { params: Promise<{ slug: string }> };
 
-const getData = createGetData('app/no-params/dynamic-false');
+const getData = createGetData('app/no-params/dynamic-false', revalidate);
 
 export default async function Index({
   params,
-}: PageParams): Promise<JSX.Element> {
-  const data = await getData(params.slug);
+}: PageParams): Promise<React.ReactNode> {
+  const resolvedParams = await params;
+  const data = await getData(resolvedParams.slug);
 
   if (!data) {
     notFound();

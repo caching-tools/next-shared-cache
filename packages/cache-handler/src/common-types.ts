@@ -1,4 +1,4 @@
-import type { RedisClientType, createClient } from 'redis';
+import type { RedisClientType } from 'redis';
 
 export type RedisJSON = Parameters<RedisClientType['json']['set']>['2'];
 
@@ -7,9 +7,7 @@ export type RedisJSON = Parameters<RedisClientType['json']['set']>['2'];
  *
  * @since 1.0.0
  */
-export type CreateRedisStackHandlerOptions<
-  T = ReturnType<typeof createClient>,
-> = {
+export type CreateRedisStackHandlerOptions<T = RedisClientType> = {
   /**
    * The Redis client instance.
    *

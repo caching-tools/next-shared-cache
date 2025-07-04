@@ -1,9 +1,8 @@
-import type { CacheHandlerValue, Handler } from '../cache-handler';
-import type { CreateRedisStringsHandlerOptions } from '../common-types';
-
-import { REVALIDATED_TAGS_KEY } from '../constants';
-import { getTimeoutRedisCommandOptions } from '../helpers/get-timeout-redis-command-options';
-import { isImplicitTag } from '../helpers/is-implicit-tag';
+import superjson from 'superjson';
+import { REVALIDATED_TAGS_KEY } from '../constants.js';
+import { isTagImplicit } from '../helpers/is-tag-implicit.js';
+import type { CacheHandlerValue, Handler } from '../cache-handler.js';
+import type { CreateRedisStringsHandlerOptions } from '../common-types.js';
 
 export type { CreateRedisStringsHandlerOptions };
 
@@ -14,7 +13,19 @@ export type { CreateRedisStringsHandlerOptions };
  * It supports Redis Client. The resulting Handler includes
  * methods to get, set, and manage cache values fot on-demand revalidation.
  *
- * @param options - The configuration options for the Redis Handler. See {@link CreateRedisStringsHandlerOptions}.
+ * @param options - The configuration options for the Redis Handler.
+ *
+ * @param options.client - The Redis client.
+ *
+ * @param options.keyPrefix - The prefix to use for the Redis keys.
+ *
+ * @param options.sharedTagsKey - The key to use for the shared tags.
+ *
+ * @param options.timeoutMs - The timeout for the Redis operations.
+ *
+ * @param options.keyExpirationStrategy - The strategy to use for the key expiration.
+ *
+ * @param options.revalidateTagQuerySize - The size of the query to use for the revalidate tag.
  *
  * @returns An object representing the cache, with methods for cache operations.
  *
@@ -42,6 +53,11 @@ export default function createHandler({
   keyExpirationStrategy = 'EXPIREAT',
   revalidateTagQuerySize = 100,
 }: CreateRedisStringsHandlerOptions): Handler {
+  /**
+   * Asserts that the Redis client is ready.
+   *
+   * @throws An error if the Redis client is not ready.
+   */
   function assertClientIsReady(): void {
     if (!client.isReady) {
       throw new Error(
@@ -54,19 +70,21 @@ export default function createHandler({
 
   return {
     name: 'redis-strings',
-    async get(key, { implicitTags }) {
+    async get(
+      key,
+      { implicitTags },
+    ): Promise<CacheHandlerValue | null | undefined> {
       assertClientIsReady();
 
-      const result = await client.get(
-        getTimeoutRedisCommandOptions(timeoutMs),
-        keyPrefix + key,
-      );
+      const result = await client
+        .withAbortSignal(AbortSignal.timeout(timeoutMs))
+        .get(keyPrefix + key);
 
       if (!result) {
         return null;
       }
 
-      const cacheValue = JSON.parse(result) as CacheHandlerValue | null;
+      const cacheValue = superjson.parse<CacheHandlerValue | null>(result);
 
       if (!cacheValue) {
         return null;
@@ -78,21 +96,18 @@ export default function createHandler({
         return cacheValue;
       }
 
-      const revalidationTimes = await client.hmGet(
-        getTimeoutRedisCommandOptions(timeoutMs),
-        revalidatedTagsKey,
-        Array.from(combinedTags),
-      );
+      const revalidationTimes = await client
+        .withAbortSignal(AbortSignal.timeout(timeoutMs))
+        .hmGet(revalidatedTagsKey, Array.from(combinedTags));
 
       for (const timeString of revalidationTimes) {
         if (
           timeString &&
           Number.parseInt(timeString, 10) > cacheValue.lastModified
         ) {
-          await client.unlink(
-            getTimeoutRedisCommandOptions(timeoutMs),
-            keyPrefix + key,
-          );
+          await client
+            .withAbortSignal(AbortSignal.timeout(timeoutMs))
+            .unlink(keyPrefix + key);
 
           return null;
         }
@@ -100,21 +115,20 @@ export default function createHandler({
 
       return cacheValue;
     },
-    async set(key, cacheHandlerValue) {
+    async set(key, cacheHandlerValue): Promise<void> {
       assertClientIsReady();
 
-      const options = getTimeoutRedisCommandOptions(timeoutMs);
+      const signal = AbortSignal.timeout(timeoutMs);
 
       let setOperation: Promise<string | null>;
 
-      let expireOperation: Promise<boolean> | undefined;
+      let expireOperation: Promise<number> | undefined;
 
       switch (keyExpirationStrategy) {
         case 'EXAT': {
-          setOperation = client.set(
-            options,
+          setOperation = client.withAbortSignal(signal).set(
             keyPrefix + key,
-            JSON.stringify(cacheHandlerValue),
+            superjson.stringify(cacheHandlerValue),
             typeof cacheHandlerValue.lifespan?.expireAt === 'number'
               ? {
                   EXAT: cacheHandlerValue.lifespan.expireAt,
@@ -124,18 +138,14 @@ export default function createHandler({
           break;
         }
         case 'EXPIREAT': {
-          setOperation = client.set(
-            options,
-            keyPrefix + key,
-            JSON.stringify(cacheHandlerValue),
-          );
+          setOperation = client
+            .withAbortSignal(signal)
+            .set(keyPrefix + key, superjson.stringify(cacheHandlerValue));
 
           expireOperation = cacheHandlerValue.lifespan
-            ? client.expireAt(
-                options,
-                keyPrefix + key,
-                cacheHandlerValue.lifespan.expireAt,
-              )
+            ? client
+                .withAbortSignal(signal)
+                .expireAt(keyPrefix + key, cacheHandlerValue.lifespan.expireAt)
             : undefined;
           break;
         }
@@ -148,50 +158,39 @@ export default function createHandler({
 
       const setTagsOperation =
         cacheHandlerValue.tags.length > 0
-          ? client.hSet(
-              options,
-              keyPrefix + sharedTagsKey,
-              key,
-              JSON.stringify(cacheHandlerValue.tags),
-            )
+          ? client
+              .withAbortSignal(signal)
+              .hSet(
+                keyPrefix + sharedTagsKey,
+                key,
+                superjson.stringify(cacheHandlerValue.tags),
+              )
           : undefined;
 
       await Promise.all([setOperation, expireOperation, setTagsOperation]);
     },
-    async revalidateTag(tag) {
+    async revalidateTag(tag): Promise<void> {
       assertClientIsReady();
 
       // If the tag is an implicit tag, we need to mark it as revalidated.
       // The revalidation process is done by the CacheHandler class on the next get operation.
-      if (isImplicitTag(tag)) {
-        await client.hSet(
-          getTimeoutRedisCommandOptions(timeoutMs),
-          revalidatedTagsKey,
-          tag,
-          Date.now(),
-        );
+      if (isTagImplicit(tag)) {
+        await client
+          .withAbortSignal(AbortSignal.timeout(timeoutMs))
+          .hSet(revalidatedTagsKey, tag, Date.now());
       }
 
       const tagsMap: Map<string, string[]> = new Map();
 
-      let cursor = 0;
-
       const hScanOptions = { COUNT: revalidateTagQuerySize };
 
-      do {
-        const remoteTagsPortion = await client.hScan(
-          getTimeoutRedisCommandOptions(timeoutMs),
-          keyPrefix + sharedTagsKey,
-          cursor,
-          hScanOptions,
-        );
-
-        for (const { field, value } of remoteTagsPortion.tuples) {
-          tagsMap.set(field, JSON.parse(value));
+      for await (const entries of client
+        .withAbortSignal(AbortSignal.timeout(timeoutMs))
+        .hScanIterator(keyPrefix + sharedTagsKey, hScanOptions)) {
+        for (const { field, value } of entries) {
+          tagsMap.set(field, superjson.parse(value));
         }
-
-        cursor = remoteTagsPortion.cursor;
-      } while (cursor !== 0);
+      }
 
       const keysToDelete: string[] = [];
 
@@ -208,21 +207,18 @@ export default function createHandler({
         return;
       }
 
-      const deleteKeysOperation = client.unlink(
-        getTimeoutRedisCommandOptions(timeoutMs),
-        keysToDelete,
-      );
+      const deleteKeysOperation = client
+        .withAbortSignal(AbortSignal.timeout(timeoutMs))
+        .unlink(keysToDelete);
 
-      const updateTagsOperation = client.hDel(
-        { isolated: true, ...getTimeoutRedisCommandOptions(timeoutMs) },
-        keyPrefix + sharedTagsKey,
-        tagsToDelete,
-      );
+      const updateTagsOperation = client
+        .withAbortSignal(AbortSignal.timeout(timeoutMs))
+        .hDel(keyPrefix + sharedTagsKey, tagsToDelete);
 
       await Promise.all([deleteKeysOperation, updateTagsOperation]);
     },
-    async delete(key) {
-      await client.unlink(getTimeoutRedisCommandOptions(timeoutMs), key);
+    async delete(key): Promise<void> {
+      await client.withAbortSignal(AbortSignal.timeout(timeoutMs)).unlink(key);
     },
   };
 }

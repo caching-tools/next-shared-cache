@@ -10,7 +10,7 @@ updates:
     open-pull-requests-limit: 20
     ignore:
       - dependency-name: 'lru-cache'
-        versions: ['11.x.x']
+        versions: ['>=11.0.0']
     groups:
       next-js:
         patterns:

@@ -8,7 +8,6 @@
   "baseBranch": "canary",
   "updateInternalDependencies": "patch",
   "ignore": [
-    "@neshca/server",
     "@repo/backend",
     "@repo/cache-handler-docs",
     "@repo/cache-testing",

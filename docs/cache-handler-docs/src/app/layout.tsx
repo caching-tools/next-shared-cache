@@ -1,6 +1,6 @@
-import { Footer, Layout, Navbar } from 'nextra-theme-docs';
 import { Banner } from 'nextra/components';
 import { getPageMap } from 'nextra/page-map';
+import { Footer, Layout, Navbar } from 'nextra-theme-docs';
 import type { ReactNode } from 'react';
 import 'nextra-theme-docs/style.css';
 
@@ -53,7 +53,6 @@ export default async function RootLayout({
           docsRepositoryBase="https://github.com/caching-tools/next-shared-cache/tree/canary/docs/cache-handler-docs"
           footer={footer}
         >
-          {/* @ts-expect-error - will be fixed when all react types will be updated to v19*/}
           {children}
         </Layout>
       </body>

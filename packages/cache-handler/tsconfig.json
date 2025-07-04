@@ -1,13 +1,10 @@
 {
-  "extends": "@repo/typescript-config/base.json",
-  "include": ["."],
-  "exclude": ["dist", "node_modules"],
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "@repo/typescript-config/lib.json",
   "compilerOptions": {
-    "paths": {
-      "@repo/next-common": ["../../internal/next-common/src/next-common.ts"],
-      "@repo/next-lru-cache/next-cache-handler-value": [
-        "../../internal/next-lru-cache/src/cache-types/next-cache-handler-value.ts"
-      ]
-    }
-  }
+    "rootDir": ".",
+    "erasableSyntaxOnly": true
+  },
+  "include": ["**/*.ts"],
+  "exclude": ["node_modules", "dist"]
 }

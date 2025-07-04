@@ -1,16 +1,19 @@
-import { ErrorReply, SchemaFieldTypes } from 'redis';
-
 import { randomBytes } from 'node:crypto';
-import type { CacheHandlerValue, Handler } from '../cache-handler';
+import { ErrorReply, SCHEMA_FIELD_TYPE } from 'redis';
+import { REVALIDATED_TAGS_KEY, TIME_ONE_YEAR } from '../constants.js';
+import { isTagImplicit } from '../helpers/is-tag-implicit.js';
+import type { CacheHandlerValue, Handler } from '../cache-handler.js';
 import type {
   CreateRedisStackHandlerOptions,
   RedisJSON,
-} from '../common-types';
-import { REVALIDATED_TAGS_KEY, TIME_ONE_YEAR } from '../constants';
-import { getTimeoutRedisCommandOptions } from '../helpers/get-timeout-redis-command-options';
-import { isImplicitTag } from '../helpers/is-implicit-tag';
+} from '../common-types.js';
 
 export type { CreateRedisStackHandlerOptions };
+
+type SearchNoContentReply = {
+  total: number;
+  documents: string[];
+};
 
 /**
  * Creates a Handler for handling cache operations using Redis JSON.
@@ -20,6 +23,14 @@ export type { CreateRedisStackHandlerOptions };
  * methods to get, set, and manage cache values fot on-demand revalidation.
  *
  * @param options - The configuration options for the Redis Stack Handler. See {@link CreateRedisStackHandlerOptions}.
+ *
+ * @param options.client - The Redis client.
+ *
+ * @param options.keyPrefix - The prefix to use for the Redis keys.
+ *
+ * @param options.timeoutMs - The timeout for the Redis operations.
+ *
+ * @param options.revalidateTagQuerySize - The size of the query to use for the revalidate tag.
  *
  * @returns An object representing the cache, with methods for cache operations.
  *
@@ -44,24 +55,41 @@ export default function createHandler({
   timeoutMs = 5000,
   revalidateTagQuerySize = 100,
 }: CreateRedisStackHandlerOptions): Handler {
+  /**
+   * Asserts that the Redis client is ready.
+   *
+   * @throws An error if the Redis client is not ready.
+   */
   function assertClientIsReady(): void {
     if (!client.isReady) {
       throw new Error('Redis client is not ready');
     }
   }
 
-  function sanitizeTag(str: string) {
+  /**
+   * Sanitizes a tag to be used in Redis.
+   *
+   * @param str - The tag to sanitize.
+   *
+   * @returns The sanitized tag.
+   */
+  function sanitizeTag(str: string): string {
     return str.replace(/[^a-zA-Z0-9]/gi, '_');
   }
 
   const indexName = `idx:tags-${randomBytes(32).toString('hex')}`;
 
+  /**
+   * Creates an index if it does not exist.
+   *
+   * @throws An error if the creation of the index fails but not because the index already exists.
+   */
   async function createIndexIfNotExists(): Promise<void> {
     try {
       await client.ft.create(
         indexName,
         {
-          '$.tags': { type: SchemaFieldTypes.TEXT, AS: 'tag' },
+          '$.tags': { type: SCHEMA_FIELD_TYPE.TEXT, AS: 'tag' },
         },
         {
           ON: 'JSON',
@@ -84,13 +112,15 @@ export default function createHandler({
 
   return {
     name: 'redis-stack',
-    async get(key, { implicitTags }) {
+    async get(
+      key,
+      { implicitTags },
+    ): Promise<CacheHandlerValue | null | undefined> {
       assertClientIsReady();
 
-      const cacheValue = (await client.json.get(
-        getTimeoutRedisCommandOptions(timeoutMs),
-        keyPrefix + key,
-      )) as CacheHandlerValue | null;
+      const cacheValue = (await client
+        .withAbortSignal(AbortSignal.timeout(timeoutMs))
+        .json.get(keyPrefix + key)) as CacheHandlerValue | null;
 
       if (!cacheValue) {
         return null;
@@ -107,21 +137,18 @@ export default function createHandler({
         return cacheValue;
       }
 
-      const revalidationTimes = await client.hmGet(
-        getTimeoutRedisCommandOptions(timeoutMs),
-        revalidatedTagsKey,
-        Array.from(combinedTags),
-      );
+      const revalidationTimes = await client
+        .withAbortSignal(AbortSignal.timeout(timeoutMs))
+        .hmGet(revalidatedTagsKey, Array.from(combinedTags));
 
       for (const timeString of revalidationTimes) {
         if (
           timeString &&
           Number.parseInt(timeString, 10) > cacheValue.lastModified
         ) {
-          await client.unlink(
-            getTimeoutRedisCommandOptions(timeoutMs),
-            keyPrefix + key,
-          );
+          await client
+            .withAbortSignal(AbortSignal.timeout(timeoutMs))
+            .unlink(keyPrefix + key);
 
           return null;
         }
@@ -129,31 +156,30 @@ export default function createHandler({
 
       return cacheValue;
     },
-    async set(key, cacheHandlerValue) {
+    async set(key, cacheHandlerValue): Promise<void> {
       assertClientIsReady();
 
       cacheHandlerValue.tags = cacheHandlerValue.tags.map(sanitizeTag);
 
-      const options = getTimeoutRedisCommandOptions(timeoutMs);
+      const signal = AbortSignal.timeout(timeoutMs);
 
-      const setCacheValue = client.json.set(
-        options,
-        keyPrefix + key,
-        '.',
-        cacheHandlerValue as unknown as RedisJSON,
-      );
+      const setCacheValue = client
+        .withAbortSignal(signal)
+        .json.set(
+          keyPrefix + key,
+          '.',
+          cacheHandlerValue as unknown as RedisJSON,
+        );
 
       const expireCacheValue = cacheHandlerValue.lifespan
-        ? client.expireAt(
-            options,
-            keyPrefix + key,
-            cacheHandlerValue.lifespan.expireAt,
-          )
+        ? client
+            .withAbortSignal(signal)
+            .expireAt(keyPrefix + key, cacheHandlerValue.lifespan.expireAt)
         : undefined;
 
       await Promise.all([setCacheValue, expireCacheValue]);
     },
-    async revalidateTag(tag) {
+    async revalidateTag(tag): Promise<void> {
       assertClientIsReady();
 
       await createIndexIfNotExists();
@@ -162,13 +188,10 @@ export default function createHandler({
 
       // If the tag is an implicit tag, we need to mark it as revalidated.
       // The revalidation process is done by the CacheHandler class on the next get operation.
-      if (isImplicitTag(tag)) {
-        await client.hSet(
-          getTimeoutRedisCommandOptions(timeoutMs),
-          revalidatedTagsKey,
-          sanitizedTag,
-          Date.now(),
-        );
+      if (isTagImplicit(tag)) {
+        await client
+          .withAbortSignal(AbortSignal.timeout(timeoutMs))
+          .hSet(revalidatedTagsKey, sanitizedTag, Date.now());
       }
 
       let from = 0;
@@ -176,15 +199,14 @@ export default function createHandler({
       const keysToDelete: string[] = [];
 
       while (true) {
-        const { documents: documentIds } = await client.ft.searchNoContent(
-          getTimeoutRedisCommandOptions(timeoutMs),
+        const { documents: documentIds } = (await client.ft.searchNoContent(
           indexName,
           `@tag:(${sanitizedTag})`,
           {
             LIMIT: { from, size: revalidateTagQuerySize },
             TIMEOUT: timeoutMs,
           },
-        );
+        )) as SearchNoContentReply;
 
         for (const id of documentIds) {
           keysToDelete.push(id);
@@ -201,12 +223,12 @@ export default function createHandler({
         return;
       }
 
-      const options = getTimeoutRedisCommandOptions(timeoutMs);
+      const signal = AbortSignal.timeout(timeoutMs);
 
-      await client.unlink(options, keysToDelete);
+      await client.withAbortSignal(signal).unlink(keysToDelete);
     },
-    async delete(key) {
-      await client.unlink(getTimeoutRedisCommandOptions(timeoutMs), key);
+    async delete(key): Promise<void> {
+      await client.withAbortSignal(AbortSignal.timeout(timeoutMs)).unlink(key);
     },
   };
 }

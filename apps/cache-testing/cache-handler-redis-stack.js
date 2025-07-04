@@ -1,9 +1,9 @@
 // @ts-check
 
-const { CacheHandler } = require('@neshca/cache-handler');
-const createLruHandler = require('@neshca/cache-handler/local-lru').default;
-const createRedisHandler = require('@neshca/cache-handler/redis-stack').default;
-const { createClient } = require('redis');
+import { CacheHandler } from '@neshca/cache-handler';
+import createLruHandler from '@neshca/cache-handler/handlers/local-lru';
+import createRedisHandler from '@neshca/cache-handler/handlers/redis-stack';
+import { createClient } from 'redis';
 
 CacheHandler.onCreation(async () => {
   if (!process.env.REDIS_URL) {
@@ -17,6 +17,7 @@ CacheHandler.onCreation(async () => {
   try {
     // Create a Redis client.
     client = createClient({
+      RESP: 2,
       url: process.env.REDIS_URL,
       name: `cache-handler:${process.env.PORT ?? process.pid}`,
     });
@@ -45,16 +46,7 @@ CacheHandler.onCreation(async () => {
 
       console.warn('Disconnecting the Redis client...');
       // Try to disconnect the client to stop it from reconnecting.
-      client
-        .disconnect()
-        .then(() => {
-          console.info('Redis client disconnected.');
-        })
-        .catch(() => {
-          console.warn(
-            'Failed to quit the Redis client after failing to connect.',
-          );
-        });
+      client.destroy();
     }
   }
 
@@ -86,4 +78,4 @@ CacheHandler.onCreation(async () => {
   };
 });
 
-module.exports = CacheHandler;
+export default CacheHandler;

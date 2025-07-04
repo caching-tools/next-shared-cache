@@ -1,15 +1,14 @@
-import type { PageProps } from './types';
-
+import { useRouter } from 'next/router';
 import { CacheStateWatcher } from 'cache-testing/components/cache-state-watcher';
 import { PreRenderedAt } from 'cache-testing/components/pre-rendered-at';
-import { useRouter } from 'next/router';
+import type { PageProps } from './types';
 
 export function CommonPagesPage({
   count,
   revalidateAfter,
   time,
   path,
-}: PageProps): JSX.Element {
+}: PageProps): React.ReactNode {
   const { isFallback } = useRouter();
 
   return (

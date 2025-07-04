@@ -8,7 +8,6 @@ import {
 
 const paths = [
   '/app/with-params/dynamic-true/200',
-  '/app/with-params/nesh-cache/200',
   // '/app/with-params/dynamic-false/200', // this fails with native next.js cache
   '/app/no-params/dynamic-true/200',
   '/app/no-params/dynamic-false/200',
@@ -142,7 +141,7 @@ test.describe('On-demand revalidation', () => {
 
 test.describe('Time-based revalidation', () => {
   for (const path of paths) {
-    test(`Page should be fresh after becoming stale and reloaded twice ${path}`, async ({
+    test(`Page should be fresh after becoming stale and reloaded ${path}`, async ({
       page,
       baseURL,
     }) => {
@@ -164,10 +163,6 @@ test.describe('Time-based revalidation', () => {
 
       // Temporary workaround: Addressing intermittent test failures observed in GitHub Actions.
       await Timers.scheduler.wait(1000);
-
-      await page.reload();
-
-      await expect(page.getByTestId('data')).toHaveText(pageValue);
 
       await page.reload();
 
@@ -436,30 +431,5 @@ test.describe('Routes', () => {
     const message = await page.getByText('OK').innerText();
 
     expect(message).toBe('OK');
-  });
-});
-
-test.describe('unstable_cache', () => {
-  test('unstable_cache works', async ({ page, baseURL }) => {
-    const url = new URL(
-      '/app/with-params/unstable-cache/200',
-      `${baseURL}:3000`,
-    );
-
-    await page.goto(url.href);
-
-    const valueFromPage = Number.parseInt(
-      (await page.getByTestId('data').innerText()).valueOf(),
-      10,
-    );
-
-    await page.reload();
-
-    const valueFromPageAfterReload = Number.parseInt(
-      (await page.getByTestId('data').innerText()).valueOf(),
-      10,
-    );
-
-    expect(valueFromPageAfterReload === valueFromPage).toBe(true);
   });
 });

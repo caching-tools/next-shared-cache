@@ -13,7 +13,6 @@ on:
       - '.github/workflows/tests.yml'
       - 'internal/eslint-config/**'
       - 'package.json'
-      - 'biome.json'
       - 'turbo.json'
       - 'prettier.config.js'
   pull_request:
@@ -28,7 +27,6 @@ on:
       - '.github/workflows/tests.yml'
       - 'internal/eslint-config/**'
       - 'package.json'
-      - 'biome.json'
       - 'turbo.json'
       - 'prettier.config.js'
 jobs:
@@ -68,7 +66,7 @@ jobs:
       - name: Replace Path with Sed
         run: |
           if [ "${{ matrix.handler }}" == "redis-strings" ]; then
-            sed -i 's/cache-handler-redis-stack/cache-handler-redis-strings/g' apps/cache-testing/next.config.mjs
+            sed -i 's/cache-handler-redis-stack/cache-handler-redis-strings/g' apps/cache-testing/next.config.ts
             sed -i 's/cache-handler-redis-stack/cache-handler-redis-strings/g' apps/cache-testing/src/instrumentation.ts
           fi
 

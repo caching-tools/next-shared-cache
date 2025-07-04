@@ -1,12 +1,11 @@
+import { CacheStateWatcher } from 'cache-testing/components/cache-state-watcher';
+import { PreRenderedAt } from 'cache-testing/components/pre-rendered-at';
+import type { RandomHexPageProps } from 'cache-testing/utils/types';
 import type {
   GetStaticPathsResult,
   GetStaticPropsContext,
   GetStaticPropsResult,
 } from 'next';
-
-import { CacheStateWatcher } from 'cache-testing/components/cache-state-watcher';
-import { PreRenderedAt } from 'cache-testing/components/pre-rendered-at';
-import type { RandomHexPageProps } from 'cache-testing/utils/types';
 
 const lengthSteps = new Array(5).fill(0).map((_, i) => 10 ** (i + 1));
 
@@ -50,7 +49,7 @@ export function getStaticPaths(): Promise<GetStaticPathsResult> {
 export default function Page({
   randomHex,
   unixTimeMs,
-}: RandomHexPageProps): JSX.Element {
+}: RandomHexPageProps): React.ReactNode {
   return (
     <div>
       <div data-pw="random-hex">{randomHex}</div>

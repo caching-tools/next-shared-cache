@@ -1,16 +1,14 @@
 import { Suspense } from 'react';
-
-import type { PageProps } from './types';
-
 import { CacheStateWatcher } from 'cache-testing/components/cache-state-watcher';
 import { PreRenderedAt } from 'cache-testing/components/pre-rendered-at';
+import type { PageProps } from './types';
 
 export function CommonAppPage({
   count,
   revalidateAfter,
   time,
   path,
-}: PageProps): JSX.Element {
+}: PageProps): React.ReactNode {
   return (
     <div>
       <div data-pw="data" id={path}>

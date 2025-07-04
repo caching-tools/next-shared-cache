@@ -8,37 +8,33 @@
     "build:docs": "turbo run build:docs --filter=@repo/cache-handler-docs",
     "build:packages": "turbo run build --filter=!./apps/* --filter=!./docs/*",
     "build:test-app": "turbo run build --filter=@repo/cache-testing",
-    "changeset": "changeset",
+    "change": "changeset",
+    "check-types": "turbo run check-types",
     "ci:publish": "changeset publish",
     "ci:version": "changeset version && pnpm codestyle:fix",
-    "codestyle:check": "biome check . && pnpm prettier:check",
-    "codestyle:fix": "biome check --write . && pnpm prettier:fix",
+    "codestyle:check": "pnpm lint:check && pnpm prettier:check && pnpm check-types",
+    "codestyle:fix": "pnpm lint:fix && pnpm prettier:fix && pnpm check-types",
     "dev:docs": "turbo run dev:docs --filter=@repo/cache-handler-docs",
-    "dev:packages": "turbo run dev --filter=!@neshca/server",
+    "dev:packages": "turbo run dev",
     "e2e": "turbo run e2e",
-    "eslint:check": "turbo run eslint:check",
-    "eslint:fix": "turbo run eslint:fix",
-    "prettier:check": "prettier --check **/*.{md,mdx,yml,json}",
-    "prettier:fix": "prettier --write **/*.{md,mdx,yml,json}",
+    "lint:check": "turbo run lint:check",
+    "lint:fix": "turbo run lint:fix",
+    "playwright:install": "pnpm -F @repo/cache-testing playwright:install",
+    "prettier:check": "NODE_OPTIONS=\"--experimental-strip-types\" prettier . --check --cache",
+    "prettier:fix": "NODE_OPTIONS=\"--experimental-strip-types\" prettier . --write --cache",
     "start:backend": "turbo run start --filter=@repo/backend",
     "start:test-app": "turbo run start --filter=@repo/cache-testing",
     "test": "turbo run test"
   },
   "devDependencies": {
-    "@biomejs/biome": "1.9.4",
-    "@changesets/cli": "2.27.12",
-    "prettier": "3.4.2",
-    "prettier-plugin-packagejson": "2.5.8",
-    "turbo": "2.4.0"
+    "@changesets/cli": "2.29.5",
+    "prettier": "3.6.2",
+    "prettier-plugin-packagejson": "2.5.18",
+    "turbo": "2.5.4",
+    "typescript": "5.8.3"
   },
-  "packageManager": "pnpm@10.2.1+sha512.398035c7bd696d0ba0b10a688ed558285329d27ea994804a52bad9167d8e3a72bcb993f9699585d3ca25779ac64949ef422757a6c31102c12ab932e5cbe5cc92",
+  "packageManager": "pnpm@10.12.4+sha512.5ea8b0deed94ed68691c9bad4c955492705c5eeb8a87ef86bc62c74a26b037b08ff9570f108b2e4dbd1dd1a9186fea925e527f141c648e85af45631074680184",
   "engines": {
     "node": ">=22.11.0"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "@biomejs/biome",
-      "esbuild"
-    ]
   }
 }

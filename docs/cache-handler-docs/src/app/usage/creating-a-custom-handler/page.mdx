@@ -18,7 +18,7 @@ Create a file called `cache-handler.mjs` next to your `next.config.js` with the 
 
 ```js filename="cache-handler.mjs" copy
 import { CacheHandler } from '@neshca/cache-handler';
-import { isImplicitTag } from '@neshca/cache-handler/helpers';
+import { isTagImplicit } from '@neshca/cache-handler/helpers';
 import { createClient, commandOptions } from 'redis';
 
 CacheHandler.onCreation(async () => {
@@ -179,7 +179,7 @@ CacheHandler.onCreation(async () => {
 
       // Check if the tag is implicit.
       // Implicit tags are not stored in the cached values.
-      if (isImplicitTag(tag)) {
+      if (isTagImplicit(tag)) {
         // Mark the tag as revalidated at the current time.
         await client.hSet(
           commandOptions({ signal: AbortSignal.timeout(timeoutMs) }),

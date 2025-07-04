@@ -1,5 +1,9 @@
 packages:
-  - 'apps/*'
-  - 'packages/*'
-  - 'docs/cache-handler-docs'
-  - 'internal/*'
+  - apps/*
+  - packages/*
+  - docs/cache-handler-docs
+  - internal/*
+onlyBuiltDependencies:
+  - esbuild
+  - sharp
+  - unrs-resolver

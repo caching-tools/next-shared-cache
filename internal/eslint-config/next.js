@@ -1,41 +1,33 @@
-import js from '@eslint/js';
+import { globalIgnores } from 'eslint/config';
 import pluginNext from '@next/eslint-plugin-next';
-import eslintConfigPrettier from 'eslint-config-prettier';
 import pluginReact from 'eslint-plugin-react';
 import pluginReactHooks from 'eslint-plugin-react-hooks';
-import turboPlugin from 'eslint-plugin-turbo';
-import globals from 'globals';
 import tseslint from 'typescript-eslint';
+import baseEslintConfig from './base.js';
 
 /**
  * A shared ESLint configuration for the repository.
  *
- * @type {import("eslint").Linter.Config}
+ * @type {import("typescript-eslint").ConfigArray}
  * */
-export const nextJsConfig = [
-  js.configs.recommended,
-  eslintConfigPrettier,
-  ...tseslint.configs.recommended,
+export const nextJsConfig = tseslint.config(
+  globalIgnores(['**/.next']),
+  baseEslintConfig,
   {
-    plugins: {
-      turbo: turboPlugin,
-    },
+    extends: [
+      pluginReact.configs.flat.recommended,
+      pluginReact.configs.flat['jsx-runtime'],
+    ],
     rules: {
-      'turbo/no-undeclared-env-vars': 'warn',
+      'react/prop-types': 'off',
     },
-  },
-  {
-    ignores: ['dist/**'],
-  },
-  {
-    ...pluginReact.configs.flat.recommended,
-    languageOptions: {
-      ...pluginReact.configs.flat.recommended.languageOptions,
-      globals: {
-        ...globals.serviceworker,
+    settings: {
+      react: {
+        version: 'detect',
       },
     },
   },
+  pluginReactHooks.configs['recommended-latest'],
   {
     plugins: {
       '@next/next': pluginNext,
@@ -46,14 +38,9 @@ export const nextJsConfig = [
     },
   },
   {
-    plugins: {
-      'react-hooks': pluginReactHooks,
-    },
-    settings: { react: { version: 'detect' } },
     rules: {
-      ...pluginReactHooks.configs.recommended.rules,
-      // React scope no longer necessary with new JSX transform.
-      'react/react-in-jsx-scope': 'off',
+      'check-file/filename-naming-convention': 'off',
+      'check-file/folder-naming-convention': 'off',
     },
   },
-];
+);

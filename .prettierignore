@@ -1,5 +1,6 @@
 # Dependencies
 node_modules
+pnpm-lock.yaml
 .pnp
 .pnp.js
 
@@ -36,13 +37,5 @@ yarn-error.log*
 # Misc
 .DS_Store
 *.pem
-
-
-# biome formatted files
-*.js
-*.ts
-*.tsx
-*.jsx
-*.cjs
-*.mjs
-*.mts
+tsconfig.tsbuildinfo
+tsconfig.build.tsbuildinfo
