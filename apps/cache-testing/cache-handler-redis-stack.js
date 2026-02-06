@@ -1,6 +1,7 @@
 // @ts-check
 
 const { CacheHandler } = require('@neshca/cache-handler');
+const { getClientInfoTag } = require('@neshca/cache-handler/helpers');
 const createLruHandler = require('@neshca/cache-handler/local-lru').default;
 const createRedisHandler = require('@neshca/cache-handler/redis-stack').default;
 const { createClient } = require('redis');
@@ -19,6 +20,7 @@ CacheHandler.onCreation(async () => {
     client = createClient({
       url: process.env.REDIS_URL,
       name: `cache-handler:${process.env.PORT ?? process.pid}`,
+      clientInfoTag: getClientInfoTag(),
     });
 
     // Redis won't work without error handling. https://github.com/redis/node-redis?tab=readme-ov-file#events
