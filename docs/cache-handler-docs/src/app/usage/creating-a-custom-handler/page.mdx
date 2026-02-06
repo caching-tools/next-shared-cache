@@ -18,13 +18,14 @@ Create a file called `cache-handler.mjs` next to your `next.config.js` with the 
 
 ```js filename="cache-handler.mjs" copy
 import { CacheHandler } from '@neshca/cache-handler';
-import { isImplicitTag } from '@neshca/cache-handler/helpers';
+import { getClientInfoTag, isImplicitTag } from '@neshca/cache-handler/helpers';
 import { createClient, commandOptions } from 'redis';
 
 CacheHandler.onCreation(async () => {
   // Always create a Redis client inside the `onCreation` callback.
   const client = createClient({
     url: 'redis://localhost:6379',
+    clientInfoTag: getClientInfoTag(),
   });
 
   // Redis won't work without error handling. https://github.com/redis/node-redis?tab=readme-ov-file#events

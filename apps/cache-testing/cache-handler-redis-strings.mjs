@@ -1,6 +1,7 @@
 // @ts-check
 
 import { CacheHandler } from '@neshca/cache-handler';
+import { getClientInfoTag } from '@neshca/cache-handler/helpers';
 import createRedisHandler from '@neshca/cache-handler/redis-strings';
 import { createClient } from 'redis';
 
@@ -17,6 +18,7 @@ CacheHandler.onCreation(async () => {
   const client = createClient({
     url: process.env.REDIS_URL,
     name: `cache-handler:${PREFIX}${process.env.PORT ?? process.pid}`,
+    clientInfoTag: getClientInfoTag(),
   });
 
   // Redis won't work without error handling. https://github.com/redis/node-redis?tab=readme-ov-file#events
